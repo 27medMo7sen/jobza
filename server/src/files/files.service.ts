@@ -22,6 +22,7 @@ export class FilesService {
   ) {
     const folder = type === 'picture' ? 'pictures' : 'documents';
     const key = `${userId}/${folder}/${Date.now()}-${file.originalname}`;
+
     const url = await this.awsS3Service.uploadFile(key, file);
 
     const savedFile = new this.fileModel({
