@@ -53,7 +53,7 @@ export class AgencySignupDto {
 
   @IsString()
   @IsNotEmpty()
-  fullName: string;
+  userName: string;
 
   @IsString()
   @IsNotEmpty()

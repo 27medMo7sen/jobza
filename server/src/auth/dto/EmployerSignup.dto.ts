@@ -54,11 +54,7 @@ export class EmployerSignupDto {
 
   @IsString()
   @IsNotEmpty()
-  firstName: string;
-
-  @IsString()
-  @IsNotEmpty()
-  lastName: string;
+  userName: string;
 
   @IsString()
   role: string;

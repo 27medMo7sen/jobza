@@ -1,14 +1,13 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
+import { Types } from 'mongoose';
+import { Auth } from 'src/auth/auth.model';
 @Schema({ timestamps: true })
 export class Worker {
-  @Prop({ required: true, unique: true })
-  userId: string;
+  @Prop({ type: Types.ObjectId, ref: Auth.name, required: true })
+  userId: Types.ObjectId;
 
   @Prop()
-  firstName: string;
-
-  @Prop()
-  lastName: string;
+  userName: string;
 
   @Prop()
   phoneNumber: string;
@@ -21,5 +20,8 @@ export class Worker {
 
   @Prop()
   dateOfBirth: string;
+
+  @Prop()
+  isAffiliated: boolean;
 }
 export const WorkerSchema = SchemaFactory.createForClass(Worker);
