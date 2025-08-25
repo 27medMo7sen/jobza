@@ -12,6 +12,7 @@ import { EmployerService } from 'src/employer/employer.service';
 import { AgencySignupDto } from './dto/agencySignup.dto';
 import { EmployerSignupDto } from './dto/EmployerSignup.dto';
 import { AgencyService } from 'src/agency/agency.service';
+import { FilesService } from 'src/files/files.service';
 @Injectable()
 export class AuthService {
   constructor(
@@ -21,6 +22,7 @@ export class AuthService {
     private readonly workerService: WorkerService,
     private readonly employerService: EmployerService,
     private readonly agencyService: AgencyService,
+    private readonly filesService: FilesService,
   ) {}
   //MARK: signup
   async signup(body: WorkerSignupDto | EmployerSignupDto | AgencySignupDto) {
@@ -113,11 +115,14 @@ export class AuthService {
       email: user.email,
     });
     user.token = token;
-    const updatedUser = await this.authModel.findByIdAndUpdate(user._id, {
-      token,
-    });
-    // console.log('User:', user);
-    return { user: updatedUser };
+    const updatedUser = await this.authModel.findByIdAndUpdate(
+      user._id,
+      {
+        token,
+      },
+      { new: true },
+    );
+    return { user: updatedUser, token };
   }
   //MARK: getUserByEmail
   async getUserByEmail(email: string): Promise<Auth | null> {
@@ -150,17 +155,18 @@ export class AuthService {
       });
       if (role === 'worker') {
         await this.workerService.createWorker({
-          firstName: _json.given_name,
+          userName: _json.given_name,
           userId: newUser._id,
         });
+ 
       } else if (role === 'employer') {
-        await this.employerService.createEmployer({
+        await this.employerService.createEmployerWithUserId(newUser._id.toString(), {
           firstName: _json.given_name,
           userId: newUser._id,
         });
       } else if (role === 'agency') {
         await this.agencyService.createAgency({
-          agencyName: _json.given_name,
+         userName: _json.given_name,
           userId: newUser._id,
         });
       }
@@ -211,5 +217,219 @@ export class AuthService {
       throw new HttpException('User not found', 404);
     }
     return user;
+  }
+
+  //MARK: updateUser
+  async updateUser(userId: string, updateData: any) {
+    let currentUser: any;
+    try {
+      // Get the current user
+      currentUser = await this.authModel.findById(userId);
+      if (!currentUser) {
+        throw new HttpException('User not found', 404);
+      }
+
+      // Handle file updates first
+      await this.handleFileUpdates(userId, currentUser.role, updateData);
+
+      // Update user profile based on role
+      await this.updateUserProfile(userId, currentUser.role, updateData);
+
+      // Get updated user
+      const updatedUser = await this.authModel.findById(userId);
+      return {
+        message: 'User updated successfully',
+        user: updatedUser,
+      };
+    } catch (error) {
+      // Rollback file changes if needed
+      if (currentUser) {
+        await this.rollbackFileChanges(userId, currentUser.role);
+      }
+      throw error;
+    }
+  }
+
+  //MARK: updateUserProfile
+  private async updateUserProfile(userId: string, role: string, updateData: any) {
+    if (role === 'worker' && updateData.workerData) {
+      await this.workerService.updateWorker(userId, updateData.workerData);
+    } else if (role === 'employer' && updateData.employerData) {
+      await this.employerService.updateEmployer(userId, updateData.employerData);
+    } else if (role === 'agency' && updateData.agencyData) {
+      await this.agencyService.updateAgency(userId, updateData.agencyData);
+    }
+  }
+
+  //MARK: handleFileUpdates
+  private async handleFileUpdates(userId: string, role: string, updateData: any) {
+    const urlsToDelete: string[] = [];
+
+    // common profile picture replacement
+    if (updateData.profilePicture && updateData.profilePictureOldUrl) {
+      urlsToDelete.push(updateData.profilePictureOldUrl);
+    }
+
+    // generic filesToDelete fallback
+    if (Array.isArray(updateData.filesToDelete)) {
+      urlsToDelete.push(...updateData.filesToDelete);
+    }
+
+    if (role === 'worker' && updateData.workerData) {
+      const wd = updateData.workerData;
+      if (Array.isArray(wd.documentsToDelete)) urlsToDelete.push(...wd.documentsToDelete);
+      if (wd.resume && wd.resumeOldUrl) urlsToDelete.push(wd.resumeOldUrl);
+      if (wd.profilePicture && wd.profilePictureOldUrl)
+        urlsToDelete.push(wd.profilePictureOldUrl);
+    } else if (role === 'employer' && updateData.employerData) {
+      const ed = updateData.employerData;
+      if (Array.isArray(ed.documentsToDelete)) urlsToDelete.push(...ed.documentsToDelete);
+      if (ed.profilePicture && ed.profilePictureOldUrl)
+        urlsToDelete.push(ed.profilePictureOldUrl);
+    } else if (role === 'agency' && updateData.agencyData) {
+      const ad = updateData.agencyData;
+      if (Array.isArray(ad.documentsToDelete)) urlsToDelete.push(...ad.documentsToDelete);
+      if (ad.logo && ad.logoOldUrl) urlsToDelete.push(ad.logoOldUrl);
+      if (ad.businessLicense && ad.businessLicenseOldUrl)
+        urlsToDelete.push(ad.businessLicenseOldUrl);
+    }
+
+    if (urlsToDelete.length > 0) {
+      await this.filesService.deleteFiles(userId, urlsToDelete);
+    }
+  }
+
+  //MARK: extractFilesFromUpdateData
+  private extractFilesFromUpdateData(updateData: any, role: string): string[] {
+    const files: string[] = [];
+    
+    if (updateData.profilePicture) {
+      files.push(updateData.profilePicture);
+    }
+    
+    if (role === 'worker' && updateData.workerData) {
+      if (updateData.workerData.documents) {
+        files.push(...updateData.workerData.documents);
+      }
+      if (updateData.workerData.resume) {
+        files.push(updateData.workerData.resume);
+      }
+    } else if (role === 'employer' && updateData.employerData) {
+      if (updateData.employerData.documents) {
+        files.push(...updateData.employerData.documents);
+      }
+    } else if (role === 'agency' && updateData.agencyData) {
+      if (updateData.agencyData.documents) {
+        files.push(...updateData.agencyData.documents);
+      }
+      if (updateData.agencyData.logo) {
+        files.push(updateData.agencyData.logo);
+      }
+      if (updateData.agencyData.businessLicense) {
+        files.push(updateData.agencyData.businessLicense);
+      }
+    }
+    
+    return files;
+  }
+
+  //MARK: getCurrentUserFiles
+  private async getCurrentUserFiles(userId: string, role: string): Promise<string[]> {
+    try {
+      // Get all user files from FilesService
+      const userFiles = await this.filesService.listUserFiles(userId);
+      
+      // Extract file URLs from the response
+      const fileUrls: string[] = [];
+      Object.values(userFiles).forEach((file: any) => {
+        if (file && file.url) {
+          fileUrls.push(file.url);
+        }
+      });
+      
+      return fileUrls;
+    } catch (error) {
+      console.error('Error getting user files:', error);
+      return [];
+    }
+  }
+
+  //MARK: rollbackFileChanges
+  private async rollbackFileChanges(userId: string, role: string) {
+    // TODO: Implement rollback logic for failed file operations
+    console.log(`Rolling back file changes for user: ${userId}, role: ${role}`);
+  }
+
+  //MARK: getUserById
+  async getUserById(userId: string): Promise<Auth | null> {
+    return this.authModel.findById(userId);
+  }
+
+  //MARK: deleteUser
+  async deleteUser(userId: string, requestingUser: any) {
+    // Check if requesting user is admin
+    if (requestingUser.role !== 'admin') {
+      throw new HttpException('Unauthorized: Admin access required', 403);
+    }
+
+    const user = await this.authModel.findById(userId);
+    if (!user) {
+      throw new HttpException('User not found', 404);
+    }
+
+    // Delete user profile based on role
+    if (user.role === 'worker') {
+      await this.workerService.deleteWorker(userId);
+    } else if (user.role === 'employer') {
+      await this.employerService.deleteEmployer(userId);
+    } else if (user.role === 'agency') {
+      await this.agencyService.deleteAgency(userId);
+    }
+
+    // Delete auth record
+    await this.authModel.findByIdAndDelete(userId);
+
+    return {
+      message: 'User deleted successfully',
+    };
+  }
+
+  //MARK: replaceUserFile (multipart)
+  async replaceUserFile(
+    userId: string,
+    label: string,
+    type: 'picture' | 'documents',
+    file: Express.Multer.File,
+    issuanceDate?: Date,
+    expirationDate?: Date,
+  ) {
+    // fetch existing file by label
+    const filesByLabel = await this.filesService.listUserFiles(userId);
+    const existing = filesByLabel?.[label];
+
+    if (existing && existing.url) {
+      // replace (delete old + upload new + persist)
+      return this.filesService.replaceFile(
+        userId,
+        existing.url,
+        file,
+        type,
+        label,
+        issuanceDate || new Date(),
+        expirationDate,
+      );
+    }
+
+    // no existing -> just upload new
+    const created = await this.filesService.uploadFile(
+      userId,
+      file,
+      type,
+      label,
+      issuanceDate || new Date(),
+      expirationDate || new Date(Date.now() + 365 * 24 * 60 * 60 * 1000),
+    );
+
+    return { message: 'File uploaded successfully', newFile: created };
   }
 }

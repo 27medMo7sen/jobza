@@ -14,6 +14,7 @@ import { WorkerModule } from 'src/worker/worker.module';
 import { EmployerModule } from 'src/employer/employer.module';
 import { AgencyService } from 'src/agency/agency.service';
 import { AgencyModule } from 'src/agency/agency.module';
+import { FilesModule } from 'src/files/files.module';
 
 @Module({
   imports: [
@@ -30,6 +31,7 @@ import { AgencyModule } from 'src/agency/agency.module';
     WorkerModule,
     EmployerModule,
     AgencyModule,
+    FilesModule,
   ],
   controllers: [AuthController],
   providers: [AuthService, LocalStrategy, GoogleStrategy, MailService],
