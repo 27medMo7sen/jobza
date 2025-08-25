@@ -137,13 +137,20 @@ export class AuthService {
         role,
       });
       if (role === 'worker') {
-        await this.workerService.createWorker({ firstName: _json.given_name });
+        await this.workerService.createWorker({
+          firstName: _json.given_name,
+          userId: newUser._id,
+        });
       } else if (role === 'employer') {
         await this.employerService.createEmployer({
           firstName: _json.given_name,
+          userId: newUser._id,
         });
       } else if (role === 'agency') {
-        await this.agencyService.createAgency({ agencyName: _json.given_name });
+        await this.agencyService.createAgency({
+          agencyName: _json.given_name,
+          userId: newUser._id,
+        });
       }
       token = this.jwtService.sign({
         userId: newUser._id,
