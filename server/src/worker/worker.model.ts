@@ -1,6 +1,11 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
+import { Types } from 'mongoose';
+import { Auth } from 'src/auth/auth.model';
 @Schema({ timestamps: true })
 export class Worker {
+  @Prop({ type: Types.ObjectId, ref: Auth.name, required: true })
+  userId: Types.ObjectId;
+
   @Prop()
   firstName: string;
 
