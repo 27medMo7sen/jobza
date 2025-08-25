@@ -1,5 +1,6 @@
 import { HttpException, Injectable } from '@nestjs/common';
 import { MailerService } from '@nestjs-modules/mailer';
+import { Types } from 'mongoose';
 
 @Injectable()
 export class MailService {
@@ -34,7 +35,7 @@ export class MailService {
         name: name,
         details: details,
         senderRole: senderRole,
-        senderId: senderId,
+        senderId: new Types.ObjectId(senderId),
         logoUrl:
           'https://res.cloudinary.com/doou4eolq/image/upload/v1754270131/logo_st60zo.png',
       },

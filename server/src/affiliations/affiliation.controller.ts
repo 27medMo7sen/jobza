@@ -5,6 +5,7 @@ import { AgencyService } from 'src/agency/agency.service';
 import { Worker } from 'src/worker/worker.model';
 import { AuthGuard } from 'src/auth/auth.guard';
 import { MailService } from 'src/mail/mail.service';
+import { Affiliation } from './affiliation.model';
 
 @Controller('affiliations')
 @UseGuards(AuthGuard)
@@ -28,17 +29,17 @@ export class AffiliationController {
     if (role !== 'worker' && role !== 'agency') {
         throw new BadRequestException('Invalid role');
       }
-      let affiliation;
-      let email_sent;
+      let affiliation: any;
+      let email_sent = false;
 
     if (role === 'agency') {
     // Agency → Worker
+    const agency = await this.agencyService.getAgencyByUserId(userId);
     // check if this agency can affiliate by checking can affiliate
-    const agency = await this.agencyService.getAgencyById(userId);
     if (!agency?.canAffiliate) {
       throw new BadRequestException('This agency cannot affiliate');
     }
-    console.log("agency", agency);
+
     affiliation = await this.affiliationService.createAffiliation(
         'agency',
         userId,
@@ -46,52 +47,65 @@ export class AffiliationController {
         body.receiverId,
         body.details,
     );
-    } else if (role === 'worker') {
+
+
+    const worker = await this.workerService.getWorkerByUserId(body.receiverId);
+    const workerEmail = await this.workerService.getWorkerEmail(body.receiverId)
+    if (worker) {
+      const { firstName = '', lastName = ''} = worker;
+      const email_sent_worker = await this.mailService.sendAffiliationRequestEmail(
+        workerEmail ?? '',
+        `${firstName} ${lastName}`.trim(),
+        body.details ?? '',
+        'agency',
+        userId,
+      );
+      email_sent = true;
+    }
+  } else if (role === 'worker') {
     // Worker → Agency
-    affiliation = await this.affiliationService.createAffiliation(
-        'worker',
-        userId,
-        'agency',
-        body.receiverId,
-        body.details,
-    );
+    const worker = await this.workerService.getWorkerByUserId(userId);
+    // check if this agency can affiliate by checking can affiliate
+    if (worker?.isAffiliated) {
+      throw new BadRequestException('You are already affiliated');
     }
-    console.log("affiliation", affiliation);
-    if (affiliation) {
-        if (role === 'agency') {
-          // receiver IS worker
-          const worker = await this.workerService.getWorkerById(body.receiverId);
-          console.log(worker);
-          if (worker) {
-            const { firstName = '', lastName = '' } = (worker ?? {}) as Partial<Worker>;
-            email_sent = await this.mailService.sendAffiliationRequestEmail(
-              email,
-              `${firstName} ${lastName}`.trim(),
-              body.details ?? '',
-              'agency',
-              userId,
-            );
-          }
-        } else {
-          // receiver IS agency
-          const agency = await this.agencyService.getAgencyById(body.receiverId);
-          if (agency) {
-            email_sent = await this.mailService.sendAffiliationRequestEmail(
-              email,
-              agency.agencyName,
-              body.details ?? '',
-              'worker',
-              userId,
-            );
-          }
-        }
-        // IF CREATIONS SUCCEFUL AND EMAIL SENT UPDATE EMAIL SENT TO TRUE
-        if (email_sent) {
-            return this.affiliationService.emailSent(affiliation._id);
+      affiliation = await this.affiliationService.createAffiliation(
+          'worker',
+          userId,
+          'agency',
+          body.receiverId,
+          body.details,
+      );
+
+
+      const agency = await this.agencyService.getAgencyByUserId(body.receiverId);
+      const agencyEmail = await this.agencyService.getAgencyEmail(body.receiverId)
+      if (agency) {
+        const email_sent_agency = await this.mailService.sendAffiliationRequestEmail(
+          agencyEmail ?? '',
+          agency.agencyName,
+          body.details ?? '',
+          'worker',
+          userId,
+        );
+        email_sent = true;
+        console.log("email_sent_agency", email_sent_agency);
       }
-  
-      return affiliation ?? email_sent;
-    }
+      }
+
+      if (affiliation && email_sent) {
+        const emailSentUpdated = await this.affiliationService.emailSent(affiliation._id);
+        console.log("emailSentUpdated", emailSentUpdated);
+      }
+    
+      return {
+        success: true,
+        message: email_sent ? 'Affiliation request sent' : 'Affiliation created but mail not sent',
+        data: {
+          affiliation,
+          email_sent,
+        },
+      };
 }
 
   // Get available entities depending on role
@@ -121,6 +135,8 @@ export class AffiliationController {
   @Get('requests/sent')
   async getSent(@Request() req) {
     const { role, userId } = req.user;
+    console.log("role", role);
+    console.log("userId", userId);
     return this.affiliationService.getSent(role, userId);
   }
 
@@ -128,7 +144,12 @@ export class AffiliationController {
   //MARK: updateStatus
   @Patch(':id/status')
   async updateStatus(@Param('id') id: string, @Body('status') status: 'accepted' | 'rejected') {
-    return this.affiliationService.updateStatus(id, status);
+    const affiliationStatus = await this.affiliationService.updateStatus(id, status);
+    return {
+      success: true,
+      message: 'Affiliation status updated',
+      data: affiliationStatus,
+    };
   }
 
 

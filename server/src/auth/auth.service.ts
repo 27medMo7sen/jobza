@@ -45,22 +45,24 @@ export class AuthService {
       code,
       role: body.role,
     };
+    console.log("auth service authData", authData);
     const newUser = new this.authModel(authData);
     console.log("auth service newUser", newUser);
     let displayName = '';
     await newUser.save();
+    console.log("auth service newUser", newUser);
     if (body.role === 'worker') {
       const { email, password, confirmPassword, ...workerData } = body;
       displayName = (workerData as WorkerSignupDto).firstName;
-      await this.workerService.createWorker(workerData);
+      await this.workerService.createWorker({...workerData, userId: newUser._id});
     } else if (body.role === 'employer') {
       const { email, password, confirmPassword, ...employerData } = body;
       displayName = (employerData as EmployerSignupDto).firstName;
-      await this.employerService.createEmployer(employerData);
+      await this.employerService.createEmployer({...employerData, userId: newUser._id});
     } else if (body.role === 'agency') {
       const { email, password, confirmPassword, ...agencyData } = body;
       displayName = (agencyData as AgencySignupDto).agencyName;
-      await this.agencyService.createAgency(agencyData);
+      await this.agencyService.createAgency({...agencyData, userId: newUser._id});
     }
 
     await this.mailService.sendWelcomeEmail(body.email, displayName, code);
