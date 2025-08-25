@@ -6,28 +6,25 @@ export class Employer {
   @Prop({ type: Types.ObjectId, ref: Auth.name, required: true })
   userId: Types.ObjectId;
 
-  @Prop({ isRequired: true })
-  firstName: string;
+  @Prop({ required: true })
+  userName: string;
 
-  @Prop({ isRequired: true })
-  lastName: string;
-
-  @Prop({ isRequired: true })
+  @Prop({ required: true })
   phoneNumber: string;
 
-  @Prop({ isRequired: true })
+  @Prop({ required: true })
   gender: string;
 
-  @Prop({ isRequired: true })
+  @Prop({ required: true })
   nationality: string;
 
-  @Prop({ isRequired: true })
+  @Prop({ required: true })
   dateOfBirth: Date;
 
-  @Prop({ isRequired: true })
+  @Prop({ required: true })
   country: string;
 
-  @Prop({ isRequired: true })
+  @Prop({ required: true })
   householdSize: number;
 
   @Prop({
@@ -40,21 +37,21 @@ export class Employer {
     elders: number;
   };
 
-  @Prop({ isRequired: true })
+  @Prop({ required: true })
   homeType: string;
 
-  @Prop({ isRequired: true })
+  @Prop({ required: true })
   serviceRequirements: string[];
 
-  @Prop({ isRequired: true })
+  @Prop({ required: true })
   workingHours: string;
 
-  @Prop({ isRequired: true })
+  @Prop({ required: true })
   preferredStartDate: Date;
 
   @Prop({
     type: Object,
-    isRequired: true,
+    required: true,
   })
   budgetRange: {
     min: number;

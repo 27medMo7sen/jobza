@@ -53,16 +53,26 @@ export class AuthService {
     console.log("auth service newUser", newUser);
     if (body.role === 'worker') {
       const { email, password, confirmPassword, ...workerData } = body;
-      displayName = (workerData as WorkerSignupDto).firstName;
-      await this.workerService.createWorker({...workerData, userId: newUser._id});
+      displayName = (workerData as WorkerSignupDto).userName;
+      await this.workerService.createWorker({
+        ...workerData,
+        userId: newUser._id,
+      });
     } else if (body.role === 'employer') {
       const { email, password, confirmPassword, ...employerData } = body;
-      displayName = (employerData as EmployerSignupDto).firstName;
-      await this.employerService.createEmployer({...employerData, userId: newUser._id});
+      displayName = (employerData as EmployerSignupDto).userName;
+      await this.employerService.createEmployer({
+        ...employerData,
+        userId: newUser._id,
+      });
     } else if (body.role === 'agency') {
       const { email, password, confirmPassword, ...agencyData } = body;
-      displayName = (agencyData as AgencySignupDto).agencyName;
-      await this.agencyService.createAgency({...agencyData, userId: newUser._id});
+      displayName = (agencyData as AgencySignupDto).userName;
+      await this.agencyService.createAgency({
+        ...agencyData,
+        userId: newUser._id,
+      });
+
     }
 
     await this.mailService.sendWelcomeEmail(body.email, displayName, code);
