@@ -26,6 +26,7 @@ export class AuthService {
   ) {}
   //MARK: signup
   async signup(body: WorkerSignupDto | EmployerSignupDto | AgencySignupDto) {
+    console.log("auth service body", body);
     const existingUser = await this.getUserByEmail(body.email);
     if (existingUser) {
       throw new HttpException('User already exists', 409);
@@ -44,22 +45,36 @@ export class AuthService {
       email: body.email,
       password: hashedPassword,
       code,
+      role: body.role,
     };
+    console.log("auth service authData", authData);
     const newUser = new this.authModel(authData);
+    console.log("auth service newUser", newUser);
     let displayName = '';
     await newUser.save();
+    console.log("auth service newUser", newUser);
     if (body.role === 'worker') {
       const { email, password, confirmPassword, ...workerData } = body;
-      displayName = (workerData as WorkerSignupDto).firstName;
-      await this.workerService.createWorkerWithUserId(newUser._id.toString(), workerData);
+      displayName = (workerData as WorkerSignupDto).userName;
+      await this.workerService.createWorker({
+        ...workerData,
+        userId: newUser._id,
+      });
     } else if (body.role === 'employer') {
       const { email, password, confirmPassword, ...employerData } = body;
-      displayName = (employerData as EmployerSignupDto).firstName;
-      await this.employerService.createEmployerWithUserId(newUser._id.toString(), employerData);
+      displayName = (employerData as EmployerSignupDto).userName;
+      await this.employerService.createEmployer({
+        ...employerData,
+        userId: newUser._id,
+      });
     } else if (body.role === 'agency') {
       const { email, password, confirmPassword, ...agencyData } = body;
-      displayName = (agencyData as AgencySignupDto).agencyName;
-      await this.agencyService.createAgencyWithUserId(newUser._id.toString(), agencyData);
+      displayName = (agencyData as AgencySignupDto).userName;
+      await this.agencyService.createAgency({
+        ...agencyData,
+        userId: newUser._id,
+      });
+
     }
 
     await this.mailService.sendWelcomeEmail(body.email, displayName, code);
@@ -139,13 +154,21 @@ export class AuthService {
         role,
       });
       if (role === 'worker') {
-        await this.workerService.createWorkerWithUserId(newUser._id.toString(), { firstName: _json.given_name });
+        await this.workerService.createWorker({
+          userName: _json.given_name,
+          userId: newUser._id,
+        });
+ 
       } else if (role === 'employer') {
         await this.employerService.createEmployerWithUserId(newUser._id.toString(), {
           firstName: _json.given_name,
+          userId: newUser._id,
         });
       } else if (role === 'agency') {
-        await this.agencyService.createAgencyWithUserId(newUser._id.toString(), { agencyName: _json.given_name });
+        await this.agencyService.createAgency({
+         userName: _json.given_name,
+          userId: newUser._id,
+        });
       }
       token = this.jwtService.sign({
         userId: newUser._id,

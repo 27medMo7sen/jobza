@@ -40,6 +40,7 @@ export class AuthController {
 
   @Post('agency/signup')
   async agencySignup(@Body(ValidationPipe) body: AgencySignupDto) {
+    console.log("auth controller body", body);
     return await this.authService.signup(body);
   }
   @Post('login')
@@ -55,7 +56,6 @@ export class AuthController {
       state: role,
     })(req, res);
   }
-
   @Get('google/redirect')
   @UseGuards(AuthGuard('google'))
   async googleAuthRedirect(@Req() req, @Res() res) {

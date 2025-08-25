@@ -1,4 +1,6 @@
 import { Schema, Prop, SchemaFactory } from '@nestjs/mongoose';
+import { Types } from 'mongoose';
+import { Auth } from 'src/auth/auth.model';
 
 @Schema({ timestamps: true })
 export class Agency {
@@ -7,6 +9,9 @@ export class Agency {
 
   @Prop()
   agencyName: string;
+
+  @Prop({ type: Types.ObjectId, ref: Auth.name, required: true })
+  userId: Types.ObjectId;
 
   @Prop()
   agencyType: string;
@@ -52,5 +57,8 @@ export class Agency {
 
   @Prop()
   numberOfEmployees: number;
+
+  @Prop()
+  canAffiliate: boolean;
 }
 export const AgencySchema = SchemaFactory.createForClass(Agency);
