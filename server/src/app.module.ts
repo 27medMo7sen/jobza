@@ -13,6 +13,7 @@ import { AgencyModule } from './agency/agency.module';
 import { FilesModule } from './files/files.module';
 import { AwsS3Service } from './aws-s3/aws-s3.service';
 import { AwsS3Module } from './aws-s3/aws-s3.module';
+import { AffiliationModule } from './affiliations/affiliation.module';
 
 @Module({
   imports: [
@@ -59,6 +60,7 @@ import { AwsS3Module } from './aws-s3/aws-s3.module';
     AgencyModule,
     FilesModule,
     AwsS3Module,
+    AffiliationModule,
   ],
   controllers: [AppController],
   providers: [AppService, AwsS3Service],
