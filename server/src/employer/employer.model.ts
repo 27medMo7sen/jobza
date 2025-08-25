@@ -5,7 +5,7 @@ import { Auth } from 'src/auth/auth.model';
 export class Employer {
   @Prop({ type: Types.ObjectId, ref: Auth.name, required: true })
   userId: Types.ObjectId;
-
+ 
   @Prop({ required: true })
   userName: string;
 

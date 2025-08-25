@@ -48,8 +48,8 @@ import { AffiliationModule } from './affiliations/affiliation.module';
       cache: true,
     }),
     MongooseModule.forRootAsync({
-      useFactory: () => ({
-        uri: process.env.DB_URI,
+      useFactory: (configService: ConfigService) => ({
+        uri: configService.get<string>('DB_URI'),
       }),
       inject: [ConfigService],
     }),

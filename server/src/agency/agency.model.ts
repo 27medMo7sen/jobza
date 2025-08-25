@@ -4,6 +4,9 @@ import { Auth } from 'src/auth/auth.model';
 
 @Schema({ timestamps: true })
 export class Agency {
+  @Prop({ required: true, unique: true })
+  userId: string;
+
   @Prop()
   agencyName: string;
 
