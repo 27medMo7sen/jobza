@@ -23,8 +23,8 @@ export class FilesController {
     @Body() body: any,
   ) {
     const user = req.user;
-    console.log(file);
-    console.log(user);
+    // console.log(file);
+    // console.log(user);
     return await this.filesService.uploadFile(
       user.userId,
       file,
