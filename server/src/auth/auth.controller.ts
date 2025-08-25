@@ -34,6 +34,7 @@ export class AuthController {
 
   @Post('agency/signup')
   async agencySignup(@Body(ValidationPipe) body: AgencySignupDto) {
+    console.log("auth controller body", body);
     return await this.authService.signup(body);
   }
   @Post('login')
