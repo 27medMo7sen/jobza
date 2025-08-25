@@ -7,10 +7,7 @@ export class Worker {
   userId: Types.ObjectId;
 
   @Prop()
-  firstName: string;
-
-  @Prop()
-  lastName: string;
+  userName: string;
 
   @Prop()
   phoneNumber: string;

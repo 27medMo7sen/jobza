@@ -8,7 +8,8 @@ export interface DocumentType {
 }
 
 export interface DocumentFormData {
-  frontFile: File | null;
-  backFile: File | null;
+  file: File | null;
   uploadDate: string;
+  expiryDate: string;
+  issueDate: string;
 }

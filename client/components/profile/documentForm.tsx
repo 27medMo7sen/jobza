@@ -195,9 +195,10 @@ export default function DocumentForm({
   className = "",
 }: DocumentFormProps) {
   const [formData, setFormData] = useState<DocumentFormData>({
-    frontFile: null,
-    backFile: null,
+    file: null,
     uploadDate: "",
+    expiryDate: "",
+    issueDate: "",
   });
 
   const handleFileChange = (side: "front" | "back", file: File | null) => {
@@ -214,73 +215,79 @@ export default function DocumentForm({
 
   return (
     <div
-      className={`bg-card border border-gray-200 rounded-lg p-6 ${className} text-foreground`}
+      className={`bg-card border border-gray-200 rounded-lg p-6 ${className} text-foreground `}
     >
-      <form onSubmit={handleSubmit}>
-        {/* Header */}
-        <h2 className="text-lg font-semibold   mb-4">{documentType.title}</h2>
-
-        {/* File Upload Section */}
-        <div className={``}>
-          {/* Front File */}
-          <FileDropZone
-            label={documentType.label}
-            file={formData.frontFile}
-            onFileChange={(file) => handleFileChange("front", file)}
-            acceptedTypes={documentType.acceptedTypes}
-            id={`front-${documentType.title
-              .replace(/\s+/g, "-")
-              .toLowerCase()}`}
-          />
-
-          {/* Back File (if applicable) */}
-          {documentType.hasBackSide && (
+      <form
+        onSubmit={handleSubmit}
+        className={`flex flex-col h-full justify-between`}
+      >
+        <div>
+          {/* Header */}
+          <h2 className="text-lg font-semibold   mb-4">{documentType.title}</h2>
+          {/* File Upload Section */}
+          <div className={``}>
+            {/* Front File */}
             <FileDropZone
-              label={documentType.backLabel}
-              file={formData.backFile}
-              onFileChange={(file) => handleFileChange("back", file)}
+              label={documentType.label}
+              file={formData.file}
+              onFileChange={(file) => handleFileChange("front", file)}
               acceptedTypes={documentType.acceptedTypes}
-              id={`back-${documentType.title
+              id={`front-${documentType.title
                 .replace(/\s+/g, "-")
                 .toLowerCase()}`}
             />
-          )}
+          </div>
         </div>
-
-        {/* Upload Date */}
-        <div className="mb-4">
-          <label className="block text-sm font-medium  mb-2">Upload Date</label>
-          <input
-            type="date"
-            value={formData.uploadDate}
-            onChange={(e) =>
-              setFormData((prev) => ({ ...prev, uploadDate: e.target.value }))
-            }
-            className="w-full px-3 py-2 border border-border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-          />
-        </div>
-
+        {documentType.label !== "experience_letter" && (
+          <div className="m-4">
+            <div className="mb-2">
+              <label className="block text-sm font-medium mb-1">
+                Issue Date
+              </label>
+              <input
+                type="date"
+                value={formData.issueDate}
+                onChange={(e) =>
+                  setFormData((prev) => ({
+                    ...prev,
+                    issueDate: e.target.value,
+                  }))
+                }
+                className="w-full px-3 py-2 border border-border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium mb-1">
+                Expiry Date
+              </label>
+              <input
+                type="date"
+                value={formData.expiryDate}
+                onChange={(e) =>
+                  setFormData((prev) => ({
+                    ...prev,
+                    expiryDate: e.target.value,
+                  }))
+                }
+                className="w-full px-3 py-2 border border-border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              />
+            </div>
+          </div>
+        )}
         {/* Submit Button */}
         <button
           type="submit"
-          disabled={
-            !formData.frontFile ||
-            (documentType.hasBackSide && !formData.backFile)
-          }
+          disabled={!formData.file}
           className={`
             w-full py-3 px-6 rounded-xl font-semibold text-foreground transition-all duration-300 transform
             ${
-              !formData.frontFile ||
-              (documentType.hasBackSide && !formData.backFile)
+              !formData.file
                 ? "bg-gray-400 cursor-not-allowed"
                 : "bg-primary hover:bg-primary/80 hover:scale-105 hover:shadow-lg active:scale-95"
             }
           `}
         >
-          {!formData.frontFile ||
-          (documentType.hasBackSide && !formData.backFile)
-            ? "Please upload required files"
-            : `Upload ${documentType.title}`}
+          Upload
         </button>
       </form>
     </div>
