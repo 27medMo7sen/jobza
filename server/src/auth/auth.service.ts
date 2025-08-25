@@ -24,6 +24,7 @@ export class AuthService {
   ) {}
   //MARK: signup
   async signup(body: WorkerSignupDto | EmployerSignupDto | AgencySignupDto) {
+    console.log("auth service body", body);
     const existingUser = await this.getUserByEmail(body.email);
     if (existingUser) {
       throw new HttpException('User already exists', 409);
@@ -42,10 +43,14 @@ export class AuthService {
       email: body.email,
       password: hashedPassword,
       code,
+      role: body.role,
     };
+    console.log("auth service authData", authData);
     const newUser = new this.authModel(authData);
+    console.log("auth service newUser", newUser);
     let displayName = '';
     await newUser.save();
+    console.log("auth service newUser", newUser);
     if (body.role === 'worker') {
       const { email, password, confirmPassword, ...workerData } = body;
       displayName = (workerData as WorkerSignupDto).userName;
@@ -67,6 +72,7 @@ export class AuthService {
         ...agencyData,
         userId: newUser._id,
       });
+
     }
 
     await this.mailService.sendWelcomeEmail(body.email, displayName, code);
