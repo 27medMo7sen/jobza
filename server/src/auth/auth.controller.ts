@@ -4,11 +4,15 @@ import {
   Body,
   UseGuards,
   Get,
+  Put,
+  Delete,
   Req,
   Res,
   HttpException,
   Query,
   Param,
+  UploadedFile,
+  UseInterceptors,
 } from '@nestjs/common';
 import * as passport from 'passport';
 
@@ -19,6 +23,8 @@ import { AuthGuard } from '@nestjs/passport';
 import { LoginDto } from './dto/login.dto';
 import { EmployerSignupDto } from './dto/EmployerSignup.dto';
 import { AgencySignupDto } from './dto/agencySignup.dto';
+import { UpdateUserDto } from './dto/updateUser.dto';
+import { FileInterceptor } from '@nestjs/platform-express';
 @Controller('auth')
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
@@ -79,5 +85,50 @@ export class AuthController {
       throw new HttpException('Token not provided', 400);
     }
     return await this.authService.getUserByToken(token);
+  }
+
+  @Get('/user/:email')
+  async getUserByEmail(@Param('email') email: string) {
+    return await this.authService.getUserByEmail(email);
+  }
+
+  @Put('/update/:userId')
+  async updateUser(
+    @Param('userId') userId: string,
+    @Body(ValidationPipe) updateData: UpdateUserDto,
+  ) {
+    return await this.authService.updateUser(userId, updateData);
+  }
+
+  @Delete('/user/:userId')
+  async deleteUser(@Param('userId') userId: string, @Req() req: any) {
+    return await this.authService.deleteUser(userId, req.user);
+  }
+
+  @Put('/files/:userId')
+  @UseInterceptors(FileInterceptor('file'))
+  async replaceUserFile(
+    @Param('userId') userId: string,
+    @Body('label') label: string,
+    @Body('type') type: 'picture' | 'documents',
+    @UploadedFile() file: Express.Multer.File,
+    @Body('issuanceDate') issuanceDate?: string,
+    @Body('expirationDate') expirationDate?: string,
+  ) {
+    if (!file) throw new HttpException('File is required', 400);
+    if (!label) throw new HttpException('label is required', 400);
+    if (!type) throw new HttpException('type is required', 400);
+
+    const parsedIssuance = issuanceDate ? new Date(issuanceDate) : undefined;
+    const parsedExpiration = expirationDate ? new Date(expirationDate) : undefined;
+
+    return this.authService.replaceUserFile(
+      userId,
+      label,
+      type,
+      file,
+      parsedIssuance,
+      parsedExpiration,
+    );
   }
 }

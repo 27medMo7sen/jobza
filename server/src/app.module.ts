@@ -47,8 +47,8 @@ import { AwsS3Module } from './aws-s3/aws-s3.module';
       cache: true,
     }),
     MongooseModule.forRootAsync({
-      useFactory: () => ({
-        uri: process.env.DB_URI,
+      useFactory: (configService: ConfigService) => ({
+        uri: configService.get<string>('DB_URI'),
       }),
       inject: [ConfigService],
     }),

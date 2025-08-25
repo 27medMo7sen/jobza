@@ -1,6 +1,9 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 @Schema({ timestamps: true })
 export class Employer {
+  @Prop({ required: true, unique: true })
+  userId: string;
+
   @Prop({ isRequired: true })
   firstName: string;
 
