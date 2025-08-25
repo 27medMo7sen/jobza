@@ -9,7 +9,7 @@ import {
 } from '@nestjs/common';
 import { FilesService } from './files.service';
 import { FileInterceptor } from '@nestjs/platform-express';
-import { AuthGuard } from 'src/auth/auth.gaurd';
+import { AuthGuard } from 'src/auth/auth.guard';
 
 @Controller('files')
 export class FilesController {
