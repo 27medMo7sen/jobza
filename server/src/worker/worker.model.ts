@@ -21,7 +21,7 @@ export class Worker {
   @Prop()
   dateOfBirth: string;
 
-  @Prop()
+  @Prop({ type: Boolean, default: false })
   isAffiliated: boolean;
 }
 export const WorkerSchema = SchemaFactory.createForClass(Worker);

@@ -5,6 +5,7 @@ import {
   IsDateString,
   IsNumber,
   Min,
+  IsOptional,
 } from 'class-validator';
 
 export class AgencySignupDto {
@@ -49,7 +50,8 @@ export class AgencySignupDto {
   phoneNumber: string;
 
   @IsString()
-  website: string;
+  @IsOptional()
+  website?: string;
 
   @IsString()
   @IsNotEmpty()

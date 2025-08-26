@@ -44,10 +44,13 @@ export class FilesService {
       .find({ userId })
       .select('fileName label issuanceDate expirationDate url s3Key -_id');
 
-    const filesByLabel = ret.reduce((acc, file) => {
-      acc[file.label] = file;
-      return acc;
-    }, {} as Record<string, any>);
+    const filesByLabel = ret.reduce(
+      (acc, file) => {
+        acc[file.label] = file;
+        return acc;
+      },
+      {} as Record<string, any>,
+    );
 
     return filesByLabel;
   }
@@ -76,13 +79,26 @@ export class FilesService {
   }
 
   async deleteFiles(userId: string, fileUrls: string[]) {
-    const results: Array<{ fileUrl: string; deleted: boolean; message?: string; error?: string }> = [];
+    const results: Array<{
+      fileUrl: string;
+      deleted: boolean;
+      message?: string;
+      error?: string;
+    }> = [];
     for (const fileUrl of fileUrls) {
       try {
         const result = await this.deleteFileByUrl(userId, fileUrl);
-        results.push({ fileUrl, deleted: result.deleted, message: result.message });
+        results.push({
+          fileUrl,
+          deleted: result.deleted,
+          message: result.message,
+        });
       } catch (error: any) {
-        results.push({ fileUrl, error: error.message || 'Unknown error', deleted: false });
+        results.push({
+          fileUrl,
+          error: error.message || 'Unknown error',
+          deleted: false,
+        });
       }
     }
     return results;
@@ -104,35 +120,35 @@ export class FilesService {
     };
   }
 
-  async getUserFilesByType(userId: string, fileType: string) {
-    return this.fileModel.find({ userId, fileType }).select('url fileName label -_id');
-  }
+  // async getUserFilesByType(userId: string, fileType: string) {
+  //   return this.fileModel.find({ userId, fileType }).select('url fileName label -_id');
+  // }
 
-  async replaceFile(
-    userId: string,
-    oldFileUrl: string,
-    newFile: Express.Multer.File,
-    type: string,
-    label: string,
-    issuanceDate?: Date,
-    expirationDate?: Date,
-  ) {
-    const deleteResult = await this.deleteFileByUrl(userId, oldFileUrl);
-    if (!deleteResult.deleted) {
-      throw new Error('Failed to delete old file');
-    }
-    const newFileData = await this.uploadFile(
-      userId,
-      newFile,
-      type,
-      label,
-      issuanceDate || new Date(),
-      expirationDate || new Date(Date.now() + 365 * 24 * 60 * 60 * 1000),
-    );
-    return {
-      message: 'File replaced successfully',
-      oldFile: oldFileUrl,
-      newFile: newFileData,
-    };
-  }
+  // async replaceFile(
+  //   userId: string,
+  //   oldFileUrl: string,
+  //   newFile: Express.Multer.File,
+  //   type: string,
+  //   label: string,
+  //   issuanceDate?: Date,
+  //   expirationDate?: Date,
+  // ) {
+  //   const deleteResult = await this.deleteFileByUrl(userId, oldFileUrl);
+  //   if (!deleteResult.deleted) {
+  //     throw new Error('Failed to delete old file');
+  //   }
+  //   const newFileData = await this.uploadFile(
+  //     userId,
+  //     newFile,
+  //     type,
+  //     label,
+  //     issuanceDate || new Date(),
+  //     expirationDate || new Date(Date.now() + 365 * 24 * 60 * 60 * 1000),
+  //   );
+  //   return {
+  //     message: 'File replaced successfully',
+  //     oldFile: oldFileUrl,
+  //     newFile: newFileData,
+  //   };
+  // }
 }

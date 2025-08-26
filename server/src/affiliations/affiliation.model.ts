@@ -1,7 +1,6 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Types } from 'mongoose';
 
-
 @Schema({ timestamps: true })
 export class Affiliation {
   @Prop({ type: String, enum: ['agency', 'worker'], required: true })
@@ -25,9 +24,6 @@ export class Affiliation {
 
   @Prop()
   details: string;
-
-  @Prop({ type: Boolean, default: false })
-  email_sent: boolean;
 }
 
 export const AffiliationSchema = SchemaFactory.createForClass(Affiliation);

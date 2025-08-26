@@ -1,8 +1,6 @@
-import { Controller, Inject, Post } from '@nestjs/common';
+import { Controller, Get, Inject, Post, UseGuards } from '@nestjs/common';
 import { WorkerService } from './worker.service';
-import { InjectModel } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
-import { Worker } from './worker.model';
+import { LocalAuthGuard } from 'src/auth/auth.guard';
 
 @Controller('worker')
 export class WorkerController {

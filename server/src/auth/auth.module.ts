@@ -15,6 +15,7 @@ import { EmployerModule } from 'src/employer/employer.module';
 import { AgencyService } from 'src/agency/agency.service';
 import { AgencyModule } from 'src/agency/agency.module';
 import { FilesModule } from 'src/files/files.module';
+import { LocalAuthGuard } from './auth.guard';
 
 @Module({
   imports: [
@@ -34,7 +35,13 @@ import { FilesModule } from 'src/files/files.module';
     FilesModule,
   ],
   controllers: [AuthController],
-  providers: [AuthService, LocalStrategy, GoogleStrategy, MailService],
+  providers: [
+    AuthService,
+    LocalStrategy,
+    GoogleStrategy,
+    MailService,
+    LocalAuthGuard,
+  ],
   exports: [AuthService, JwtModule, MongooseModule],
 })
 export class AuthModule {}

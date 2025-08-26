@@ -51,8 +51,5 @@ export class Agency {
 
   @Prop()
   numberOfEmployees: number;
-
-  @Prop()
-  canAffiliate: boolean;
 }
 export const AgencySchema = SchemaFactory.createForClass(Agency);
