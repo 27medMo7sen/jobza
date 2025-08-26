@@ -11,10 +11,14 @@ export class Auth {
   code: string;
   @Prop({
     type: String,
-    enum: ['worker', 'employer', 'agency', 'admin'],
+    enum: ['worker', 'employer', 'agency', 'admin', 'superadmin'],
     default: 'worker',
   })
   role: string;
+
+  @Prop({ default: false })
+  approved: boolean;
+
   @Prop({ default: false })
   isVerified: boolean;
 }

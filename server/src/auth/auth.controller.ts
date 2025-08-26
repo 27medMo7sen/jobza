@@ -19,12 +19,14 @@ import * as passport from 'passport';
 import { AuthService } from './auth.service';
 import { ValidationPipe } from '../pips/validation.pipe';
 import { WorkerSignupDto } from './dto/workerSignup.dto';
+import { LocalAuthGuard } from './auth.guard';
 import { AuthGuard } from '@nestjs/passport';
 import { LoginDto } from './dto/login.dto';
 import { EmployerSignupDto } from './dto/EmployerSignup.dto';
 import { AgencySignupDto } from './dto/agencySignup.dto';
 import { UpdateUserDto } from './dto/updateUser.dto';
 import { FileInterceptor } from '@nestjs/platform-express';
+import { Roles } from './roles.decorator';
 @Controller('auth')
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
@@ -40,7 +42,7 @@ export class AuthController {
 
   @Post('agency/signup')
   async agencySignup(@Body(ValidationPipe) body: AgencySignupDto) {
-    console.log("auth controller body", body);
+    console.log('auth controller body', body);
     return await this.authService.signup(body);
   }
   @Post('login')
@@ -92,43 +94,50 @@ export class AuthController {
     return await this.authService.getUserByEmail(email);
   }
 
-  @Put('/update/:userId')
-  async updateUser(
-    @Param('userId') userId: string,
-    @Body(ValidationPipe) updateData: UpdateUserDto,
-  ) {
-    return await this.authService.updateUser(userId, updateData);
+  @Post('/approve/:userId')
+  @Roles('admin')
+  @UseGuards(LocalAuthGuard)
+  async approveUser(@Param('userId') userId: string) {
+    return await this.authService.approveUser(userId);
   }
+
+  // @Put('/update/:userId')
+  // async updateUser(
+  //   @Param('userId') userId: string,
+  //   @Body(ValidationPipe) updateData: UpdateUserDto,
+  // ) {
+  //   return await this.authService.updateUser(userId, updateData);
+  // }
 
   @Delete('/user/:userId')
   async deleteUser(@Param('userId') userId: string, @Req() req: any) {
     return await this.authService.deleteUser(userId, req.user);
   }
 
-  @Put('/files/:userId')
-  @UseInterceptors(FileInterceptor('file'))
-  async replaceUserFile(
-    @Param('userId') userId: string,
-    @Body('label') label: string,
-    @Body('type') type: 'picture' | 'documents',
-    @UploadedFile() file: Express.Multer.File,
-    @Body('issuanceDate') issuanceDate?: string,
-    @Body('expirationDate') expirationDate?: string,
-  ) {
-    if (!file) throw new HttpException('File is required', 400);
-    if (!label) throw new HttpException('label is required', 400);
-    if (!type) throw new HttpException('type is required', 400);
+  //   @Put('/files/:userId')
+  //   @UseInterceptors(FileInterceptor('file'))
+  //   async replaceUserFile(
+  //     @Param('userId') userId: string,
+  //     @Body('label') label: string,
+  //     @Body('type') type: 'picture' | 'documents',
+  //     @UploadedFile() file: Express.Multer.File,
+  //     @Body('issuanceDate') issuanceDate?: string,
+  //     @Body('expirationDate') expirationDate?: string,
+  //   ) {
+  //     if (!file) throw new HttpException('File is required', 400);
+  //     if (!label) throw new HttpException('label is required', 400);
+  //     if (!type) throw new HttpException('type is required', 400);
 
-    const parsedIssuance = issuanceDate ? new Date(issuanceDate) : undefined;
-    const parsedExpiration = expirationDate ? new Date(expirationDate) : undefined;
+  //     const parsedIssuance = issuanceDate ? new Date(issuanceDate) : undefined;
+  //     const parsedExpiration = expirationDate ? new Date(expirationDate) : undefined;
 
-    return this.authService.replaceUserFile(
-      userId,
-      label,
-      type,
-      file,
-      parsedIssuance,
-      parsedExpiration,
-    );
-  }
+  //     return this.authService.replaceUserFile(
+  //       userId,
+  //       label,
+  //       type,
+  //       file,
+  //       parsedIssuance,
+  //       parsedExpiration,
+  //     );
+  //   }
 }

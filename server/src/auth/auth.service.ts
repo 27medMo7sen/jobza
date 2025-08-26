@@ -26,7 +26,7 @@ export class AuthService {
   ) {}
   //MARK: signup
   async signup(body: WorkerSignupDto | EmployerSignupDto | AgencySignupDto) {
-    console.log("auth service body", body);
+    console.log('auth service body', body);
     const existingUser = await this.getUserByEmail(body.email);
     if (existingUser) {
       throw new HttpException('User already exists', 409);
@@ -47,12 +47,12 @@ export class AuthService {
       code,
       role: body.role,
     };
-    console.log("auth service authData", authData);
+    console.log('auth service authData', authData);
     const newUser = new this.authModel(authData);
-    console.log("auth service newUser", newUser);
+    console.log('auth service newUser', newUser);
     let displayName = '';
     await newUser.save();
-    console.log("auth service newUser", newUser);
+    console.log('auth service newUser', newUser);
     if (body.role === 'worker') {
       const { email, password, confirmPassword, ...workerData } = body;
       displayName = (workerData as WorkerSignupDto).userName;
@@ -74,7 +74,6 @@ export class AuthService {
         ...agencyData,
         userId: newUser._id,
       });
-
     }
 
     await this.mailService.sendWelcomeEmail(body.email, displayName, code);
@@ -158,15 +157,17 @@ export class AuthService {
           userName: _json.given_name,
           userId: newUser._id,
         });
- 
       } else if (role === 'employer') {
-        await this.employerService.createEmployerWithUserId(newUser._id.toString(), {
-          firstName: _json.given_name,
-          userId: newUser._id,
-        });
+        await this.employerService.createEmployerWithUserId(
+          newUser._id.toString(),
+          {
+            firstName: _json.given_name,
+            userId: newUser._id,
+          },
+        );
       } else if (role === 'agency') {
         await this.agencyService.createAgency({
-         userName: _json.given_name,
+          userName: _json.given_name,
           userId: newUser._id,
         });
       }
@@ -219,146 +220,69 @@ export class AuthService {
     return user;
   }
 
-  //MARK: updateUser
-  async updateUser(userId: string, updateData: any) {
-    let currentUser: any;
-    try {
-      // Get the current user
-      currentUser = await this.authModel.findById(userId);
-      if (!currentUser) {
-        throw new HttpException('User not found', 404);
-      }
-
-      // Handle file updates first
-      await this.handleFileUpdates(userId, currentUser.role, updateData);
-
-      // Update user profile based on role
-      await this.updateUserProfile(userId, currentUser.role, updateData);
-
-      // Get updated user
-      const updatedUser = await this.authModel.findById(userId);
-      return {
-        message: 'User updated successfully',
-        user: updatedUser,
-      };
-    } catch (error) {
-      // Rollback file changes if needed
-      if (currentUser) {
-        await this.rollbackFileChanges(userId, currentUser.role);
-      }
-      throw error;
+  //MARK: approveUser
+  async approveUser(userId: string) {
+    const user = await this.authModel.findById(userId);
+    if (!user) {
+      throw new HttpException('User not found', 404);
     }
+
+    user.approved = true;
+    await user.save();
+
+    return {
+      message: 'User approved successfully',
+    };
   }
 
-  //MARK: updateUserProfile
-  private async updateUserProfile(userId: string, role: string, updateData: any) {
-    if (role === 'worker' && updateData.workerData) {
-      await this.workerService.updateWorker(userId, updateData.workerData);
-    } else if (role === 'employer' && updateData.employerData) {
-      await this.employerService.updateEmployer(userId, updateData.employerData);
-    } else if (role === 'agency' && updateData.agencyData) {
-      await this.agencyService.updateAgency(userId, updateData.agencyData);
-    }
-  }
+  // //MARK: updateUser
+  // async updateUser(userId: string, updateData: any) {
+  //   let currentUser: any;
+  //   try {
+  //     // Get the current user
+  //     currentUser = await this.authModel.findById(userId);
+  //     if (!currentUser) {
+  //       throw new HttpException('User not found', 404);
+  //     }
 
-  //MARK: handleFileUpdates
-  private async handleFileUpdates(userId: string, role: string, updateData: any) {
-    const urlsToDelete: string[] = [];
+  //     // Handle file updates first
+  //     await this.handleFileUpdates(userId, currentUser.role, updateData);
 
-    // common profile picture replacement
-    if (updateData.profilePicture && updateData.profilePictureOldUrl) {
-      urlsToDelete.push(updateData.profilePictureOldUrl);
-    }
+  //     // Update user profile based on role
+  //     await this.updateUserProfile(userId, currentUser.role, updateData);
 
-    // generic filesToDelete fallback
-    if (Array.isArray(updateData.filesToDelete)) {
-      urlsToDelete.push(...updateData.filesToDelete);
-    }
+  //     // Get updated user
+  //     const updatedUser = await this.authModel.findById(userId);
+  //     return {
+  //       message: 'User updated successfully',
+  //       user: updatedUser,
+  //     };
+  //   } catch (error) {
+  //     // Rollback file changes if needed
+  //     if (currentUser) {
+  //       await this.rollbackFileChanges(userId, currentUser.role);
+  //     }
+  //     throw error;
+  //   }
+  // }
 
-    if (role === 'worker' && updateData.workerData) {
-      const wd = updateData.workerData;
-      if (Array.isArray(wd.documentsToDelete)) urlsToDelete.push(...wd.documentsToDelete);
-      if (wd.resume && wd.resumeOldUrl) urlsToDelete.push(wd.resumeOldUrl);
-      if (wd.profilePicture && wd.profilePictureOldUrl)
-        urlsToDelete.push(wd.profilePictureOldUrl);
-    } else if (role === 'employer' && updateData.employerData) {
-      const ed = updateData.employerData;
-      if (Array.isArray(ed.documentsToDelete)) urlsToDelete.push(...ed.documentsToDelete);
-      if (ed.profilePicture && ed.profilePictureOldUrl)
-        urlsToDelete.push(ed.profilePictureOldUrl);
-    } else if (role === 'agency' && updateData.agencyData) {
-      const ad = updateData.agencyData;
-      if (Array.isArray(ad.documentsToDelete)) urlsToDelete.push(...ad.documentsToDelete);
-      if (ad.logo && ad.logoOldUrl) urlsToDelete.push(ad.logoOldUrl);
-      if (ad.businessLicense && ad.businessLicenseOldUrl)
-        urlsToDelete.push(ad.businessLicenseOldUrl);
-    }
-
-    if (urlsToDelete.length > 0) {
-      await this.filesService.deleteFiles(userId, urlsToDelete);
-    }
-  }
-
-  //MARK: extractFilesFromUpdateData
-  private extractFilesFromUpdateData(updateData: any, role: string): string[] {
-    const files: string[] = [];
-    
-    if (updateData.profilePicture) {
-      files.push(updateData.profilePicture);
-    }
-    
-    if (role === 'worker' && updateData.workerData) {
-      if (updateData.workerData.documents) {
-        files.push(...updateData.workerData.documents);
-      }
-      if (updateData.workerData.resume) {
-        files.push(updateData.workerData.resume);
-      }
-    } else if (role === 'employer' && updateData.employerData) {
-      if (updateData.employerData.documents) {
-        files.push(...updateData.employerData.documents);
-      }
-    } else if (role === 'agency' && updateData.agencyData) {
-      if (updateData.agencyData.documents) {
-        files.push(...updateData.agencyData.documents);
-      }
-      if (updateData.agencyData.logo) {
-        files.push(updateData.agencyData.logo);
-      }
-      if (updateData.agencyData.businessLicense) {
-        files.push(updateData.agencyData.businessLicense);
-      }
-    }
-    
-    return files;
-  }
-
-  //MARK: getCurrentUserFiles
-  private async getCurrentUserFiles(userId: string, role: string): Promise<string[]> {
-    try {
-      // Get all user files from FilesService
-      const userFiles = await this.filesService.listUserFiles(userId);
-      
-      // Extract file URLs from the response
-      const fileUrls: string[] = [];
-      Object.values(userFiles).forEach((file: any) => {
-        if (file && file.url) {
-          fileUrls.push(file.url);
-        }
-      });
-      
-      return fileUrls;
-    } catch (error) {
-      console.error('Error getting user files:', error);
-      return [];
-    }
-  }
-
-  //MARK: rollbackFileChanges
-  private async rollbackFileChanges(userId: string, role: string) {
-    // TODO: Implement rollback logic for failed file operations
-    console.log(`Rolling back file changes for user: ${userId}, role: ${role}`);
-  }
+  // //MARK: updateUserProfile
+  // private async updateUserProfile(
+  //   userId: string,
+  //   role: string,
+  //   updateData: any,
+  // ) {
+  //   if (role === 'worker' && updateData.workerData) {
+  //     await this.workerService.updateWorker(userId, updateData.workerData);
+  //   } else if (role === 'employer' && updateData.employerData) {
+  //     await this.employerService.updateEmployer(
+  //       userId,
+  //       updateData.employerData,
+  //     );
+  //   } else if (role === 'agency' && updateData.agencyData) {
+  //     await this.agencyService.updateAgency(userId, updateData.agencyData);
+  //   }
+  // }
 
   //MARK: getUserById
   async getUserById(userId: string): Promise<Auth | null> {
@@ -392,44 +316,5 @@ export class AuthService {
     return {
       message: 'User deleted successfully',
     };
-  }
-
-  //MARK: replaceUserFile (multipart)
-  async replaceUserFile(
-    userId: string,
-    label: string,
-    type: 'picture' | 'documents',
-    file: Express.Multer.File,
-    issuanceDate?: Date,
-    expirationDate?: Date,
-  ) {
-    // fetch existing file by label
-    const filesByLabel = await this.filesService.listUserFiles(userId);
-    const existing = filesByLabel?.[label];
-
-    if (existing && existing.url) {
-      // replace (delete old + upload new + persist)
-      return this.filesService.replaceFile(
-        userId,
-        existing.url,
-        file,
-        type,
-        label,
-        issuanceDate || new Date(),
-        expirationDate,
-      );
-    }
-
-    // no existing -> just upload new
-    const created = await this.filesService.uploadFile(
-      userId,
-      file,
-      type,
-      label,
-      issuanceDate || new Date(),
-      expirationDate || new Date(Date.now() + 365 * 24 * 60 * 60 * 1000),
-    );
-
-    return { message: 'File uploaded successfully', newFile: created };
   }
 }

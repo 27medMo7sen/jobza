@@ -9,14 +9,14 @@ import {
 } from '@nestjs/common';
 import { FilesService } from './files.service';
 import { FileInterceptor } from '@nestjs/platform-express';
-import { AuthGuard } from 'src/auth/auth.guard';
+import { LocalAuthGuard } from 'src/auth/auth.guard';
 
 @Controller('files')
 export class FilesController {
   constructor(private readonly filesService: FilesService) {}
   @Post('upload')
   @UseInterceptors(FileInterceptor('file'))
-  @UseGuards(AuthGuard)
+  @UseGuards(LocalAuthGuard)
   async uploadFile(
     @Req() req: any,
     @UploadedFile() file: Express.Multer.File,
@@ -36,7 +36,7 @@ export class FilesController {
   }
 
   @Post('list')
-  @UseGuards(AuthGuard)
+  @UseGuards(LocalAuthGuard)
   async listUserFiles(@Req() req: any) {
     const user = req.user;
     const ret = await this.filesService.listUserFiles(user.userId);
