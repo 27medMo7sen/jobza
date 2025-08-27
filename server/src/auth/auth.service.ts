@@ -317,4 +317,13 @@ export class AuthService {
       message: 'User deleted successfully',
     };
   }
+  async updateUser(user: any, updateData: any) {
+    if (user.role === 'worker') {
+      await this.workerService.updateWorker(user.userId, updateData);
+    } else if (user.role === 'employer') {
+      await this.employerService.updateEmployer(user.userId, updateData);
+    } else if (user.role === 'agency') {
+      await this.agencyService.updateAgency(user.userId, updateData);
+    }
+  }
 }

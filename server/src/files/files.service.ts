@@ -2,8 +2,6 @@ import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { File } from './files.model';
 import { Model } from 'mongoose';
-import { PutObjectCommand, GetObjectCommand } from '@aws-sdk/client-s3';
-import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 import { AwsS3Service } from 'src/aws-s3/aws-s3.service';
 @Injectable()
 export class FilesService {
@@ -20,6 +18,13 @@ export class FilesService {
     issuanceDate: Date,
     expirationDate: Date,
   ) {
+    const existingFile = await this.fileModel.findOne({ userId, label });
+    console.log(existingFile);
+    if (existingFile) {
+      await this.awsS3Service.deleteFile(existingFile?.s3Key || '');
+      await this.fileModel.deleteOne({ _id: existingFile._id });
+    }
+
     const folder = type === 'picture' ? 'pictures' : 'documents';
     const key = `${userId}/${folder}/${Date.now()}-${file.originalname}`;
 
@@ -104,21 +109,21 @@ export class FilesService {
     return results;
   }
 
-  async getFileMetadata(userId: string, fileUrl: string) {
-    const file = await this.fileModel.findOne({ userId, url: fileUrl });
-    if (!file) {
-      return null;
-    }
-    return {
-      fileName: file.fileName,
-      fileType: file.fileType,
-      label: file.label,
-      issuanceDate: file.issuanceDate,
-      expirationDate: file.expirationDate,
-      s3Key: file.s3Key,
-      url: file.url,
-    };
-  }
+  // async getFileMetadata(userId: string, fileUrl: string) {
+  //   const file = await this.fileModel.findOne({ userId, url: fileUrl });
+  //   if (!file) {
+  //     return null;
+  //   }
+  //   return {
+  //     fileName: file.fileName,
+  //     fileType: file.fileType,
+  //     label: file.label,
+  //     issuanceDate: file.issuanceDate,
+  //     expirationDate: file.expirationDate,
+  //     s3Key: file.s3Key,
+  //     url: file.url,
+  //   };
+  // }
 
   // async getUserFilesByType(userId: string, fileType: string) {
   //   return this.fileModel.find({ userId, fileType }).select('url fileName label -_id');

@@ -69,11 +69,19 @@ export class WorkerService {
     console.log('worker', worker);
     return worker;
   }
-  //   async updateWorker(workerData: any): Promise<Worker> {
-  //     console.log('workerData', workerData);
-  //     const userObjectId =
-  //       typeof workerData.userId === 'string'
-  //         ? new Types.ObjectId(workerData.userId)
+
+  async updateWorker(userId: string, updateData: any): Promise<Worker | null> {
+    const worker = await this.workerModel
+      .findOneAndUpdate(
+        { userId: new Types.ObjectId(userId) },
+        { $set: updateData },
+        { new: true },
+      )
+      .lean<Worker>()
+      .exec();
+    console.log('worker', worker);
+    return worker;
+  }
   //         : workerData.userId;
   //     const worker = await this.workerModel
   //       .findOneAndUpdate(
