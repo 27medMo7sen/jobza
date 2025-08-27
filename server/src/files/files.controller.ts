@@ -1,6 +1,8 @@
 import {
   Body,
   Controller,
+  Delete,
+  Param,
   Post,
   Req,
   UploadedFile,
@@ -23,8 +25,6 @@ export class FilesController {
     @Body() body: any,
   ) {
     const user = req.user;
-    // console.log(file);
-    // console.log(user);
     return await this.filesService.uploadFile(
       user.userId,
       file,
@@ -41,5 +41,12 @@ export class FilesController {
     const user = req.user;
     const ret = await this.filesService.listUserFiles(user.userId);
     return ret;
+  }
+
+  @Delete('/:fileId')
+  @UseGuards(LocalAuthGuard)
+  async deleteFile(@Req() req: any, @Param('fileId') fileId: string) {
+    const user = req.user;
+    return await this.filesService.deleteFile(user.userId, fileId);
   }
 }

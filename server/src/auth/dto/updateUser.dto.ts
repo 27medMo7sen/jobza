@@ -5,11 +5,6 @@ import { UpdateAgencyDto } from './updateAgency.dto';
 
 export class UpdateUserDto {
   @IsOptional()
-  @IsString()
-  @IsEnum(['worker', 'employer', 'agency'])
-  role?: string;
-
-  @IsOptional()
   workerData?: UpdateWorkerDto;
 
   @IsOptional()
@@ -22,4 +17,3 @@ export class UpdateUserDto {
   @IsString()
   profilePicture?: string; // New URL
 }
-

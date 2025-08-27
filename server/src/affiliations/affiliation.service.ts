@@ -14,7 +14,6 @@ export class AffiliationService {
     private readonly affiliationModel: Model<Affiliation>,
     @InjectModel('Auth')
     private readonly authModel: Model<Auth>,
-    // @InjectModel('Worker') private readonly workerModel: Model<Worker>,
     private readonly workerService: WorkerService,
     private readonly mailService: MailService,
     private readonly agencyService: AgencyService,
@@ -22,7 +21,6 @@ export class AffiliationService {
 
   async createAffiliation(receiverId: string, details: string | '', user: any) {
     const { role, userId } = user;
-    // console.log(role, userId);
     const senderRole = role;
     const senderId = userId;
     const receiverRole = role === 'worker' ? 'agency' : 'worker';
@@ -46,7 +44,6 @@ export class AffiliationService {
       details,
     });
     let name = '';
-    console.log("i'm here");
 
     if (role === 'agency') {
       const worker = await this.workerService.getWorkerByUserId(receiver._id);
@@ -72,28 +69,27 @@ export class AffiliationService {
     return await affiliation.save();
   }
 
-  async getReceived(receiverRole: string, receiverId: string) {
+  async getReceived(receiverId: string) {
     const affiliationsReceived = await this.affiliationModel.find({
-      receiverRole,
       receiverId: new Types.ObjectId(receiverId),
     });
-    console.log('affiliationsReceived', affiliationsReceived);
     return affiliationsReceived;
   }
 
-  async getSent(senderRole: string, senderId: string) {
+  async getSent(senderId: string) {
     const affiliationsSent = await this.affiliationModel.find({
-      senderRole,
       senderId: new Types.ObjectId(senderId),
     });
-    console.log('affiliationsSent', affiliationsSent);
     return affiliationsSent;
   }
 
-  async getPendingAffiliations(userId: string): Promise<Affiliation[]> {
-    return this.affiliationModel.find({
-      receiverId: userId,
-      status: 'pending',
+  async deleteRequest(affiliationId: string) {
+    return this.affiliationModel.findByIdAndDelete(affiliationId);
+  }
+
+  async editAffiliation(affiliationId: string, updates: Partial<Affiliation>) {
+    return this.affiliationModel.findByIdAndUpdate(affiliationId, updates, {
+      new: true,
     });
   }
 
@@ -112,6 +108,20 @@ export class AffiliationService {
 
     return affiliation;
   }
+
+  async getHistory(userId: string): Promise<Affiliation[]> {
+    return this.affiliationModel.find({
+      $or: [{ senderId: userId }, { receiverId: userId }],
+    });
+  }
+
+  // async getPendingAffiliations(userId: string): Promise<Affiliation[]> {
+  //   return this.affiliationModel.find({
+  //     receiverId: userId,
+  //     status: 'pending',
+  //   });
+  // }
+
   // async updateStatus(id: string, status: 'accepted' | 'rejected') {
   //   // check if the affiliation is pending
   //   const affiliation = await this.affiliationModel
@@ -152,12 +162,12 @@ export class AffiliationService {
   //   return affiliationStatus;
   // }
 
-  async emailSent(id: string) {
-    console.log('affiliation service emailSent', id);
-    return await this.affiliationModel.findByIdAndUpdate(
-      id,
-      { email_sent: true },
-      { new: true },
-    );
-  }
+  // async emailSent(id: string) {
+  //   console.log('affiliation service emailSent', id);
+  //   return await this.affiliationModel.findByIdAndUpdate(
+  //     id,
+  //     { email_sent: true },
+  //     { new: true },
+  //   );
+  // }
 }

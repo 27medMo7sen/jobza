@@ -4,21 +4,18 @@ import {
   Body,
   Get,
   Param,
-  Patch,
-  Query,
   Request,
   UseGuards,
-  BadRequestException,
+  Delete,
+  Patch,
 } from '@nestjs/common';
 import { AffiliationService } from './affiliation.service';
 import { WorkerService } from 'src/worker/worker.service';
 import { AgencyService } from 'src/agency/agency.service';
-import { Worker } from 'src/worker/worker.model';
 import { LocalAuthGuard } from 'src/auth/auth.guard';
 import { MailService } from 'src/mail/mail.service';
-import { Affiliation } from './affiliation.model';
 import { Roles } from 'src/auth/roles.decorator';
-import { rootCertificates } from 'tls';
+import { Affiliation } from './affiliation.model';
 
 @Controller('affiliations')
 @UseGuards(LocalAuthGuard)
@@ -49,43 +46,32 @@ export class AffiliationController {
   // Get available entities depending on role
   //MARK: getAvailable
   @Get('available')
-  async getAvailable(@Request() req) {
-    const { role } = req.user;
-    console.log('role to get affiliations', role);
-
-    if (role === 'agency') {
-      return this.workerService.getAvailableWorkers();
-    } else if (role === 'worker') {
-      return this.agencyService.getAvailableAgencies();
-    }
-
-    throw new Error('Invalid role');
+  @UseGuards(LocalAuthGuard)
+  @Roles('agency')
+  async getAvailable() {
+    return this.workerService.getAvailableWorkers();
   }
 
   // Get received requests (JWT يحدد الـ receiver)
+  //MARK: getReceived
   @Get('requests/received')
+  @UseGuards(LocalAuthGuard)
+  @Roles('worker', 'agency')
   async getReceived(@Request() req) {
-    const { role, userId } = req.user;
-    return this.affiliationService.getReceived(role, userId);
+    const { userId } = req.user;
+    return this.affiliationService.getReceived(userId);
   }
 
   // Get sent requests (JWT يحدد الـ sender)
+  //MARK: getSent
   @Get('requests/sent')
-  async getSent(@Request() req) {
-    const { role, userId } = req.user;
-    console.log('role', role);
-    console.log('userId', userId);
-    return this.affiliationService.getSent(role, userId);
-  }
-
-  @Get('pending-affiliations')
   @UseGuards(LocalAuthGuard)
   @Roles('worker', 'agency')
-  async getPendingAffiliations(@Request() req) {
-    const { userId } = req.user;
-    return this.affiliationService.getPendingAffiliations(userId);
+  async getSent(@Request() req) {
+    return this.affiliationService.getSent(req.userId);
   }
 
+  // Respond to affiliation requests
   @Post('affiliation-response')
   @UseGuards(LocalAuthGuard)
   @Roles('worker', 'agency')
@@ -99,6 +85,33 @@ export class AffiliationController {
       body.status,
       userId,
     );
+  }
+
+  // Delete affiliation request
+  //MARK: deleteRequest
+  @Delete('requests/:id')
+  async deleteRequest(@Param('id') id: string) {
+    return this.affiliationService.deleteRequest(id);
+  }
+
+  // Update affiliation request
+  //MARK: updateRequest
+  @Patch('requests/:id')
+  async updateRequest(
+    @Param('id') id: string,
+    @Body() body: Partial<Affiliation>,
+  ) {
+    return this.affiliationService.editAffiliation(id, body);
+  }
+
+  // Get affiliation history
+  //MARK: getHistory
+  @Get('history')
+  @UseGuards(LocalAuthGuard)
+  @Roles('worker', 'agency')
+  async getHistory(@Request() req) {
+    const { userId } = req.user;
+    return this.affiliationService.getHistory(userId);
   }
 
   // Accept / reject affiliation request
@@ -117,5 +130,13 @@ export class AffiliationController {
   //     message: 'Affiliation status updated',
   //     data: affiliationStatus,
   //   };
+  // }
+
+  // @Get('pending-affiliations')
+  // @UseGuards(LocalAuthGuard)
+  // @Roles('worker', 'agency')
+  // async getPendingAffiliations(@Request() req) {
+  //   const { userId } = req.user;
+  //   return this.affiliationService.getPendingAffiliations(userId);
   // }
 }
