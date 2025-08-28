@@ -130,7 +130,7 @@ export class AuthService {
   //MARK: validateUser
   async validateUser(email: string, password: string): Promise<Auth | null> {
     const user = await this.getUserByEmail(email);
-    if (!user) {
+    if (!user || !user.isVerified) {
       return null;
     }
     const isPasswordValid = await bcrypt.compare(password, user.password);

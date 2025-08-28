@@ -14,6 +14,10 @@ import { FilesModule } from './files/files.module';
 import { AwsS3Service } from './aws-s3/aws-s3.service';
 import { AwsS3Module } from './aws-s3/aws-s3.module';
 import { AffiliationModule } from './affiliations/affiliation.module';
+import { ContractModule } from './contract/contract.module';
+import { ConnectionModule } from './connection/connection.module';
+import { JobOfferModule } from './job-offer/job-offer.module';
+import { ApplicationModule } from './application/application.module';
 
 @Module({
   imports: [
@@ -61,6 +65,10 @@ import { AffiliationModule } from './affiliations/affiliation.module';
     FilesModule,
     AwsS3Module,
     AffiliationModule,
+    ContractModule,
+    JobOfferModule,
+    ApplicationModule,
+    // ConnectionModule,
   ],
   controllers: [AppController],
   providers: [AppService, AwsS3Service],

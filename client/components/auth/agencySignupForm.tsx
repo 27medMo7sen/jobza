@@ -45,7 +45,6 @@ const AgencySignupForm: React.FC = () => {
   const registrationNumber = useInput(validateRequired);
   const licenseNumber = useInput(validateRequired);
   const establishmentDate = useInput(validateRequired);
-  const username = useInput(validateRequired);
   const email = useInput(validateEmail);
   const phoneNumber = useInput(validatePhone);
   const website = useInput(validateUrl);
@@ -89,7 +88,6 @@ const AgencySignupForm: React.FC = () => {
     registrationNumber.isValid &&
     licenseNumber.isValid &&
     establishmentDate.isValid &&
-    username.isValid &&
     email.isValid &&
     phoneNumber.isValid &&
     streetAddress.isValid &&
@@ -114,7 +112,6 @@ const AgencySignupForm: React.FC = () => {
         registrationNumber: registrationNumber.value,
         licenseNumber: licenseNumber.value,
         establishmentDate: establishmentDate.value,
-        username: username.value,
         email: email.value,
         phoneNumber: phoneNumber.value,
         website: website.value,
@@ -135,7 +132,6 @@ const AgencySignupForm: React.FC = () => {
       registrationNumber.onBlur();
       licenseNumber.onBlur();
       establishmentDate.onBlur();
-      username.onBlur();
       email.onBlur();
       phoneNumber.onBlur();
       streetAddress.onBlur();
@@ -302,19 +298,6 @@ const AgencySignupForm: React.FC = () => {
               <h2 className="text-lg font-medium text-gray-900">
                 Contact Person Information
               </h2>
-
-              {/* Username Field */}
-              <Input
-                label="Username"
-                type="text"
-                placeholder="Enter username"
-                required
-                value={username.value}
-                onChange={username.onChange}
-                onBlur={username.onBlur}
-                hasError={username.hasError}
-                errorMessage="Username is required"
-              />
 
               {/* Email and Phone Row */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

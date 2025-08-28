@@ -26,7 +26,13 @@ export class MailService {
       to,
     };
   }
-  async sendAffiliationRequestEmail(to: string, name: string, details: string = '', senderRole: string, senderId: string) {
+  async sendAffiliationRequestEmail(
+    to: string,
+    name: string,
+    details: string = '',
+    senderRole: string,
+    senderId: string,
+  ) {
     const ret = await this.mailerService.sendMail({
       to: to,
       subject: 'Affiliation Request',
@@ -45,6 +51,32 @@ export class MailService {
     }
     return {
       message: 'Affiliation request email sent successfully',
+      to,
+    };
+  }
+  async sendConnectionRequestEmail(
+    to: string,
+    name: string,
+
+    senderRole: string,
+  ) {
+    const ret = await this.mailerService.sendMail({
+      to: to,
+      subject: 'Connection Request',
+      template: 'connection-request',
+      context: {
+        name: name,
+        senderRole: senderRole,
+        // senderId: senderId ? new Types.ObjectId(senderId) : undefined,
+        logoUrl:
+          'https://res.cloudinary.com/doou4eolq/image/upload/v1754270131/logo_st60zo.png',
+      },
+    });
+    if (!ret) {
+      throw new HttpException('Failed to send connection request email', 500);
+    }
+    return {
+      message: 'Connection request email sent successfully',
       to,
     };
   }

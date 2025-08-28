@@ -1,5 +1,5 @@
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
-import { ThemeProvider } from "next-themes";
+
 import { AppSidebar } from "@/components/ui/app-sidebar";
 export default function Layout({
   children,
@@ -11,7 +11,7 @@ export default function Layout({
       <body>
         <SidebarProvider>
           <AppSidebar />
-          <main>
+          <main className=" w-screen">
             <SidebarTrigger />
             {children}
           </main>

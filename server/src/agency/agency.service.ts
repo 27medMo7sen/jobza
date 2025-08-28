@@ -52,4 +52,8 @@ export class AgencyService {
     console.log('agency service getAgencyEmail', agency);
     return agency?.email ?? null;
   }
+
+  async getAgencyById(agencyId: string): Promise<Agency | null> {
+    return this.agencyModel.findById(agencyId).lean<Agency>().exec();
+  }
 }
