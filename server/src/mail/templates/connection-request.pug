@@ -1,0 +1,65 @@
+doctype html
+html
+  head
+    meta(charset="UTF-8")
+    meta(name="viewport", content="width=device-width, initial-scale=1.0")
+    title Connection Request
+    style.
+      body {
+        font-family: Arial, sans-serif;
+        background-color: #f9f9f9;
+        padding: 20px;
+        color: #333;
+      }
+      .container {
+        max-width: 600px;
+        margin: 0 auto;
+        background: #ffffff;
+        border-radius: 10px;
+        padding: 20px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+      }
+      .header {
+        text-align: center;
+        margin-bottom: 20px;
+      }
+      .logo {
+        max-width: 120px;
+      }
+      .title {
+        font-size: 20px;
+        font-weight: bold;
+        margin: 15px 0;
+      }
+      .details {
+        margin: 15px 0;
+        line-height: 1.5;
+      }
+      .footer {
+        text-align: center;
+        font-size: 12px;
+        color: #777;
+        margin-top: 20px;
+      }
+      .btn {
+        display: inline-block;
+        background: #2563eb;
+        color: #fff;
+        padding: 10px 16px;
+        border-radius: 6px;
+        text-decoration: none;
+        margin-top: 20px;
+      }
+  body
+    .container
+      .header
+        img.logo(src=logoUrl alt="Company Logo")
+        .title Connection Request
+
+      p Hello #{name},
+
+      p You’ve received a new connection request from a user with role:
+        strong #{senderRole}
+
+      .footer
+        p This is an automated message. Please do not reply directly.

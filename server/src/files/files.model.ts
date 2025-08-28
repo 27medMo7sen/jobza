@@ -23,6 +23,7 @@ export class File {
       'educational_certificate',
       'experience_letter',
       'police_clearance_certificate',
+      'signature',
     ],
   })
   label: string;

@@ -82,6 +82,15 @@ export class WorkerService {
     console.log('worker', worker);
     return worker;
   }
+
+  async getWorkerById(workerId: string): Promise<Worker | null> {
+    console.log('workerId', workerId);
+    return await this.workerModel
+      .findOne({ userId: new Types.ObjectId(workerId) })
+      .lean<Worker>()
+      .exec();
+  }
+
   //         : workerData.userId;
   //     const worker = await this.workerModel
   //       .findOneAndUpdate(

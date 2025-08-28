@@ -13,18 +13,22 @@ export class EmployerService {
     return newEmployer.save();
   }
 
-  async createEmployerWithUserId(userId: string, employerData: any): Promise<Employer> {
+  async createEmployerWithUserId(
+    userId: string,
+    employerData: any,
+  ): Promise<Employer> {
     const employerWithUserId = { ...employerData, userId };
     const newEmployer = new this.employerModel(employerWithUserId);
     return newEmployer.save();
   }
 
-  async updateEmployer(userId: string, updateData: any): Promise<Employer | null> {
-    return this.employerModel.findOneAndUpdate(
-      { userId },
-      updateData,
-      { new: true }
-    );
+  async updateEmployer(
+    userId: string,
+    updateData: any,
+  ): Promise<Employer | null> {
+    return this.employerModel.findOneAndUpdate({ userId }, updateData, {
+      new: true,
+    });
   }
 
   async deleteEmployer(userId: string): Promise<boolean> {
@@ -34,5 +38,9 @@ export class EmployerService {
 
   async getEmployerByUserId(userId: string): Promise<Employer | null> {
     return this.employerModel.findOne({ userId });
+  }
+
+  async getEmployerById(employerId: string): Promise<Employer | null> {
+    return this.employerModel.findById(employerId).lean<Employer>().exec();
   }
 }
