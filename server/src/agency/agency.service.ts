@@ -10,7 +10,9 @@ export class AgencyService {
     @InjectModel('Agency') private readonly agencyModel: Model<Agency>,
     @InjectModel('Auth') private readonly authModel: Model<Auth>,
   ) {}
-  async createAgency(agencyData: any): Promise<Agency> {
+  async createAgency(
+    agencyData: any,
+  ): Promise<Agency & { _id: Types.ObjectId }> {
     console.log('agency service agencyData', agencyData);
     const createdAgency = new this.agencyModel(agencyData);
     return createdAgency.save();
@@ -53,7 +55,11 @@ export class AgencyService {
     return agency?.email ?? null;
   }
 
-  async getAgencyById(agencyId: string): Promise<Agency | null> {
-    return this.agencyModel.findById(agencyId).lean<Agency>().exec();
+  async getAgencyById(agencyId: string): Promise<any> {
+    return this.agencyModel
+      .findById(agencyId)
+      .populate({ path: 'userId', model: 'Auth' })
+      .lean()
+      .exec();
   }
 }

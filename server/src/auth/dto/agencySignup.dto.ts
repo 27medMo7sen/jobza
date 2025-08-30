@@ -55,10 +55,6 @@ export class AgencySignupDto {
 
   @IsString()
   @IsNotEmpty()
-  userName: string;
-
-  @IsString()
-  @IsNotEmpty()
   streetAddress: string;
 
   @IsString()

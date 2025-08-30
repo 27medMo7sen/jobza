@@ -1,9 +1,10 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
+import { Types } from 'mongoose';
 @Schema({ timestamps: true })
 export class Auth {
-  @Prop()
+  @Prop({ required: true, unique: true })
   email: string;
-  @Prop()
+  @Prop({ required: true })
   password: string;
   @Prop()
   token: string;
@@ -21,5 +22,32 @@ export class Auth {
 
   @Prop({ default: false })
   isVerified: boolean;
+
+  @Prop({
+    required: function () {
+      return this.role === 'worker';
+    },
+    type: Types.ObjectId,
+    ref: 'Worker',
+  })
+  worker: Types.ObjectId;
+
+  @Prop({
+    required: function () {
+      return this.role === 'employer';
+    },
+    type: Types.ObjectId,
+    ref: 'Employer',
+  })
+  employer: Types.ObjectId;
+
+  @Prop({
+    required: function () {
+      return this.role === 'agency';
+    },
+    type: Types.ObjectId,
+    ref: 'Agency',
+  })
+  agency: Types.ObjectId;
 }
 export const AuthSchema = SchemaFactory.createForClass(Auth);

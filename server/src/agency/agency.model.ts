@@ -10,7 +10,10 @@ export class Agency {
   @Prop({ type: Types.ObjectId, ref: Auth.name, required: true })
   userId: Types.ObjectId;
 
-  @Prop()
+  @Prop({ required: true })
+  email: string;
+
+  @Prop({ required: true, enum: ['service', 'placement'] })
   agencyType: string;
 
   @Prop()
