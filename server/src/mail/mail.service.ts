@@ -6,23 +6,29 @@ import { Types } from 'mongoose';
 export class MailService {
   constructor(private readonly mailerService: MailerService) {}
 
-  async sendWelcomeEmail(to: string, name: string, code: string) {
+  async sendEmail(
+    to: string,
+    name: string,
+    code: string,
+    subject: string,
+    template: string,
+    logoUrl: string,
+  ) {
     const ret = await this.mailerService.sendMail({
       to: to,
-      subject: 'Verify Your Email',
-      template: 'verification-code',
+      subject: subject,
+      template: template,
       context: {
         name: name,
         code: code,
-        logoUrl:
-          'https://res.cloudinary.com/doou4eolq/image/upload/v1754270131/logo_st60zo.png',
+        logoUrl: logoUrl,
       },
     });
     if (!ret) {
-      throw new HttpException('Failed to send welcome email', 500);
+      throw new HttpException('Failed to send email', 500);
     }
     return {
-      message: 'Welcome email sent successfully',
+      message: 'email sent successfully',
       to,
     };
   }

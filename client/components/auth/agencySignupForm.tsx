@@ -295,10 +295,6 @@ const AgencySignupForm: React.FC = () => {
 
             {/* Contact Person Information Section */}
             <div className="space-y-4">
-              <h2 className="text-lg font-medium text-gray-900">
-                Contact Person Information
-              </h2>
-
               {/* Email and Phone Row */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <Input

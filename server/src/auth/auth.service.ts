@@ -51,32 +51,41 @@ export class AuthService {
     const newUser = new this.authModel(authData);
     console.log('auth service newUser', newUser);
     let displayName = '';
-    await newUser.save();
     console.log('auth service newUser', newUser);
     if (body.role === 'worker') {
-      const { email, password, confirmPassword, ...workerData } = body;
+      const { password, confirmPassword, ...workerData } = body;
       displayName = (workerData as WorkerSignupDto).userName;
-      await this.workerService.createWorker({
+      const worker = await this.workerService.createWorker({
         ...workerData,
         userId: newUser._id,
       });
+      newUser.worker = worker._id;
     } else if (body.role === 'employer') {
-      const { email, password, confirmPassword, ...employerData } = body;
+      const { password, confirmPassword, ...employerData } = body;
       displayName = (employerData as EmployerSignupDto).userName;
-      await this.employerService.createEmployer({
+      const employer = await this.employerService.createEmployer({
         ...employerData,
         userId: newUser._id,
       });
+      newUser.employer = employer._id;
     } else if (body.role === 'agency') {
-      const { email, password, confirmPassword, ...agencyData } = body;
-      displayName = (agencyData as AgencySignupDto).userName;
-      await this.agencyService.createAgency({
+      const { password, confirmPassword, ...agencyData } = body;
+      const agency = await this.agencyService.createAgency({
         ...agencyData,
         userId: newUser._id,
       });
+      newUser.agency = agency._id;
     }
 
-    await this.mailService.sendWelcomeEmail(body.email, displayName, code);
+    await this.mailService.sendEmail(
+      body.email,
+      displayName,
+      code,
+      'Verify Your Email',
+      'verification-code',
+      'https://res.cloudinary.com/doou4eolq/image/upload/v1754270131/logo_st60zo.png',
+    );
+    await newUser.save();
 
     return {
       message: 'User created successfully',
@@ -234,55 +243,6 @@ export class AuthService {
       message: 'User approved successfully',
     };
   }
-
-  // //MARK: updateUser
-  // async updateUser(userId: string, updateData: any) {
-  //   let currentUser: any;
-  //   try {
-  //     // Get the current user
-  //     currentUser = await this.authModel.findById(userId);
-  //     if (!currentUser) {
-  //       throw new HttpException('User not found', 404);
-  //     }
-
-  //     // Handle file updates first
-  //     await this.handleFileUpdates(userId, currentUser.role, updateData);
-
-  //     // Update user profile based on role
-  //     await this.updateUserProfile(userId, currentUser.role, updateData);
-
-  //     // Get updated user
-  //     const updatedUser = await this.authModel.findById(userId);
-  //     return {
-  //       message: 'User updated successfully',
-  //       user: updatedUser,
-  //     };
-  //   } catch (error) {
-  //     // Rollback file changes if needed
-  //     if (currentUser) {
-  //       await this.rollbackFileChanges(userId, currentUser.role);
-  //     }
-  //     throw error;
-  //   }
-  // }
-
-  // //MARK: updateUserProfile
-  // private async updateUserProfile(
-  //   userId: string,
-  //   role: string,
-  //   updateData: any,
-  // ) {
-  //   if (role === 'worker' && updateData.workerData) {
-  //     await this.workerService.updateWorker(userId, updateData.workerData);
-  //   } else if (role === 'employer' && updateData.employerData) {
-  //     await this.employerService.updateEmployer(
-  //       userId,
-  //       updateData.employerData,
-  //     );
-  //   } else if (role === 'agency' && updateData.agencyData) {
-  //     await this.agencyService.updateAgency(userId, updateData.agencyData);
-  //   }
-  // }
 
   //MARK: getUserById
   async getUserById(userId: string): Promise<Auth | null> {

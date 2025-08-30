@@ -13,16 +13,15 @@ export class WorkerService {
     private readonly affiliationModel: Model<Affiliation>,
   ) {}
 
-  async createWorker(workerData: any): Promise<Worker> {
+  async createWorker(
+    workerData: any,
+  ): Promise<Worker & { _id: Types.ObjectId }> {
     console.log(workerData);
     const createdWorker = new this.workerModel(workerData);
     return createdWorker.save();
   }
 
-  async createWorkerWithUserId(
-    userId: string,
-    workerData: any,
-  ): Promise<Worker> {
+  async createWorkerWithUserId(userId: string, workerData: any): Promise<any> {
     const workerWithUserId = { ...workerData, userId };
     const createdWorker = new this.workerModel(workerWithUserId);
     return createdWorker.save();

@@ -9,6 +9,9 @@ export class Worker {
   @Prop()
   userName: string;
 
+  @Prop({ required: true })
+  email: string;
+
   @Prop()
   phoneNumber: string;
 
