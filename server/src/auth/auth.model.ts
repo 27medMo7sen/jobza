@@ -4,7 +4,13 @@ import { Types } from 'mongoose';
 export class Auth {
   @Prop({ required: true, unique: true })
   email: string;
-  @Prop({ required: true })
+  @Prop({ required: true, enum: ['local', 'google'] })
+  method: string;
+  @Prop({ required: true, default: 'local' })
+  userName: string;
+  @Prop({ required: function() {
+    return this.method === 'local';
+  } })
   password: string;
   @Prop()
   token: string;

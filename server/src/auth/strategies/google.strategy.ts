@@ -32,7 +32,7 @@ export class GoogleStrategy extends PassportStrategy(Strategy, 'google') {
       // "state" survives the Google redirect
       const role = req.query.state;
       console.log('Role from state:', role);
-
+      console.log('Profile from Google:', profile);
       const user = await this.authService.validateOAuthUser(profile, role);
       done(null, user);
     } catch (error) {
