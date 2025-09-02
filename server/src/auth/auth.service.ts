@@ -46,6 +46,8 @@ export class AuthService {
       password: hashedPassword,
       code,
       role: body.role,
+      method: 'local',
+      userName: (body as any).userName,
     };
     console.log('auth service authData', authData);
     const newUser = new this.authModel(authData);
@@ -160,25 +162,33 @@ export class AuthService {
         email: _json.email,
         isVerified: true,
         role,
+        method: 'google',
+        userName: _json.given_name,
       });
       if (role === 'worker') {
-        await this.workerService.createWorker({
+        const worker = await this.workerService.createWorker({
+          email: _json.email,
+          method: 'google',
           userName: _json.given_name,
           userId: newUser._id,
         });
+        newUser.worker = worker._id as any;
       } else if (role === 'employer') {
-        await this.employerService.createEmployerWithUserId(
+        const employer = await this.employerService.createEmployerWithUserId(
           newUser._id.toString(),
           {
-            firstName: _json.given_name,
+            userName: _json.given_name,
+            method: 'google',
             userId: newUser._id,
           },
         );
+        newUser.employer = employer._id as any;
       } else if (role === 'agency') {
-        await this.agencyService.createAgency({
+        const agency = await this.agencyService.createAgency({
           userName: _json.given_name,
           userId: newUser._id,
         });
+        newUser.agency = agency._id as any;
       }
       token = this.jwtService.sign({
         userId: newUser._id,

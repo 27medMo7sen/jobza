@@ -6,8 +6,11 @@ export class Employer {
   @Prop({ type: Types.ObjectId, ref: Auth.name, required: true })
   userId: Types.ObjectId;
 
-  @Prop({ required: true })
+  @Prop({ required: true , unique: true})
   userName: string;
+
+  @Prop({required: true})
+  fullName:string
 
   @Prop({ required: true })
   email: string;
