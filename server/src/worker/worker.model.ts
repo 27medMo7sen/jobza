@@ -7,10 +7,29 @@ export class Worker {
   userId: Types.ObjectId;
 
   @Prop()
+  admin: string;
+
+  @Prop()
   userName: string;
 
   @Prop({ required: true })
   email: string;
+
+  @Prop({
+    required: false,
+    type: {
+      url: {
+        type: String,
+      },
+      s3Key: {
+        type: String,
+      },
+    },
+  })
+  profilePicture: {
+    url: string;
+    s3Key: string;
+  };
 
   @Prop()
   phoneNumber: string;
@@ -26,5 +45,14 @@ export class Worker {
 
   @Prop({ type: Boolean, default: false })
   isAffiliated: boolean;
+
+  @Prop()
+  heighestEducationalLevel: string;
+
+  @Prop()
+  skillSet: string[];
+
+  @Prop()
+  country: string;
 }
 export const WorkerSchema = SchemaFactory.createForClass(Worker);

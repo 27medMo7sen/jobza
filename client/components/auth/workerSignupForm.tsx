@@ -165,7 +165,7 @@ const WorkerSignupForm: React.FC = () => {
 
           {/* Google Sign Up Button */}
           <Link
-            href="http://localhost:3000/auth/google?role=worker"
+            href={`${process.env.NEXT_PUBLIC_SERVER_URL}/auth/google?role=worker`}
             className="w-full flex items-center justify-center gap-3 py-3 px-4 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors duration-200 mb-6 text-black"
           >
             <svg className="w-5 h-5" viewBox="0 0 24 24">

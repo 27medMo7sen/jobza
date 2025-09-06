@@ -14,6 +14,5 @@ export class UpdateUserDto {
   agencyData?: UpdateAgencyDto;
 
   @IsOptional()
-  @IsString()
   profilePicture?: string; // New URL
 }

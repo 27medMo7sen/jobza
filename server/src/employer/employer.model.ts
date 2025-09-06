@@ -6,11 +6,29 @@ export class Employer {
   @Prop({ type: Types.ObjectId, ref: Auth.name, required: true })
   userId: Types.ObjectId;
 
-  @Prop({ required: true , unique: true})
+  @Prop({ required: true, unique: true })
   userName: string;
 
-  @Prop({required: true})
-  fullName:string
+  @Prop({ required: true })
+  fullName: string;
+
+  @Prop({
+    required: true,
+    type: {
+      url: {
+        type: String,
+        required: true,
+      },
+      s3Key: {
+        type: String,
+        required: true,
+      },
+    },
+  })
+  profilePicture: {
+    url: string;
+    s3Key: string;
+  };
 
   @Prop({ required: true })
   email: string;

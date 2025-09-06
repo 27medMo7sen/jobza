@@ -15,9 +15,29 @@ type ThemeProviderState = {
   setTheme: (theme: Theme) => void;
 };
 
+const getInitialTheme = (): Theme => {
+  if (typeof window !== "undefined" && typeof localStorage !== "undefined") {
+    try {
+      return (localStorage.getItem("jobza-theme") as Theme) || "system";
+    } catch (error) {
+      console.warn("Error reading theme from localStorage:", error);
+      return "system";
+    }
+  }
+  return "system";
+};
+
 const initialState: ThemeProviderState = {
-  theme: "system",
-  setTheme: () => null,
+  theme: getInitialTheme(),
+  setTheme: (theme: Theme) => {
+    if (typeof window !== "undefined" && typeof localStorage !== "undefined") {
+      try {
+        localStorage.setItem("jobza-theme", theme);
+      } catch (error) {
+        console.warn("Error saving theme to localStorage:", error);
+      }
+    }
+  },
 };
 
 const ThemeProviderContext = createContext<ThemeProviderState>(initialState);
@@ -28,9 +48,17 @@ export function ThemeProvider({
   storageKey = "jobza-theme",
   ...props
 }: ThemeProviderProps) {
-  const [theme, setTheme] = useState<Theme>(
-    () => (localStorage?.getItem(storageKey) as Theme) || defaultTheme
-  );
+  const [theme, setTheme] = useState<Theme>(() => {
+    if (typeof window !== "undefined" && typeof localStorage !== "undefined") {
+      try {
+        return (localStorage.getItem(storageKey) as Theme) || defaultTheme;
+      } catch (error) {
+        console.warn("Error reading theme from localStorage:", error);
+        return defaultTheme;
+      }
+    }
+    return defaultTheme;
+  });
 
   useEffect(() => {
     const root = window.document.documentElement;
@@ -53,7 +81,16 @@ export function ThemeProvider({
   const value = {
     theme,
     setTheme: (theme: Theme) => {
-      localStorage?.setItem(storageKey, theme);
+      if (
+        typeof window !== "undefined" &&
+        typeof localStorage !== "undefined"
+      ) {
+        try {
+          localStorage.setItem(storageKey, theme);
+        } catch (error) {
+          console.warn("Error saving theme to localStorage:", error);
+        }
+      }
       setTheme(theme);
     },
   };
