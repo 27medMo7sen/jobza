@@ -13,6 +13,24 @@ export class Agency {
   @Prop({ required: true })
   email: string;
 
+  @Prop({
+    required: true,
+    type: {
+      url: {
+        type: String,
+        required: true,
+      },
+      s3Key: {
+        type: String,
+        required: true,
+      },
+    },
+  })
+  profilePicture: {
+    url: string;
+    s3Key: string;
+  };
+
   @Prop({ required: true, enum: ['service', 'placement'] })
   agencyType: string;
 

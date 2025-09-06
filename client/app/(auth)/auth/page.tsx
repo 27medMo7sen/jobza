@@ -1,15 +1,18 @@
 "use client";
 import AgencySignupForm from "@/components/auth/agencySignupForm";
+import { DrawerOpt } from "@/components/auth/drawerOpt";
 import EmployerSignupForm from "@/components/auth/employerSignupForm";
+import GoogleFetch from "@/components/auth/googleFetch";
 import LoginForm from "@/components/auth/loginForm";
 import UserIdentity from "@/components/auth/userIdentity";
 import WorkerSignupForm from "@/components/auth/workerSignupForm";
 import { useSearchParams } from "next/navigation";
-import { Fragment } from "react";
+import { Fragment, useRef } from "react";
 
 export default function AuthPage() {
   const searchParams = useSearchParams();
   const mode = searchParams.get("mode");
+  const drawerRef = useRef<HTMLButtonElement | null>(null);
 
   return (
     <Fragment>
@@ -23,7 +26,8 @@ export default function AuthPage() {
         <AgencySignupForm />
       ) : mode === "login" ? (
         <LoginForm />
-      ) : null}
+      ) : mode =="google"?<GoogleFetch/>:null}
+      <DrawerOpt drawerRef={drawerRef} />
     </Fragment>
   );
 }
