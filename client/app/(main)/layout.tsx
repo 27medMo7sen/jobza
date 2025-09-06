@@ -29,18 +29,24 @@ export default function RootLayout({
 }>) {
   const dispatch = useDispatch();
   useEffect(() => {
-    const user = localStorage.getItem("user");
-    if (user) {
-      dispatch(setUser(JSON.parse(user)));
+    if (typeof window !== "undefined" && typeof localStorage !== "undefined") {
+      try {
+        const user = localStorage.getItem("user");
+        if (user) {
+          dispatch(setUser(JSON.parse(user)));
+        }
+        const token = localStorage.getItem("token");
+        if (token) {
+          dispatch(setToken(token));
+        }
+      } catch (error) {
+        console.warn("Error reading auth data from localStorage:", error);
+      }
     }
-    const token = localStorage.getItem("token");
-    if (token) {
-      dispatch(setToken(token));
-    }
-  }, []);
+  }, [dispatch]);
   return (
     <div className={`font-sans  antialiased`}>
-      <ThemeProvider defaultTheme="system">{children}</ThemeProvider>
+      <ThemeProvider>{children}</ThemeProvider>
     </div>
   );
 }

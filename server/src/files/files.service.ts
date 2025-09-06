@@ -1,13 +1,15 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotAcceptableException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { File } from './files.model';
 import { Model } from 'mongoose';
 import { AwsS3Service } from 'src/aws-s3/aws-s3.service';
+import { AuthService } from 'src/auth/auth.service';
 @Injectable()
 export class FilesService {
   constructor(
     @InjectModel(File.name) private fileModel: Model<File>,
     private awsS3Service: AwsS3Service,
+    private authService: AuthService,
   ) {}
 
   async uploadFile(
@@ -15,12 +17,13 @@ export class FilesService {
     file: Express.Multer.File,
     type: string,
     label: string,
-    issuanceDate: Date,
-    expirationDate: Date,
   ) {
     const existingFile = await this.fileModel.findOne({ userId, label });
-    console.log(existingFile);
+
     if (existingFile) {
+      if (label === 'signature') {
+        throw new NotAcceptableException('Signature already exists');
+      }
       await this.awsS3Service.deleteFile(existingFile?.s3Key || '');
       await this.fileModel.deleteOne({ _id: existingFile._id });
     }
@@ -35,19 +38,22 @@ export class FilesService {
       fileType: type,
       fileName: file.originalname,
       label: label,
-      issuanceDate,
-      expirationDate,
       s3Key: key,
       url,
+      size: file.size,
     });
-
+    if (label === 'signature') {
+      await this.authService.signatureUploaded(userId);
+    }
     return savedFile.save();
   }
 
   async listUserFiles(userId: string) {
     const ret = await this.fileModel
       .find({ userId })
-      .select('fileName label issuanceDate expirationDate url s3Key -_id');
+      .select(
+        'fileName label url s3Key size fileType status rejectionReason -_id',
+      );
 
     const filesByLabel = ret.reduce(
       (acc, file) => {

@@ -4,6 +4,7 @@ import { Model, Types } from 'mongoose';
 import { Worker } from './worker.model';
 import { Auth } from 'src/auth/auth.model';
 import { Affiliation } from 'src/affiliations/affiliation.model';
+
 @Injectable()
 export class WorkerService {
   constructor(

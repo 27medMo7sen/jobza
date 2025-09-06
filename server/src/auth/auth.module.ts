@@ -12,7 +12,6 @@ import { MailModule } from 'src/mail/mail.module';
 import { MailService } from 'src/mail/mail.service';
 import { WorkerModule } from 'src/worker/worker.module';
 import { EmployerModule } from 'src/employer/employer.module';
-import { AgencyService } from 'src/agency/agency.service';
 import { AgencyModule } from 'src/agency/agency.module';
 import { FilesModule } from 'src/files/files.module';
 import { LocalAuthGuard } from './auth.guard';
@@ -32,7 +31,6 @@ import { LocalAuthGuard } from './auth.guard';
     WorkerModule,
     EmployerModule,
     AgencyModule,
-    FilesModule,
   ],
   controllers: [AuthController],
   providers: [
