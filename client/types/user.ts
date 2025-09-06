@@ -14,6 +14,9 @@ export interface BudgetRange {
 
 export interface WorkerData {
   userName: string;
+  profilePicture: string;
+  name: string;
+  phoneNumber: string;
   gender: string;
   nationality: string;
   dateOfBirth: string;
@@ -22,6 +25,8 @@ export interface WorkerData {
 }
 
 export interface EmployerData {
+  profilePicture: string;
+  name: string;
   phoneNumber: string;
   gender: string;
   nationality: string;
@@ -37,6 +42,8 @@ export interface EmployerData {
 }
 
 export interface AgencyData {
+  profilePicture: string;
+  name: string;
   agencyType: string;
   registrationNumber: string;
   licenseNumber: string;
@@ -54,6 +61,8 @@ export interface AgencyData {
 }
 
 export interface AdminData {
+  profilePicture: string;
+  name: string;
   userName: string;
   gender: string;
   nationality: string;
@@ -63,9 +72,23 @@ export interface AdminData {
 }
 
 export interface User {
-  profilePicture: string;
+  profilePicture: {
+    url: string;
+    s3Key: string;
+  };
   userName: string;
+  name: string;
+  phoneNumber: string;
+  gender: string;
+  nationality: string;
+  dateOfBirth: string;
+  heighestEducationalLevel: string;
+  skillSet: string[];
   email: string;
   role: "worker" | "employer" | "agency" | "admin";
   data: WorkerData | EmployerData | AgencyData | AdminData;
+  worker: WorkerData;
+  employer: EmployerData;
+  agency: AgencyData;
+  admin: AdminData;
 }

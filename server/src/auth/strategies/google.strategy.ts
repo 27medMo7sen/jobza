@@ -1,5 +1,5 @@
 import { ConfigService } from '@nestjs/config';
-import { Injectable } from '@nestjs/common';
+import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { PassportStrategy } from '@nestjs/passport';
 import { Strategy, VerifyCallback } from 'passport-google-oauth20';
 import { AuthService } from '../auth.service';
@@ -29,13 +29,16 @@ export class GoogleStrategy extends PassportStrategy(Strategy, 'google') {
     done: VerifyCallback,
   ) {
     try {
-      // "state" survives the Google redirect
       const role = req.query.state;
       console.log('Role from state:', role);
-
+      console.log('Profile from Google:', profile);
       const user = await this.authService.validateOAuthUser(profile, role);
       done(null, user);
     } catch (error) {
+      if (error.message && error.message.includes('@gmail.com')) {
+        const errorUrl = `${process.env.CLIENT_ROOT}/error?message=${encodeURIComponent(error.message)}`;
+        return done(null, { redirectUrl: errorUrl });
+      }
       done(error, false);
     }
   }

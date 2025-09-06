@@ -1,6 +1,6 @@
 import { HttpException, Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { Auth } from './auth.model';
+import { Auth, Role } from './auth.model';
 import { Model } from 'mongoose';
 import { WorkerSignupDto } from './dto/workerSignup.dto';
 import * as bcrypt from 'bcrypt';
@@ -12,7 +12,11 @@ import { EmployerService } from 'src/employer/employer.service';
 import { AgencySignupDto } from './dto/agencySignup.dto';
 import { EmployerSignupDto } from './dto/EmployerSignup.dto';
 import { AgencyService } from 'src/agency/agency.service';
-import { FilesService } from 'src/files/files.service';
+import { Worker } from 'src/worker/worker.model';
+import { Employer } from 'src/employer/employer.model';
+import { Agency } from 'src/agency/agency.model';
+import { status } from './auth.model';
+
 @Injectable()
 export class AuthService {
   constructor(
@@ -22,7 +26,6 @@ export class AuthService {
     private readonly workerService: WorkerService,
     private readonly employerService: EmployerService,
     private readonly agencyService: AgencyService,
-    private readonly filesService: FilesService,
   ) {}
   //MARK: signup
   async signup(body: WorkerSignupDto | EmployerSignupDto | AgencySignupDto) {
@@ -44,8 +47,11 @@ export class AuthService {
     const authData = {
       email: body.email,
       password: hashedPassword,
+      userName: body.email.split('@')[0],
       code,
       role: body.role,
+      method: 'local',
+      name: (body as any).name,
     };
     console.log('auth service authData', authData);
     const newUser = new this.authModel(authData);
@@ -54,7 +60,7 @@ export class AuthService {
     console.log('auth service newUser', newUser);
     if (body.role === 'worker') {
       const { password, confirmPassword, ...workerData } = body;
-      displayName = (workerData as WorkerSignupDto).userName;
+      displayName = (workerData as WorkerSignupDto).name;
       const worker = await this.workerService.createWorker({
         ...workerData,
         userId: newUser._id,
@@ -156,29 +162,45 @@ export class AuthService {
     let user = await this.authModel.findOne({ email: _json.email });
     let token;
     if (!user) {
+      if (!_json.email.endsWith('@gmail.com')) {
+        throw new HttpException('Only @gmail.com accounts are allowed', 400);
+      }
       const newUser = new this.authModel({
         email: _json.email,
         isVerified: true,
         role,
+        method: 'google',
+        userName: _json.email.split('@')[0], // ahmed@gmail.com -> ahmed
+        name: _json.given_name,
       });
-      if (role === 'worker') {
-        await this.workerService.createWorker({
-          userName: _json.given_name,
+      if (role === Role.WORKER) {
+        const worker = await this.workerService.createWorker({
+          email: _json.email,
+          method: 'google',
+          name: _json.given_name,
+          profilePicture: {
+            url: _json.picture,
+          },
+          userName: _json.email.split('@')[0],
           userId: newUser._id,
         });
-      } else if (role === 'employer') {
-        await this.employerService.createEmployerWithUserId(
+        newUser.worker = worker._id as any;
+      } else if (role === Role.EMPLOYER) {
+        const employer = await this.employerService.createEmployerWithUserId(
           newUser._id.toString(),
           {
-            firstName: _json.given_name,
+            userName: _json.given_name,
+            method: 'google',
             userId: newUser._id,
           },
         );
-      } else if (role === 'agency') {
-        await this.agencyService.createAgency({
+        newUser.employer = employer._id as any;
+      } else if (role === Role.AGENCY) {
+        const agency = await this.agencyService.createAgency({
           userName: _json.given_name,
           userId: newUser._id,
         });
+        newUser.agency = agency._id as any;
       }
       token = this.jwtService.sign({
         userId: newUser._id,
@@ -195,6 +217,7 @@ export class AuthService {
       { token },
       { new: true },
     );
+    console.log('userUpdate', userUpdate);
     return userUpdate;
   }
   //MARK: refreshToken
@@ -221,9 +244,14 @@ export class AuthService {
   }
 
   //MARK: getUserByToken
-  async getUserByToken(token: string): Promise<Auth | null> {
-    const user = await this.authModel.findOne({ token });
+  async getUserByToken(token: string): Promise<any> {
+    const user = await this.authModel
+      .findOne({ token })
+      .populate('worker')
+      .populate('employer')
+      .populate('agency');
     if (!user) {
+      console.log('User not found');
       throw new HttpException('User not found', 404);
     }
     return user;
@@ -236,7 +264,7 @@ export class AuthService {
       throw new HttpException('User not found', 404);
     }
 
-    user.approved = true;
+    user.status = status.APPROVED;
     await user.save();
 
     return {
@@ -249,10 +277,10 @@ export class AuthService {
     return this.authModel.findById(userId);
   }
 
-  //MARK: deleteUser
+  //MARK: deleteUserFull Name
   async deleteUser(userId: string, requestingUser: any) {
     // Check if requesting user is admin
-    if (requestingUser.role !== 'admin') {
+    if (requestingUser.role !== Role.ADMIN) {
       throw new HttpException('Unauthorized: Admin access required', 403);
     }
 
@@ -262,11 +290,11 @@ export class AuthService {
     }
 
     // Delete user profile based on role
-    if (user.role === 'worker') {
+    if (user.role === Role.WORKER) {
       await this.workerService.deleteWorker(userId);
-    } else if (user.role === 'employer') {
+    } else if (user.role === Role.EMPLOYER) {
       await this.employerService.deleteEmployer(userId);
-    } else if (user.role === 'agency') {
+    } else if (user.role === Role.AGENCY) {
       await this.agencyService.deleteAgency(userId);
     }
 
@@ -278,12 +306,30 @@ export class AuthService {
     };
   }
   async updateUser(user: any, updateData: any) {
-    if (user.role === 'worker') {
+    console.log('updateData', updateData);
+    const updatedUser = await this.authModel.findOneAndUpdate(
+      { email: user.email },
+      {
+        name: updateData.name,
+      },
+      {
+        new: true,
+      },
+    );
+    console.log('updatedUser', updatedUser);
+    if (user.role === Role.WORKER) {
       await this.workerService.updateWorker(user.userId, updateData);
-    } else if (user.role === 'employer') {
+    } else if (user.role === Role.EMPLOYER) {
       await this.employerService.updateEmployer(user.userId, updateData);
-    } else if (user.role === 'agency') {
+    } else if (user.role === Role.AGENCY) {
       await this.agencyService.updateAgency(user.userId, updateData);
     }
+    return {
+      message: 'User updated successfully',
+    };
+  }
+
+  async signatureUploaded(userId: string) {
+    await this.authModel.findByIdAndUpdate(userId, { signature: true });
   }
 }

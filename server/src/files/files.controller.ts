@@ -2,6 +2,7 @@ import {
   Body,
   Controller,
   Delete,
+  Get,
   Param,
   Post,
   Req,
@@ -30,14 +31,13 @@ export class FilesController {
       file,
       body.type,
       body.label,
-      body.issuanceDate,
-      body.expirationDate,
     );
   }
 
-  @Post('list')
+  @Get('list')
   @UseGuards(LocalAuthGuard)
   async listUserFiles(@Req() req: any) {
+    console.log('listUserFiles');
     const user = req.user;
     const ret = await this.filesService.listUserFiles(user.userId);
     return ret;

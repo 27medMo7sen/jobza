@@ -10,12 +10,12 @@ export class UpdateWorkerDto {
   @IsOptional()
   @IsString()
   @MinLength(3)
-  firstName?: string;
+  name?: string;
 
   @IsOptional()
   @IsString()
   @MinLength(3)
-  lastName?: string;
+  userName?: string;
 
   @IsOptional()
   @IsString()
@@ -46,11 +46,9 @@ export class UpdateWorkerDto {
   documents?: string[]; // New document URLs (uploaded separately)
 
   @IsOptional()
-  @IsString()
   profilePicture?: string; // New picture URL
 
   @IsOptional()
   @IsString()
   resume?: string; // New resume URL
 }
-

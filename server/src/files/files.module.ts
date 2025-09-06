@@ -7,6 +7,7 @@ import { AwsS3Module } from 'src/aws-s3/aws-s3.module';
 import { JwtModule } from '@nestjs/jwt';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { LocalAuthGuard } from 'src/auth/auth.guard';
+import { AuthModule } from 'src/auth/auth.module';
 
 @Module({
   imports: [
@@ -23,6 +24,7 @@ import { LocalAuthGuard } from 'src/auth/auth.guard';
         },
       }),
     }),
+    AuthModule,
   ],
   controllers: [FilesController],
   providers: [FilesService, LocalAuthGuard],

@@ -2,13 +2,18 @@ import {
   IsDate,
   IsDateString,
   IsEmail,
+  IsArray,
   IsString,
+  Matches,
   MinLength,
 } from 'class-validator';
 export class WorkerSignupDto {
   @IsString()
   @MinLength(3)
   @IsEmail()
+  @Matches(/^[\w.+\-]+@gmail\.com$/, {
+    message: 'Email must be a valid Gmail address',
+  })
   email: string;
 
   @IsString()
@@ -20,8 +25,11 @@ export class WorkerSignupDto {
   confirmPassword: string;
 
   @IsString()
-  @MinLength(3)
   userName: string;
+
+  @IsString()
+  @MinLength(3)
+  name: string;
 
   @IsString()
   role: string;
@@ -40,4 +48,15 @@ export class WorkerSignupDto {
   @IsDateString()
   @MinLength(10)
   dateOfBirth: Date;
+
+  @IsString()
+  @MinLength(2)
+  heighestEducationalLevel: string;
+
+  @IsArray()
+  @IsString({ each: true })
+  skillSet: string[];
+
+  @IsString()
+  country: string;
 }

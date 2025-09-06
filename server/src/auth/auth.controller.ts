@@ -62,8 +62,22 @@ export class AuthController {
     if (!user) {
       return res.redirect(`${process.env.CLIENT_ROOT}/login`);
     }
+
+    if (user.redirectUrl) {
+      return res.redirect(user.redirectUrl);
+    }
+
     return res.redirect(
       `${process.env.CLIENT_ROOT}/auth?mode=google&token=${user.token}`,
+    );
+  }
+
+  @Get('google/error')
+  async googleAuthError(@Req() req, @Res() res, @Query('error') error: string) {
+    // Redirect to client error page with the error message
+    const errorMessage = error || 'Authentication failed';
+    return res.redirect(
+      `${process.env.CLIENT_ROOT}/error?message=${encodeURIComponent(errorMessage)}`,
     );
   }
 
@@ -77,12 +91,14 @@ export class AuthController {
     return await this.authService.refreshToken(body.token);
   }
 
-  @Get('/user-by-token')
+  @Get('user-by-token')
   async getUserByToken(@Req() req) {
+    // console.log('req', req);
     const token = req.headers.authorization?.split(' ')[1];
     if (!token) {
       throw new HttpException('Token not provided', 400);
     }
+    console.log('token', token);
     return await this.authService.getUserByToken(token);
   }
 
@@ -98,9 +114,9 @@ export class AuthController {
     return await this.authService.approveUser(userId);
   }
 
-  @Put('/update')
+  @Put('/profile')
   @UseGuards(LocalAuthGuard)
-  async updateUser(
+  async updateProfile(
     @Req() req: any,
     @Body(ValidationPipe) updateData: UpdateUserDto,
   ) {

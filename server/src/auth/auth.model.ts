@@ -1,10 +1,33 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Types } from 'mongoose';
+export enum Role {
+  WORKER = 'worker',
+  EMPLOYER = 'employer',
+  AGENCY = 'agency',
+  ADMIN = 'admin',
+  SUPERADMIN = 'superadmin',
+}
+export enum status {
+  NOT_COMPLETED = 'not completed',
+  PENDING = 'pending',
+  APPROVED = 'approved',
+  REJECTED = 'rejected',
+}
 @Schema({ timestamps: true })
 export class Auth {
   @Prop({ required: true, unique: true })
   email: string;
+  @Prop({ required: true, enum: ['local', 'google'] })
+  method: string;
   @Prop({ required: true })
+  name: string;
+  @Prop({ required: true })
+  userName: string;
+  @Prop({
+    required: function () {
+      return this.method === 'local';
+    },
+  })
   password: string;
   @Prop()
   token: string;
@@ -12,20 +35,23 @@ export class Auth {
   code: string;
   @Prop({
     type: String,
-    enum: ['worker', 'employer', 'agency', 'admin', 'superadmin'],
+    enum: Role,
     default: 'worker',
   })
   role: string;
 
-  @Prop({ default: false })
-  approved: boolean;
+  @Prop({ default: status.NOT_COMPLETED })
+  status: status;
 
   @Prop({ default: false })
   isVerified: boolean;
 
+  @Prop({ default: false })
+  signature: boolean;
+
   @Prop({
     required: function () {
-      return this.role === 'worker';
+      return this.role === Role.WORKER;
     },
     type: Types.ObjectId,
     ref: 'Worker',
@@ -34,7 +60,7 @@ export class Auth {
 
   @Prop({
     required: function () {
-      return this.role === 'employer';
+      return this.role === Role.EMPLOYER;
     },
     type: Types.ObjectId,
     ref: 'Employer',
@@ -43,7 +69,7 @@ export class Auth {
 
   @Prop({
     required: function () {
-      return this.role === 'agency';
+      return this.role === Role.AGENCY;
     },
     type: Types.ObjectId,
     ref: 'Agency',
