@@ -25,6 +25,7 @@ import { AuthModule } from 'src/auth/auth.module';
       }),
     }),
     AuthModule,
+    
   ],
   controllers: [FilesController],
   providers: [FilesService, LocalAuthGuard],
