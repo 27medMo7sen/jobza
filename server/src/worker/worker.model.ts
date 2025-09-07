@@ -6,8 +6,7 @@ export class Worker {
   @Prop({ type: Types.ObjectId, ref: Auth.name, required: true })
   userId: Types.ObjectId;
 
-  @Prop()
-  admin: string;
+  // assigned admin
 
   @Prop()
   userName: string;

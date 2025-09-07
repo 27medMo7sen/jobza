@@ -3,6 +3,8 @@ import { ChevronDown } from "lucide-react";
 import Input from "./input";
 import useInput from "@/hooks/use-input";
 import Link from "next/link";
+import { CountryNationalitySelect } from "./CountryNationalitySelect";
+import { GenderSelect } from "./GenderSelect";
 
 // Validation functions
 const validateName = (value: string): boolean => {
@@ -69,36 +71,12 @@ const EmployerSignupForm: React.FC = () => {
   });
 
   // Dropdown visibility states
-  const [showGenderDropdown, setShowGenderDropdown] = useState(false);
-  const [showNationalityDropdown, setShowNationalityDropdown] = useState(false);
-  const [showCountryDropdown, setShowCountryDropdown] = useState(false);
   const [showHomeTypeDropdown, setShowHomeTypeDropdown] = useState(false);
   const [showWorkingHoursDropdown, setShowWorkingHoursDropdown] =
     useState(false);
   const [showCurrencyDropdown, setShowCurrencyDropdown] = useState(false);
 
   // Dropdown options
-  const genders = ["Male", "Female", "Non-binary", "Prefer not to say"];
-  const nationalities = [
-    "American",
-    "British",
-    "Canadian",
-    "Australian",
-    "German",
-    "French",
-    "Japanese",
-    "Other",
-  ];
-  const countries = [
-    "United States",
-    "United Kingdom",
-    "Canada",
-    "Australia",
-    "Germany",
-    "France",
-    "Japan",
-    "Other",
-  ];
   const homeTypes = [
     "Apartment",
     "House",
@@ -118,18 +96,6 @@ const EmployerSignupForm: React.FC = () => {
 
   const handleDropdownChange = (field: string, value: string) => {
     switch (field) {
-      case "gender":
-        setGender(value);
-        setShowGenderDropdown(false);
-        break;
-      case "nationality":
-        setNationality(value);
-        setShowNationalityDropdown(false);
-        break;
-      case "country":
-        setCountry(value);
-        setShowCountryDropdown(false);
-        break;
       case "homeType":
         setHomeType(value);
         setShowHomeTypeDropdown(false);
@@ -339,8 +305,8 @@ const EmployerSignupForm: React.FC = () => {
               />
             </div>
 
-            {/* Date of Birth, Gender, Nationality */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            {/* Date of Birth and Gender */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <Input
                 label="Date of Birth"
                 type="date"
@@ -352,109 +318,17 @@ const EmployerSignupForm: React.FC = () => {
                 errorMessage="Please select your date of birth"
               />
 
-              {/* Gender Dropdown */}
-              <div className="relative">
-                <label className="block text-sm font-medium text-gray-900 mb-2">
-                  Gender <span className="text-red-500">*</span>
-                </label>
-                <button
-                  type="button"
-                  onClick={() => setShowGenderDropdown(!showGenderDropdown)}
-                  className="w-full px-3 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-left flex items-center justify-between"
-                >
-                  <span className={gender ? "text-gray-900" : "text-gray-500"}>
-                    {gender || "Select gender"}
-                  </span>
-                  <ChevronDown size={20} className="text-gray-400" />
-                </button>
-                {showGenderDropdown && (
-                  <div className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg">
-                    {genders.map((genderOption) => (
-                      <button
-                        key={genderOption}
-                        type="button"
-                        onClick={() =>
-                          handleDropdownChange("gender", genderOption)
-                        }
-                        className="w-full px-3 py-2 text-left hover:bg-gray-50 first:rounded-t-lg last:rounded-b-lg"
-                      >
-                        {genderOption}
-                      </button>
-                    ))}
-                  </div>
-                )}
-              </div>
-
-              {/* Nationality Dropdown */}
-              <div className="relative">
-                <label className="block text-sm font-medium text-gray-900 mb-2">
-                  Nationality <span className="text-red-500">*</span>
-                </label>
-                <button
-                  type="button"
-                  onClick={() =>
-                    setShowNationalityDropdown(!showNationalityDropdown)
-                  }
-                  className="w-full px-3 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-left flex items-center justify-between"
-                >
-                  <span
-                    className={nationality ? "text-gray-900" : "text-gray-500"}
-                  >
-                    {nationality || "Select nationality"}
-                  </span>
-                  <ChevronDown size={20} className="text-gray-400" />
-                </button>
-                {showNationalityDropdown && (
-                  <div className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg">
-                    {nationalities.map((nationalityOption) => (
-                      <button
-                        key={nationalityOption}
-                        type="button"
-                        onClick={() =>
-                          handleDropdownChange("nationality", nationalityOption)
-                        }
-                        className="w-full px-3 py-2 text-left hover:bg-gray-50 first:rounded-t-lg last:rounded-b-lg"
-                      >
-                        {nationalityOption}
-                      </button>
-                    ))}
-                  </div>
-                )}
-              </div>
+              <GenderSelect value={gender} onChange={setGender} required />
             </div>
 
-            {/* Country */}
-            <div className="relative">
-              <label className="block text-sm font-medium text-gray-900 mb-2">
-                Country <span className="text-red-500">*</span>
-              </label>
-              <button
-                type="button"
-                onClick={() => setShowCountryDropdown(!showCountryDropdown)}
-                className="w-full px-3 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-left flex items-center justify-between"
-              >
-                <span className={country ? "text-gray-900" : "text-gray-500"}>
-                  {country || "Select country"}
-                </span>
-                <ChevronDown size={20} className="text-gray-400" />
-              </button>
-              {showCountryDropdown && (
-                <div className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg">
-                  {countries.map((countryOption) => (
-                    <button
-                      key={countryOption}
-                      type="button"
-                      onClick={() =>
-                        handleDropdownChange("country", countryOption)
-                      }
-                      className="w-full px-3 py-2 text-left hover:bg-gray-50 first:rounded-t-lg last:rounded-b-lg"
-                    >
-                      {countryOption}
-                    </button>
-                  ))}
-                </div>
-              )}
-            </div>
+            {/* Country and Nationality */}
+            <CountryNationalitySelect
+              country={country}
+              nationality={nationality}
+              onCountryChange={setCountry}
+              onNationalityChange={setNationality}
+              required
+            />
 
             {/* Household Size */}
             <Input

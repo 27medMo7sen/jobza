@@ -3,6 +3,7 @@ import { ChevronDown } from "lucide-react";
 import Input from "@/components/auth/input";
 import useInput from "@/hooks/use-input";
 import Link from "next/link";
+import { CountryNationalitySelect } from "./CountryNationalitySelect";
 
 // Validation functions
 const validateRequired = (value: string): boolean => {
@@ -51,7 +52,6 @@ const AgencySignupForm: React.FC = () => {
   const streetAddress = useInput(validateRequired);
   const city = useInput(validateRequired);
   const stateProvince = useInput(validateRequired);
-  const country = useInput(validateRequired);
   const postalCode = useInput(validateRequired);
   const businessDescription = useInput(validateRequired);
   const yearsInBusiness = useInput(validateYear);
@@ -66,6 +66,10 @@ const AgencySignupForm: React.FC = () => {
   const [showAgencyTypeDropdown, setShowAgencyTypeDropdown] = useState(false);
   const [acceptedTerms, setAcceptedTerms] = useState(false);
   const [acceptedPrivacy, setAcceptedPrivacy] = useState(false);
+
+  // Country and nationality states
+  const [countryValue, setCountryValue] = useState("");
+  const [nationalityValue, setNationalityValue] = useState("");
 
   const agencyTypes = [
     "Marketing Agency",
@@ -93,7 +97,8 @@ const AgencySignupForm: React.FC = () => {
     streetAddress.isValid &&
     city.isValid &&
     stateProvince.isValid &&
-    country.isValid &&
+    countryValue &&
+    nationalityValue &&
     postalCode.isValid &&
     businessDescription.isValid &&
     yearsInBusiness.isValid &&
@@ -118,7 +123,8 @@ const AgencySignupForm: React.FC = () => {
         streetAddress: streetAddress.value,
         city: city.value,
         stateProvince: stateProvince.value,
-        country: country.value,
+        country: countryValue,
+        nationality: nationalityValue,
         postalCode: postalCode.value,
         businessDescription: businessDescription.value,
         yearsInBusiness: yearsInBusiness.value,
@@ -137,7 +143,6 @@ const AgencySignupForm: React.FC = () => {
       streetAddress.onBlur();
       city.onBlur();
       stateProvince.onBlur();
-      country.onBlur();
       postalCode.onBlur();
       businessDescription.onBlur();
       yearsInBusiness.onBlur();
@@ -353,8 +358,8 @@ const AgencySignupForm: React.FC = () => {
                 errorMessage="Street address is required"
               />
 
-              {/* City, State, Country, Postal Code Row */}
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+              {/* City, State, Postal Code Row */}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <Input
                   label="City"
                   type="text"
@@ -378,17 +383,6 @@ const AgencySignupForm: React.FC = () => {
                   errorMessage="State/Province is required"
                 />
                 <Input
-                  label="Country"
-                  type="text"
-                  placeholder="Enter country"
-                  required
-                  value={country.value}
-                  onChange={country.onChange}
-                  onBlur={country.onBlur}
-                  hasError={country.hasError}
-                  errorMessage="Country is required"
-                />
-                <Input
                   label="Postal Code"
                   type="text"
                   placeholder="Enter postal code"
@@ -400,6 +394,15 @@ const AgencySignupForm: React.FC = () => {
                   errorMessage="Postal code is required"
                 />
               </div>
+
+              {/* Country and Nationality */}
+              <CountryNationalitySelect
+                country={countryValue}
+                nationality={nationalityValue}
+                onCountryChange={setCountryValue}
+                onNationalityChange={setNationalityValue}
+                required
+              />
             </div>
 
             {/* Business Information Section */}

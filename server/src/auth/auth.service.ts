@@ -16,7 +16,6 @@ import { Worker } from 'src/worker/worker.model';
 import { Employer } from 'src/employer/employer.model';
 import { Agency } from 'src/agency/agency.model';
 import { status } from './auth.model';
-
 @Injectable()
 export class AuthService {
   constructor(
@@ -211,10 +210,10 @@ export class AuthService {
       await newUser.save();
       return newUser;
     }
-    token = this.jwtService.sign({ userId: user._id, email: user.email });
+    token = this.jwtService.sign({ userId: user._id, email: user.email, role });
     const userUpdate = await this.authModel.findOneAndUpdate(
       { email: _json.email },
-      { token },
+      { token, role },
       { new: true },
     );
     console.log('userUpdate', userUpdate);
@@ -316,13 +315,27 @@ export class AuthService {
         new: true,
       },
     );
+    if (!updatedUser?.worker) {
+      throw new HttpException('Worker not found', 404);
+    }
     console.log('updatedUser', updatedUser);
+    console.log('user', user);
     if (user.role === Role.WORKER) {
-      await this.workerService.updateWorker(user.userId, updateData);
+      console.log('goning to worker service');
+      await this.workerService.updateWorker(
+        updatedUser?.worker._id,
+        updateData,
+      );
     } else if (user.role === Role.EMPLOYER) {
-      await this.employerService.updateEmployer(user.userId, updateData);
+      await this.employerService.updateEmployer(
+        updatedUser?.employer._id,
+        updateData,
+      );
     } else if (user.role === Role.AGENCY) {
-      await this.agencyService.updateAgency(user.userId, updateData);
+      await this.agencyService.updateAgency(
+        updatedUser?.agency._id,
+        updateData,
+      );
     }
     return {
       message: 'User updated successfully',

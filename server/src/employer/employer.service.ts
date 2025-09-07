@@ -25,10 +25,10 @@ export class EmployerService {
   }
 
   async updateEmployer(
-    userId: string,
+    userId: Types.ObjectId,
     updateData: any,
   ): Promise<Employer | null> {
-    return this.employerModel.findOneAndUpdate({ userId }, updateData, {
+    return this.employerModel.findByIdAndUpdate(userId, updateData, {
       new: true,
     });
   }

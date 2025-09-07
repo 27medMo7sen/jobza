@@ -20,9 +20,44 @@ const getInitialFiles = () => {
   return {};
 };
 
+const getInitialToken = () => {
+  if (typeof window !== "undefined" && typeof localStorage !== "undefined") {
+    try {
+      return localStorage.getItem("token");
+    } catch (error) {
+      console.warn("Error getting token from localStorage:", error);
+      return null;
+    }
+  }
+  return null;
+};
+
+const getInitialUser = () => {
+  if (typeof window !== "undefined" && typeof localStorage !== "undefined") {
+    try {
+      const storedUser = localStorage.getItem("user");
+      if (storedUser) {
+        const user = JSON.parse(storedUser);
+        // Process user data like in setUser
+        const roleKeys = ["worker", "employer", "agency", "admin"];
+        for (const key of roleKeys) {
+          if (user[key]) {
+            Object.assign(user, user[key]);
+            delete user[key];
+          }
+        }
+        return user;
+      }
+    } catch (error) {
+      console.warn("Error parsing user from localStorage:", error);
+    }
+  }
+  return null;
+};
+
 const initialState: AuthState = {
-  token: null,
-  user: null,
+  token: getInitialToken(),
+  user: getInitialUser(),
   files: getInitialFiles(),
 };
 

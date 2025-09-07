@@ -70,13 +70,14 @@ export class WorkerService {
     return worker;
   }
 
-  async updateWorker(userId: string, updateData: any): Promise<Worker | null> {
+  async updateWorker(
+    userId: Types.ObjectId,
+    updateData: any,
+  ): Promise<Worker | null> {
+    console.log('userId', userId);
+    console.log('updateData', updateData);
     const worker = await this.workerModel
-      .findOneAndUpdate(
-        { userId: new Types.ObjectId(userId) },
-        { $set: updateData },
-        { new: true },
-      )
+      .findByIdAndUpdate(userId, { $set: updateData }, { new: true })
       .lean<Worker>()
       .exec();
     console.log('worker', worker);

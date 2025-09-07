@@ -13,6 +13,9 @@ import {
 } from "@/components/ui/select";
 import { Edit, Save, X } from "lucide-react";
 import { ProfileData } from "@/types/profile";
+import { CountryNationalitySelect } from "@/components/auth/CountryNationalitySelect";
+import { GenderSelect } from "@/components/auth/GenderSelect";
+import { EducationLevelSelect } from "@/components/auth/EducationLevelSelect";
 
 interface PersonalInformationProps {
   profileData: ProfileData;
@@ -88,22 +91,18 @@ export function PersonalInformation({
                 onChange={(e) => onUpdate({ phoneNumber: e.target.value })}
               />
             </div>
-            <div>
-              <Label>Nationality</Label>
-              <Input
-                value={profileData?.nationality || ""}
-                onChange={(e) => onUpdate({ nationality: e.target.value })}
+            {/* Country and Nationality */}
+            <div className="md:col-span-2">
+              <CountryNationalitySelect
+                country={profileData?.country || ""}
+                nationality={profileData?.nationality || ""}
+                onCountryChange={(value) => onUpdate({ country: value })}
+                onNationalityChange={(value) =>
+                  onUpdate({ nationality: value })
+                }
+                required
               />
             </div>
-            {profileData?.role === "worker" && (
-              <div>
-                <Label>Country</Label>
-                <Input
-                  value={profileData?.country || ""}
-                  onChange={(e) => onUpdate({ country: e.target.value })}
-                />
-              </div>
-            )}
             <div>
               <Label>Date of Birth</Label>
               <Input
@@ -113,76 +112,34 @@ export function PersonalInformation({
               />
             </div>
             {profileData?.role === "worker" && (
-              <div>
-                <Label>Gender</Label>
-                <Select
-                  value={profileData.gender || ""}
-                  onValueChange={(value) => onUpdate({ gender: value } as any)}
-                >
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="Male">Male</SelectItem>
-                    <SelectItem value="Female">Female</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
+              <GenderSelect
+                value={profileData.gender || ""}
+                onChange={(value) => onUpdate({ gender: value } as any)}
+                required
+              />
             )}
             {profileData?.role === "worker" && (
-              <div>
-                <Label>Education Level</Label>
-                <Select
-                  value={profileData.heighestEducationalLevel || "Not provided"}
-                  onValueChange={(value) =>
-                    onUpdate({ heighestEducationalLevel: value } as any)
-                  }
-                >
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="Elementary">Elementary</SelectItem>
-                    <SelectItem value="High School">High School</SelectItem>
-                    <SelectItem value="Bachelor's">Bachelor's</SelectItem>
-                    <SelectItem value="Master's">Master's</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
+              <EducationLevelSelect
+                value={profileData.heighestEducationalLevel || ""}
+                onChange={(value) =>
+                  onUpdate({ heighestEducationalLevel: value } as any)
+                }
+                required
+              />
             )}
             {profileData?.role === "employer" && "gender" in profileData && (
-              <div>
-                <Label>Gender</Label>
-                <Select
-                  value={profileData.gender || "Not provided"}
-                  onValueChange={(value) => onUpdate({ gender: value } as any)}
-                >
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="Male">Male</SelectItem>
-                    <SelectItem value="Female">Female</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
+              <GenderSelect
+                value={profileData.gender || ""}
+                onChange={(value) => onUpdate({ gender: value } as any)}
+                required
+              />
             )}
             {profileData?.role === "admin" && "gender" in profileData && (
-              <div>
-                <Label>Gender</Label>
-                <Select
-                  value={profileData.gender || "Not provided"}
-                  onValueChange={(value) => onUpdate({ gender: value } as any)}
-                >
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="Male">Male</SelectItem>
-                    <SelectItem value="Female">Female</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
+              <GenderSelect
+                value={profileData.gender || ""}
+                onChange={(value) => onUpdate({ gender: value } as any)}
+                required
+              />
             )}
           </div>
         </CardContent>
@@ -230,6 +187,12 @@ export function PersonalInformation({
             </p>
           </div>
           <div>
+            <p className="text-sm text-gray-600">Country</p>
+            <p className="font-semibold">
+              {profileData?.country || "Not provided"}
+            </p>
+          </div>
+          <div>
             <p className="text-sm text-gray-600">Nationality</p>
             <p className="font-semibold">
               {profileData?.nationality || "Not provided"}
@@ -241,14 +204,6 @@ export function PersonalInformation({
               {profileData?.dateOfBirth || "Not provided"}
             </p>
           </div>
-          {profileData?.role === "worker" && (
-            <div>
-              <p className="text-sm text-gray-600">Country</p>
-              <p className="font-semibold">
-                {profileData.country || "Not provided"}
-              </p>
-            </div>
-          )}
           {profileData?.role === "worker" && (
             <div>
               <p className="text-sm text-gray-600">Gender</p>

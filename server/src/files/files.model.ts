@@ -16,6 +16,7 @@ export enum fileLabel {
   EXPERIENCE_LETTER = 'experience_letter',
   POLICE_CLEARANCE_CERTIFICATE = 'police_clearance_certificate',
   SIGNATURE = 'signature',
+  NATIONAL_ID = 'national_id',
 }
 @Schema({ timestamps: true })
 export class File {

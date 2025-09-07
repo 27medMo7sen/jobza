@@ -3,6 +3,10 @@ import { ChevronDown } from "lucide-react";
 import Input from "@/components/auth/input";
 import useInput from "@/hooks/use-input";
 import Link from "next/link";
+import { CountryNationalitySelect } from "./CountryNationalitySelect";
+import { GenderSelect } from "./GenderSelect";
+import { EducationLevelSelect } from "./EducationLevelSelect";
+import { SkillsInput } from "./SkillsInput";
 // Validation functions
 const validateUsername = (value: string): boolean => {
   return (
@@ -44,57 +48,25 @@ const WorkerSignupForm: React.FC = () => {
   const [nationality, setNationality] = useState("");
   const [gender, setGender] = useState("");
   const [educationLevel, setEducationLevel] = useState("");
+  const [skills, setSkills] = useState<string[]>([]);
 
-  const [showCountryDropdown, setShowCountryDropdown] = useState(false);
-  const [showNationalityDropdown, setShowNationalityDropdown] = useState(false);
-  const [showGenderDropdown, setShowGenderDropdown] = useState(false);
-  const [showEducationDropdown, setShowEducationDropdown] = useState(false);
-
-  const countries = [
-    "United States",
-    "United Kingdom",
-    "Canada",
-    "Australia",
-    "Germany",
-    "France",
-    "Japan",
-    "Other",
-  ];
-  const nationalities = [
-    "American",
-    "British",
-    "Canadian",
-    "Australian",
-    "German",
-    "French",
-    "Japanese",
-    "Other",
-  ];
-  const genders = ["Male", "Female", "Non-binary", "Prefer not to say"];
-  const educationLevels = [
-    "None",
-    "Primary",
-    "Secondary",
-    "Vocational",
-    "University",
+  // Available skills for workers
+  const availableSkills = [
+    "House Cleaning",
+    "Deep Cleaning",
+    "Laundry & Ironing",
+    "Kitchen Cleaning",
+    "Elderly Care",
+    "Child Care",
+    "Pet Care",
+    "Garden Maintenance",
+    "Cooking",
+    "Organization",
+    "Window Cleaning",
+    "Carpet Cleaning",
+    "Bathroom Cleaning",
   ];
 
-  const handleInputChange = (field: string, value: string) => {
-    switch (field) {
-      case "country":
-        setCountry(value);
-        break;
-      case "nationality":
-        setNationality(value);
-        break;
-      case "gender":
-        setGender(value);
-        break;
-      case "educationLevel":
-        setEducationLevel(value);
-        break;
-    }
-  };
   const isFormValid =
     username.isValid &&
     email.isValid &&
@@ -105,7 +77,8 @@ const WorkerSignupForm: React.FC = () => {
     country &&
     nationality &&
     gender &&
-    educationLevel;
+    educationLevel &&
+    skills.length > 0;
   const handleSubmit = () => {
     // Validate all required fields
     const isFormValid =
@@ -118,7 +91,8 @@ const WorkerSignupForm: React.FC = () => {
       country &&
       nationality &&
       gender &&
-      educationLevel;
+      educationLevel &&
+      skills.length > 0;
 
     if (isFormValid) {
       const formData = {
@@ -130,6 +104,7 @@ const WorkerSignupForm: React.FC = () => {
         gender,
         dateOfBirth: dateOfBirth.value,
         educationLevel,
+        skills,
         password: password.value,
       };
       console.log("Form submitted:", formData);
@@ -237,111 +212,17 @@ const WorkerSignupForm: React.FC = () => {
             </div>
 
             {/* Country and Nationality Row */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="relative">
-                <label className="block text-sm font-medium text-gray-900 mb-2">
-                  Country <span className="text-red-500">*</span>
-                </label>
-                <button
-                  type="button"
-                  onClick={() => setShowCountryDropdown(!showCountryDropdown)}
-                  className="w-full px-3 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-left flex items-center justify-between"
-                >
-                  <span className={country ? "text-gray-900" : "text-gray-500"}>
-                    {country || "Select country"}
-                  </span>
-                  <ChevronDown size={20} className="text-gray-400" />
-                </button>
-                {showCountryDropdown && (
-                  <div className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg">
-                    {countries.map((country) => (
-                      <button
-                        key={country}
-                        type="button"
-                        onClick={() => {
-                          handleInputChange("country", country);
-                          setShowCountryDropdown(false);
-                        }}
-                        className="w-full px-3 py-2 text-left text-black hover:bg-gray-50 first:rounded-t-lg last:rounded-b-lg"
-                      >
-                        {country}
-                      </button>
-                    ))}
-                  </div>
-                )}
-              </div>
-              <div className="relative">
-                <label className="block text-sm font-medium text-gray-900 mb-2">
-                  Nationality <span className="text-red-500">*</span>
-                </label>
-                <button
-                  type="button"
-                  onClick={() =>
-                    setShowNationalityDropdown(!showNationalityDropdown)
-                  }
-                  className="w-full px-3 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-left flex items-center justify-between"
-                >
-                  <span
-                    className={nationality ? "text-gray-900" : "text-gray-500"}
-                  >
-                    {nationality || "Select nationality"}
-                  </span>
-                  <ChevronDown size={20} className="text-gray-400" />
-                </button>
-                {showNationalityDropdown && (
-                  <div className="absolute z-10 w-full mt-1 text-black bg-white border border-gray-300 rounded-lg shadow-lg">
-                    {nationalities.map((nationality) => (
-                      <button
-                        key={nationality}
-                        type="button"
-                        onClick={() => {
-                          handleInputChange("nationality", nationality);
-                          setShowNationalityDropdown(false);
-                        }}
-                        className="w-full px-3 py-2 text-left hover:bg-gray-50 first:rounded-t-lg last:rounded-b-lg"
-                      >
-                        {nationality}
-                      </button>
-                    ))}
-                  </div>
-                )}
-              </div>
-            </div>
+            <CountryNationalitySelect
+              country={country}
+              nationality={nationality}
+              onCountryChange={setCountry}
+              onNationalityChange={setNationality}
+              required
+            />
 
             {/* Gender and Date of Birth Row */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="relative">
-                <label className="block text-sm font-medium text-gray-900 mb-2">
-                  Gender <span className="text-red-500">*</span>
-                </label>
-                <button
-                  type="button"
-                  onClick={() => setShowGenderDropdown(!showGenderDropdown)}
-                  className="w-full px-3 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-left flex items-center justify-between"
-                >
-                  <span className={gender ? "text-gray-900" : "text-gray-500"}>
-                    {gender || "Select gender"}
-                  </span>
-                  <ChevronDown size={20} className="text-gray-400" />
-                </button>
-                {showGenderDropdown && (
-                  <div className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg">
-                    {genders.map((gender) => (
-                      <button
-                        key={gender}
-                        type="button"
-                        onClick={() => {
-                          handleInputChange("gender", gender);
-                          setShowGenderDropdown(false);
-                        }}
-                        className="w-full px-3 py-2 text-left text-black hover:bg-gray-50 first:rounded-t-lg last:rounded-b-lg"
-                      >
-                        {gender}
-                      </button>
-                    ))}
-                  </div>
-                )}
-              </div>
+              <GenderSelect value={gender} onChange={setGender} required />
               <Input
                 label="Date of Birth"
                 type="date"
@@ -355,40 +236,19 @@ const WorkerSignupForm: React.FC = () => {
             </div>
 
             {/* Education Level */}
-            <div className="relative">
-              <label className="block text-sm font-medium text-gray-900 mb-2">
-                Highest Education Level <span className="text-red-500">*</span>
-              </label>
-              <button
-                type="button"
-                onClick={() => setShowEducationDropdown(!showEducationDropdown)}
-                className="w-full px-3 py-3 border border-gray-300 text-black rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-left flex items-center justify-between"
-              >
-                <span
-                  className={educationLevel ? "text-gray-900" : "text-gray-500"}
-                >
-                  {educationLevel || "Select your education level"}
-                </span>
-                <ChevronDown size={20} className="text-gray-400" />
-              </button>
-              {showEducationDropdown && (
-                <div className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg">
-                  {educationLevels.map((level) => (
-                    <button
-                      key={level}
-                      type="button"
-                      onClick={() => {
-                        handleInputChange("educationLevel", level);
-                        setShowEducationDropdown(false);
-                      }}
-                      className="w-full px-3 py-2 text-left hover:bg-gray-50 text-black first:rounded-t-lg last:rounded-b-lg"
-                    >
-                      {level}
-                    </button>
-                  ))}
-                </div>
-              )}
-            </div>
+            <EducationLevelSelect
+              value={educationLevel}
+              onChange={setEducationLevel}
+              required
+            />
+
+            {/* Skills Input */}
+            <SkillsInput
+              skills={skills}
+              onSkillsChange={setSkills}
+              availableSkills={availableSkills}
+              required
+            />
 
             {/* Password Fields */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

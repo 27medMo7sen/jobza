@@ -19,7 +19,7 @@ import { toast } from "sonner";
 import {
   FileUploadSkeleton,
   FilePreviewAreaSkeleton,
-} from "@/components/ui/file-upload-skeleton";
+} from "@/components/ui/skeleton-loaders";
 
 interface FilePreviewProps {
   documentType: DocumentType;
@@ -172,14 +172,14 @@ export function FilePreview({ documentType, isEditing }: FilePreviewProps) {
       return URL.createObjectURL(file);
     }
 
-    // If file has a data URL (for immediate display), use that first
-    if (file && file.dataUrl) {
-      return file.dataUrl;
-    }
-
-    // If file has a URL property (from backend response), use that
+    // If file has a URL property (from backend response), use that first for opening
     if (file && file.url) {
       return file.url;
+    }
+
+    // If file has a data URL (for immediate display), use that as fallback
+    if (file && file.dataUrl) {
+      return file.dataUrl;
     }
 
     return null;
@@ -317,7 +317,10 @@ export function FilePreview({ documentType, isEditing }: FilePreviewProps) {
       {/* File Info */}
       {!isUploading && file && (
         <div className="mt-3">
-          <h4 className="font-semibold text-sm text-gray-900 truncate">
+          <h3 className="font-semibold text-sm text-gray-900 mb-1">
+            {documentType.name}
+          </h3>
+          <h4 className="font-medium text-xs text-gray-700 truncate mb-1">
             {file.fileName || "Unknown file"}
           </h4>
           <p className="text-xs text-gray-500">{getFileSizeDisplay(file)}</p>
