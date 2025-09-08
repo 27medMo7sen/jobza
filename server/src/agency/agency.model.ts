@@ -10,19 +10,19 @@ export class Agency {
   @Prop({ type: Types.ObjectId, ref: Auth.name, required: true })
   userId: Types.ObjectId;
 
-  @Prop({ required: true })
+  @Prop({ required: false })
   email: string;
 
   @Prop({
-    required: true,
+    required: false,
     type: {
       url: {
         type: String,
-        required: true,
+        required: false,
       },
       s3Key: {
         type: String,
-        required: true,
+        required: false,
       },
     },
   })
@@ -31,7 +31,7 @@ export class Agency {
     s3Key: string;
   };
 
-  @Prop({ required: true, enum: ['service', 'placement'] })
+  @Prop({ required: false, enum: ['service', 'placement'] })
   agencyType: string;
 
   @Prop()

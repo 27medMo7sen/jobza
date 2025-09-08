@@ -100,7 +100,7 @@ export function ProfileHeader({
                 <h1 className="text-2xl font-bold text-foreground">
                   {profileData?.name || "Unknown User"}
                 </h1>
-                <div className="flex items-center gap-2 mt-1">
+                <div className="flex flex-col sm:flex-row sm:items-center gap-2 mt-1">
                   <Badge className={getRoleColor(profileData?.role || "")}>
                     {getRoleIcon(profileData?.role || "")}{" "}
                     {profileData?.role?.toUpperCase() || "USER"}

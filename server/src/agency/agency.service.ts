@@ -27,11 +27,8 @@ export class AgencyService {
     return createdAgency.save();
   }
 
-  async updateAgency(
-    userId: Types.ObjectId,
-    updateData: any,
-  ): Promise<Agency | null> {
-    return this.agencyModel.findByIdAndUpdate(userId, updateData, {
+  async updateAgency(userId: string, updateData: any): Promise<Agency | null> {
+    return this.agencyModel.findOneAndUpdate({ userId }, updateData, {
       new: true,
     });
   }

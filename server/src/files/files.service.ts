@@ -49,17 +49,20 @@ export class FilesService {
       url,
       size: file.size,
     });
-    
+
     const savedFileResult = await savedFile.save();
-    
+
     if (label === 'signature') {
       await this.authService.signatureUploaded(userId);
     }
-    
+
     // check for all files existing in the database for the user AFTER saving
-    const userStatus = await this.updateUserStatusBasedOnDocuments(userId, role);
+    const userStatus = await this.updateUserStatusBasedOnDocuments(
+      userId,
+      role,
+    );
     console.log('userStatus in file service uploadFile', userStatus);
-    
+
     return savedFileResult;
   }
 
@@ -88,8 +91,11 @@ export class FilesService {
 
     await this.awsS3Service.deleteFile(file.s3Key);
     await this.fileModel.deleteOne({ _id: fileId });
-    
-    const userStatus = await this.updateUserStatusBasedOnDocuments(userId, role);
+
+    const userStatus = await this.updateUserStatusBasedOnDocuments(
+      userId,
+      role,
+    );
     console.log('userStatus', userStatus);
     return { message: 'File deleted successfully', fileId };
   }
@@ -134,8 +140,7 @@ export class FilesService {
     // console.log('userStatus', userStatus);
     return results;
   }
-  
-  
+
   private requiredDocumentsMap: Record<string, string[]> = {
     worker: [
       fileLabel.PASSPORT,
@@ -159,10 +164,16 @@ export class FilesService {
       // fileLabel.REGISTRATION_CERTIFICATE,
     ],
   };
-  
+
   private determineUserStatus(role: string, documents: File[]): string {
-    const requiredLabels = this.requiredDocumentsMap[role] ?? this.requiredDocumentsMap['worker'];
-    console.log('requiredLabels in file service determineUserStatus', requiredLabels, role, documents);
+    const requiredLabels =
+      this.requiredDocumentsMap[role] ?? this.requiredDocumentsMap['worker'];
+    console.log(
+      'requiredLabels in file service determineUserStatus',
+      requiredLabels,
+      role,
+      documents,
+    );
     // 1. Check if all required docs are present
     const presentLabels = documents.map((doc) => doc.label);
     console.log('presentLabels:', presentLabels);
@@ -171,14 +182,17 @@ export class FilesService {
     );
     console.log('hasAllRequired:', hasAllRequired);
     if (!hasAllRequired) return 'not_completed';
-  
+
     // 2. All required docs are present → check statuses
-    const documentStatuses = documents.map(doc => ({ label: doc.label, status: doc.status }));
+    const documentStatuses = documents.map((doc) => ({
+      label: doc.label,
+      status: doc.status,
+    }));
     console.log('documentStatuses:', documentStatuses);
-    
+
     if (documents.some((doc) => doc.status === 'rejected')) return 'rejected';
     if (documents.every((doc) => doc.status === 'approved')) return 'approved';
-  
+
     // 3. Otherwise, pending (when all docs are present but not all approved)
     console.log('Returning pending - all docs present but not all approved');
     return 'pending';

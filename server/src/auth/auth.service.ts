@@ -1,6 +1,6 @@
 import { HttpException, Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { Auth, Role } from './auth.model';
+import { Auth, Role, status } from './auth.model';
 import { Model } from 'mongoose';
 import { WorkerSignupDto } from './dto/workerSignup.dto';
 import * as bcrypt from 'bcrypt';
@@ -12,10 +12,7 @@ import { EmployerService } from 'src/employer/employer.service';
 import { AgencySignupDto } from './dto/agencySignup.dto';
 import { EmployerSignupDto } from './dto/EmployerSignup.dto';
 import { AgencyService } from 'src/agency/agency.service';
-import { Worker } from 'src/worker/worker.model';
-import { Employer } from 'src/employer/employer.model';
-import { Agency } from 'src/agency/agency.model';
-import { status } from './auth.model';
+import { FilesService } from 'src/files/files.service';
 @Injectable()
 export class AuthService {
   constructor(
@@ -25,6 +22,7 @@ export class AuthService {
     private readonly workerService: WorkerService,
     private readonly employerService: EmployerService,
     private readonly agencyService: AgencyService,
+    private readonly filesService: FilesService,
   ) {}
   //MARK: signup
   async signup(body: WorkerSignupDto | EmployerSignupDto | AgencySignupDto) {
@@ -183,23 +181,24 @@ export class AuthService {
           userName: _json.email.split('@')[0],
           userId: newUser._id,
         });
-        newUser.worker = worker._id as any;
-      } else if (role === Role.EMPLOYER) {
-        const employer = await this.employerService.createEmployerWithUserId(
+        await this.workerService.createWorkerWithUserId(
+          newUser._id.toString(),
+          { firstName: _json.given_name },
+        );
+      } else if (role === 'employer') {
+        await this.employerService.createEmployerWithUserId(
           newUser._id.toString(),
           {
-            userName: _json.given_name,
-            method: 'google',
+            firstName: _json.given_name,
             userId: newUser._id,
           },
         );
-        newUser.employer = employer._id as any;
-      } else if (role === Role.AGENCY) {
+      } else if (role === 'agency') {
         const agency = await this.agencyService.createAgency({
-          userName: _json.given_name,
+          agencyName: _json.given_name,
           userId: newUser._id,
         });
-        newUser.agency = agency._id as any;
+        newUser.agency = agency._id;
       }
       token = this.jwtService.sign({
         userId: newUser._id,
@@ -304,45 +303,44 @@ export class AuthService {
       message: 'User deleted successfully',
     };
   }
-  async updateUser(user: any, updateData: any) {
-    console.log('updateData', updateData);
-    const updatedUser = await this.authModel.findOneAndUpdate(
-      { email: user.email },
-      {
-        name: updateData.name,
-      },
-      {
-        new: true,
-      },
-    );
-    if (!updatedUser?.worker) {
-      throw new HttpException('Worker not found', 404);
-    }
-    console.log('updatedUser', updatedUser);
-    console.log('user', user);
-    if (user.role === Role.WORKER) {
-      console.log('goning to worker service');
-      await this.workerService.updateWorker(
-        updatedUser?.worker._id,
-        updateData,
-      );
-    } else if (user.role === Role.EMPLOYER) {
-      await this.employerService.updateEmployer(
-        updatedUser?.employer._id,
-        updateData,
-      );
-    } else if (user.role === Role.AGENCY) {
-      await this.agencyService.updateAgency(
-        updatedUser?.agency._id,
-        updateData,
-      );
-    }
-    return {
-      message: 'User updated successfully',
-    };
-  }
 
+  //MARK: replaceUserFile (multipart)
+  async replaceUserFile(
+    userId: string,
+    label: string,
+    type: 'picture' | 'documents',
+    file: Express.Multer.File,
+    issuanceDate?: Date,
+    expirationDate?: Date,
+  ) {
+    // fetch existing file by label
+    const filesByLabel = await this.filesService.listUserFiles(userId);
+    const existing = filesByLabel?.[label];
+
+    if (existing && existing.url) {
+      // replace (delete old + upload new)
+      await this.filesService.deleteFileByUrl(userId, existing.url);
+    }
+
+    // upload new file
+    const created = await this.filesService.uploadFile(
+      userId,
+      'worker', // role - this should be determined from user context
+      file,
+      type,
+      label,
+    );
+
+    return { message: 'File uploaded successfully', newFile: created };
+  }
+  //MARK: signatureUploaded
   async signatureUploaded(userId: string) {
-    await this.authModel.findByIdAndUpdate(userId, { signature: true });
+    const user = await this.authModel.findById(userId);
+    if (!user) {
+      throw new HttpException('User not found', 404);
+    }
+    user.signature = true;
+    await user.save();
+    return { message: 'Signature uploaded successfully' };
   }
 }

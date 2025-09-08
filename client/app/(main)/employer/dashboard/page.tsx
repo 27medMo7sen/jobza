@@ -1,13 +1,14 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { EmployerSidebar } from "@/components/layout/employer-sidebar"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { UnifiedSidebar } from "@/components/layout/unified-sidebar"
 import { SharedHeader } from "@/components/layout/shared-header"
 import {
   Plus,
@@ -21,12 +22,10 @@ import {
   Eye,
   Star,
 } from "lucide-react"
-import { ShortTermJobModal } from "@/components/jobs/short-term-job-modal"
 
 export default function EmployerDashboard() {
   const [activeTab, setActiveTab] = useState("overview")
   const [applicationFilter, setApplicationFilter] = useState("all")
-  const [shortTermModalOpen, setShortTermModalOpen] = useState(false)
   const router = useRouter()
 
   const shortTermApplications = [
@@ -75,11 +74,6 @@ export default function EmployerDashboard() {
     },
   ]
 
-  const primaryAgencies = [
-    { id: 1, name: "Premium Home Services", rating: 4.8, workers: 25, type: "placement" },
-    { id: 2, name: "Elite Care Agency", rating: 4.9, workers: 18, type: "placement" },
-    { id: 3, name: "Trusted Helpers", rating: 4.7, workers: 32, type: "service" },
-  ]
 
   const jobPostsHistory = [
     {
@@ -153,43 +147,60 @@ export default function EmployerDashboard() {
 
 
   return (
-    <div className="flex min-h-screen bg-background">
-      <EmployerSidebar />
-
-      <div className="flex-1 lg:ml-64">
+    <div className="min-h-screen bg-background">
+      <UnifiedSidebar 
+        userRole="employer"
+        userName="John Smith"
+        userEmail="john@example.com"
+      />
+      
+      <div className="lg:ml-64">
         <div className="p-6">
           <div className="max-w-7xl mx-auto">
-                      {/* Header */}
-          <SharedHeader 
-            title="Employer Dashboard" 
-            subtitle="Manage your job postings and applications" 
-          />
+            {/* Header */}
+            <SharedHeader 
+              title="Employer Dashboard" 
+              subtitle="Manage your job postings and applications" 
+            />
 
             <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-              <TabsList className="grid w-full grid-cols-6">
-                <TabsTrigger value="overview" className="flex items-center gap-2">
+              {/* Mobile dropdown */}
+              <div className="sm:hidden">
+                <Select value={activeTab} onValueChange={setActiveTab}>
+                  <SelectTrigger aria-label="Select section">
+                    <SelectValue placeholder="Select section" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="overview">Overview</SelectItem>
+                    <SelectItem value="applications">Job Applications</SelectItem>
+                    <SelectItem value="post-job">Post Job</SelectItem>
+                    <SelectItem value="job-history">My Job Posts History</SelectItem>
+                    <SelectItem value="contracts">Contracts</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {/* Desktop/Tablet tab bar */}
+              <TabsList className="hidden sm:grid w-full grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-2">
+                <TabsTrigger value="overview" className="flex items-center gap-2 text-sm">
                   <Home className="h-4 w-4" />
-                  Overview
+                  <span>Overview</span>
                 </TabsTrigger>
-                <TabsTrigger value="applications" className="flex items-center gap-2">
+                <TabsTrigger value="applications" className="flex items-center gap-2 text-sm">
                   <Briefcase className="h-4 w-4" />
-                  Job Applications
+                  <span>Job Applications</span>
                 </TabsTrigger>
-                <TabsTrigger value="post-job" className="flex items-center gap-2">
+                <TabsTrigger value="post-job" className="flex items-center gap-2 text-sm">
                   <Plus className="h-4 w-4" />
-                  Post Job
+                  <span>Post Job</span>
                 </TabsTrigger>
-                <TabsTrigger value="job-history" className="flex items-center gap-2">
+                <TabsTrigger value="job-history" className="flex items-center gap-2 text-sm">
                   <FileText className="h-4 w-4" />
-                  My Job Posts History
+                  <span>My Job Posts History</span>
                 </TabsTrigger>
-                <TabsTrigger value="contracts" className="flex items-center gap-2">
+                <TabsTrigger value="contracts" className="flex items-center gap-2 text-sm">
                   <FileText className="h-4 w-4" />
-                  Contracts
-                </TabsTrigger>
-                <TabsTrigger value="agencies" className="flex items-center gap-2">
-                  <Building2 className="h-4 w-4" />
-                  Primary Agencies
+                  <span>Contracts</span>
                 </TabsTrigger>
               </TabsList>
 
@@ -206,17 +217,25 @@ export default function EmployerDashboard() {
                     <CardContent>
                       <div className="space-y-4">
                         {shortTermApplications.slice(0, 3).map((app) => (
-                          <div key={app.id} className="flex items-center justify-between p-3 border rounded-lg">
-                            <div className="flex items-center gap-3">
-                              <Users className="h-4 w-4 text-gray-500" />
+                          <div key={app.id} className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-4 border rounded-lg">
+                            <div className="flex items-start sm:items-center gap-4">
+                              <Users className="h-5 w-5 text-pink-600" />
                               <div>
                                 <p className="font-medium">{app.workerName}</p>
                                 <p className="text-sm text-gray-600">{app.jobTitle}</p>
                               </div>
                             </div>
-                            <div className="flex items-center gap-2">
+                            <div className="flex items-center gap-2 w-full sm:w-auto">
                               <Badge variant={app.status === "pending" ? "secondary" : "default"}>{app.status}</Badge>
-                              <Button size="sm" variant="outline" onClick={() => handleViewDetails(app)}>
+                              <div className="sm:hidden w-full">
+                                <Button size="sm" onClick={() => handleViewDetails(app)} className="w-full">
+                                  <Eye className="h-3 w-3 mr-1" />
+                                  View Details
+                                </Button>
+                              </div>
+                            </div>
+                            <div className="hidden sm:flex items-center gap-2">
+                              <Button size="sm" onClick={() => handleViewDetails(app)}>
                                 <Eye className="h-3 w-3 mr-1" />
                                 View Details
                               </Button>
@@ -238,17 +257,25 @@ export default function EmployerDashboard() {
                     <CardContent>
                       <div className="space-y-4">
                         {longTermApplications.map((app) => (
-                          <div key={app.id} className="flex items-center justify-between p-3 border rounded-lg">
-                            <div className="flex items-center gap-3">
-                              <Building2 className="h-4 w-4 text-gray-500" />
+                          <div key={app.id} className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-4 border rounded-lg">
+                            <div className="flex items-start sm:items-center gap-4">
+                              <Building2 className="h-5 w-5 text-blue-600" />
                               <div>
                                 <p className="font-medium">{app.agencyName}</p>
                                 <p className="text-sm text-gray-600">{app.jobTitle}</p>
                               </div>
                             </div>
-                            <div className="flex items-center gap-2">
+                            <div className="flex items-center gap-2 w-full sm:w-auto">
                               <Badge variant={app.status === "pending" ? "secondary" : "default"}>{app.status}</Badge>
-                              <Button size="sm" variant="outline" onClick={() => handleViewDetails(app)}>
+                              <div className="sm:hidden w-full">
+                                <Button size="sm" onClick={() => handleViewDetails(app)} className="w-full">
+                                  <Eye className="h-3 w-3 mr-1" />
+                                  View Details
+                                </Button>
+                              </div>
+                            </div>
+                            <div className="hidden sm:flex items-center gap-2">
+                              <Button size="sm" onClick={() => handleViewDetails(app)}>
                                 <Eye className="h-3 w-3 mr-1" />
                                 View Details
                               </Button>
@@ -272,28 +299,40 @@ export default function EmployerDashboard() {
                   </CardHeader>
                   <CardContent>
                     <Tabs value={applicationFilter} onValueChange={setApplicationFilter} className="w-full">
-                      <TabsList className="grid w-full grid-cols-3 mb-6">
-                        <TabsTrigger value="all" className="flex items-center gap-2">
-                          <Briefcase className="h-4 w-4" />
-                          All Job Applications
+                      <TabsList className="grid w-full grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2 mb-10">
+                        <TabsTrigger 
+                          value="all" 
+                          className="flex items-center gap-2 text-xs sm:text-sm data-[state=active]:border-2 data-[state=active]:border-blue-500 data-[state=active]:bg-blue-50"
+                        >
+                          <Briefcase className="h-3 w-3 sm:h-4 sm:w-4" />
+                          <span className="hidden sm:inline">All Job Applications</span>
+                          <span className="sm:hidden">All</span>
                         </TabsTrigger>
-                        <TabsTrigger value="long-term" className="flex items-center gap-2">
-                          <Calendar className="h-4 w-4" />
-                          Long Term Applications
+                        <TabsTrigger 
+                          value="long-term" 
+                          className="flex items-center gap-2 text-xs sm:text-sm data-[state=active]:border-2 data-[state=active]:border-blue-500 data-[state=active]:bg-blue-50"
+                        >
+                          <Calendar className="h-3 w-3 sm:h-4 sm:w-4" />
+                          <span className="hidden sm:inline">Long Term Applications</span>
+                          <span className="sm:hidden">Long Term</span>
                         </TabsTrigger>
-                        <TabsTrigger value="short-term" className="flex items-center gap-2">
-                          <Clock className="h-4 w-4" />
-                          Short Term Applications
+                        <TabsTrigger 
+                          value="short-term" 
+                          className="flex items-center gap-2 text-xs sm:text-sm data-[state=active]:border-2 data-[state=active]:border-blue-500 data-[state=active]:bg-blue-50"
+                        >
+                          <Clock className="h-3 w-3 sm:h-4 sm:w-4" />
+                          <span className="hidden sm:inline">Short Term Applications</span>
+                          <span className="sm:hidden">Short Term</span>
                         </TabsTrigger>
                       </TabsList>
 
-                      <TabsContent value="all" className="space-y-4">
+                      <TabsContent value="all" className="space-y-4 mt-6">
                         {[...shortTermApplications, ...longTermApplications].map((app) => (
                           <div
                             key={`${app.type}-${app.id}`}
-                            className="flex items-center justify-between p-4 border rounded-lg"
+                            className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-4 border rounded-lg"
                           >
-                            <div className="flex items-center gap-4">
+                            <div className="flex items-start sm:items-center gap-4">
                               {app.type === "worker" ? (
                                 <Users className="h-5 w-5 text-pink-600" />
                               ) : (
@@ -308,8 +347,26 @@ export default function EmployerDashboard() {
                                 </Badge>
                               </div>
                             </div>
-                            <div className="flex items-center gap-2">
+                            <div className="flex items-center gap-2 w-full sm:w-auto">
                               <Badge variant={app.status === "pending" ? "secondary" : "default"}>{app.status}</Badge>
+                              {app.status === "accepted" && (
+                                <Button size="sm" className="hidden sm:inline-flex bg-blue-600 hover:bg-blue-700" onClick={() => router.push('/messages')}>
+                                  Contact
+                                </Button>
+                              )}
+                              <div className="sm:hidden w-full">
+                                <Button size="sm" onClick={() => handleViewDetails(app)} className="w-full">
+                                  <Eye className="h-3 w-3 mr-1" />
+                                  View Details
+                                </Button>
+                              </div>
+                            </div>
+                            <div className="hidden sm:flex items-center gap-2">
+                              {app.status === "accepted" && (
+                                <Button size="sm" className="bg-blue-600 hover:bg-blue-700" onClick={() => router.push('/messages')}>
+                                  Contact
+                                </Button>
+                              )}
                               <Button size="sm" onClick={() => handleViewDetails(app)}>
                                 <Eye className="h-3 w-3 mr-1" />
                                 View Details
@@ -319,10 +376,10 @@ export default function EmployerDashboard() {
                         ))}
                       </TabsContent>
 
-                      <TabsContent value="long-term" className="space-y-4">
+                      <TabsContent value="long-term" className="space-y-4 mt-6">
                         {longTermApplications.map((app) => (
-                          <div key={app.id} className="flex items-center justify-between p-4 border rounded-lg">
-                            <div className="flex items-center gap-4">
+                          <div key={app.id} className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-4 border rounded-lg">
+                            <div className="flex items-start sm:items-center gap-4">
                               <Building2 className="h-5 w-5 text-blue-600" />
                               <div>
                                 <p className="font-medium">{app.agencyName}</p>
@@ -330,8 +387,16 @@ export default function EmployerDashboard() {
                                 <p className="text-xs text-gray-500">Applied: {app.appliedDate}</p>
                               </div>
                             </div>
-                            <div className="flex items-center gap-2">
+                            <div className="flex items-center gap-2 w-full sm:w-auto">
                               <Badge variant={app.status === "pending" ? "secondary" : "default"}>{app.status}</Badge>
+                              <div className="sm:hidden w-full">
+                                <Button size="sm" onClick={() => handleViewDetails(app)} className="w-full">
+                                  <Eye className="h-3 w-3 mr-1" />
+                                  View Details
+                                </Button>
+                              </div>
+                            </div>
+                            <div className="hidden sm:flex items-center gap-2">
                               <Button size="sm" onClick={() => handleViewDetails(app)}>
                                 <Eye className="h-3 w-3 mr-1" />
                                 View Details
@@ -341,10 +406,10 @@ export default function EmployerDashboard() {
                         ))}
                       </TabsContent>
 
-                      <TabsContent value="short-term" className="space-y-4">
+                      <TabsContent value="short-term" className="space-y-4 mt-6">
                         {shortTermApplications.map((app) => (
-                          <div key={app.id} className="flex items-center justify-between p-4 border rounded-lg">
-                            <div className="flex items-center gap-4">
+                          <div key={app.id} className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-4 border rounded-lg">
+                            <div className="flex items-start sm:items-center gap-4">
                               <Users className="h-5 w-5 text-pink-600" />
                               <div>
                                 <p className="font-medium">{app.workerName}</p>
@@ -352,8 +417,18 @@ export default function EmployerDashboard() {
                                 <p className="text-xs text-gray-500">Applied: {app.appliedDate}</p>
                               </div>
                             </div>
-                            <div className="flex items-center gap-2">
-                              <Badge variant={app.status === "pending" ? "secondary" : "default"}>{app.status}</Badge>
+                            <div className="flex items-center sm:items-center gap-2 sm:justify-end w-full sm:w-auto">
+                              <div className="flex items-center gap-2">
+                                <Badge variant={app.status === "pending" ? "secondary" : "default"}>{app.status}</Badge>
+                              </div>
+                              <div className="sm:hidden w-full">
+                                <Button size="sm" onClick={() => handleViewDetails(app)} className="w-full">
+                                  <Eye className="h-3 w-3 mr-1" />
+                                  View Details
+                                </Button>
+                              </div>
+                            </div>
+                            <div className="hidden sm:flex items-center gap-2">
                               <Button size="sm" onClick={() => handleViewDetails(app)}>
                                 <Eye className="h-3 w-3 mr-1" />
                                 View Details
@@ -426,8 +501,8 @@ export default function EmployerDashboard() {
                   <CardContent>
                     <div className="space-y-4">
                       {jobPostsHistory.map((job) => (
-                        <div key={job.id} className="flex items-center justify-between p-4 border rounded-lg">
-                          <div className="flex items-center gap-4">
+                        <div key={job.id} className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-4 border rounded-lg">
+                          <div className="flex items-start sm:items-center gap-4">
                             {job.type === "short-term" ? (
                               <Clock className="h-5 w-5 text-pink-600" />
                             ) : (
@@ -436,21 +511,32 @@ export default function EmployerDashboard() {
                             <div>
                               <p className="font-medium">{job.title}</p>
                               <p className="text-sm text-gray-600">{job.salary}</p>
-                              <div className="flex items-center gap-4 mt-1">
-                                <p className="text-xs text-gray-500">Posted: {job.postedDate}</p>
+                              <p className="text-xs text-gray-500 mt-1">Posted: {job.postedDate}</p>
+                              <div className="flex items-center gap-2 mt-1">
                                 <Badge variant="outline">
                                   {job.type === "short-term" ? "Short-term" : "Long-term"}
                                 </Badge>
+                                <span className="text-xs text-gray-500">-</span>
                                 <Badge variant={job.status === "active" ? "default" : "secondary"}>{job.status}</Badge>
                               </div>
                             </div>
                           </div>
-                          <div className="flex items-center gap-2">
+                          <div className="hidden sm:flex items-center gap-2">
                             <div className="flex items-center gap-1 text-sm text-gray-600 mr-4">
                               <Users className="h-4 w-4" />
                               {job.applicants} applicants
                             </div>
                             <Button size="sm" variant="outline" onClick={() => handleViewJobPost(job.id)}>
+                              <Eye className="h-3 w-3 mr-1" />
+                              View
+                            </Button>
+                          </div>
+                          <div className="sm:hidden mt-1 space-y-2">
+                            <div className="flex items-center gap-1 text-sm text-gray-600">
+                              <Users className="h-4 w-4" />
+                              {job.applicants} applicants
+                            </div>
+                            <Button size="sm" variant="outline" className="w-full" onClick={() => handleViewJobPost(job.id)}>
                               <Eye className="h-3 w-3 mr-1" />
                               View
                             </Button>
@@ -474,15 +560,15 @@ export default function EmployerDashboard() {
                   <CardContent>
                     <div className="space-y-4">
                       {incomingContracts.map((contract) => (
-                        <div key={contract.id} className="flex items-center justify-between p-4 border rounded-lg">
-                          <div className="flex items-center gap-4">
+                        <div key={contract.id} className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-4 border rounded-lg">
+                          <div className="flex items-start sm:items-center gap-4">
                             <Calendar className="h-5 w-5 text-blue-600" />
                             <div>
                               <p className="font-medium">{contract.position}</p>
                               <p className="text-sm text-gray-600">
                                 {contract.agencyName} • {contract.workerName}
                               </p>
-                              <div className="flex items-center gap-4 mt-1">
+                              <div className="flex flex-wrap items-center gap-4 mt-1">
                                 <p className="text-xs text-gray-500">Created: {contract.createdAt}</p>
                                 <p className="text-xs text-gray-500">Start: {contract.startDate}</p>
                                 <Badge variant="outline">
@@ -494,12 +580,23 @@ export default function EmployerDashboard() {
                               </div>
                             </div>
                           </div>
-                          <div className="flex items-center gap-2">
+                          <div className="hidden sm:flex items-center gap-2">
                             <div className="text-right mr-4">
                               <p className="text-sm font-medium text-green-600">{contract.salary}</p>
                               <p className="text-xs text-gray-500">Contract ID: {contract.contractId}</p>
                             </div>
                             <Button size="sm" variant="outline" onClick={() => router.push(`/contracts/${contract.id}?role=employer`)}>
+                              <Eye className="h-3 w-3 mr-1" />
+                              View & Sign
+                            </Button>
+                          </div>
+                          {/* Mobile: move salary/id and action below */}
+                          <div className="sm:hidden mt-2 space-y-2">
+                            <div className="text-sm text-gray-700">
+                              <p className="font-medium text-green-600">{contract.salary}</p>
+                              <p className="text-xs text-gray-500">Contract ID: {contract.contractId}</p>
+                            </div>
+                            <Button size="sm" variant="outline" className="w-full" onClick={() => router.push(`/contracts/${contract.id}?role=employer`)}>
                               <Eye className="h-3 w-3 mr-1" />
                               View & Sign
                             </Button>
@@ -519,54 +616,11 @@ export default function EmployerDashboard() {
                 </Card>
               </TabsContent>
 
-              <TabsContent value="agencies" className="space-y-6">
-                <Card>
-                  <CardHeader>
-                    <div className="flex items-center gap-2">
-                      <Building2 className="h-5 w-5 text-blue-600" />
-                      <CardTitle>Primary Agencies</CardTitle>
-                    </div>
-                    <CardDescription>Your preferred agencies for job postings</CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="space-y-4">
-                      {primaryAgencies.map((agency) => (
-                        <div key={agency.id} className="flex items-center justify-between p-4 border rounded-lg">
-                          <div className="flex items-center gap-4">
-                            <Building2 className="h-5 w-5 text-blue-600" />
-                            <div>
-                              <p className="font-medium">{agency.name}</p>
-                              <div className="flex items-center gap-2 text-sm text-gray-600">
-                                <Star className="h-4 w-4 text-yellow-500" />
-                                <span>Rating: {agency.rating}/5</span>
-                                <span>•</span>
-                                <Users className="h-4 w-4" />
-                                <span>{agency.workers} workers</span>
-                              </div>
-                              <Badge variant="outline" className="mt-1">
-                                {agency.type === "placement" ? "Placement Agency" : "Service Agency"}
-                              </Badge>
-                            </div>
-                          </div>
-                          <div className="flex gap-2">
-                            <Button size="sm" variant="outline" onClick={() => router.push("/agency/profile")}>
-                              <Eye className="h-3 w-3 mr-1" />
-                              View Profile
-                            </Button>
-                            <Button size="sm">Contact</Button>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </CardContent>
-                </Card>
-              </TabsContent>
             </Tabs>
           </div>
         </div>
       </div>
 
-      <ShortTermJobModal open={shortTermModalOpen} onOpenChange={setShortTermModalOpen} />
     </div>
   )
 }

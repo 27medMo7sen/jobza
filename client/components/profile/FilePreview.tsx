@@ -19,7 +19,7 @@ import { toast } from "sonner";
 import {
   FileUploadSkeleton,
   FilePreviewAreaSkeleton,
-} from "@/components/ui/skeleton-loaders";
+} from "@/components/ui/file-upload-skeleton";
 
 interface FilePreviewProps {
   documentType: DocumentType;
@@ -172,14 +172,14 @@ export function FilePreview({ documentType, isEditing }: FilePreviewProps) {
       return URL.createObjectURL(file);
     }
 
-    // If file has a URL property (from backend response), use that first for opening
-    if (file && file.url) {
-      return file.url;
-    }
-
-    // If file has a data URL (for immediate display), use that as fallback
+    // If file has a data URL (for immediate display), use that first
     if (file && file.dataUrl) {
       return file.dataUrl;
+    }
+
+    // If file has a URL property (from backend response), use that
+    if (file && file.url) {
+      return file.url;
     }
 
     return null;
@@ -214,15 +214,15 @@ export function FilePreview({ documentType, isEditing }: FilePreviewProps) {
           className="cursor-pointer block"
         >
           <div className="text-center">
-            <div className="text-4xl mb-2">{documentType.icon}</div>
-            <h3 className="text-lg font-semibold text-gray-900 mb-1">
+            <div className="text-3xl sm:text-4xl mb-2">{documentType.icon}</div>
+            <h3 className="text-base sm:text-lg font-semibold text-gray-900 mb-1">
               {documentType.name}
             </h3>
-            <p className="text-sm text-gray-600 mb-4">
+            <p className="text-xs sm:text-sm text-gray-600 mb-4">
               {documentType.description}
             </p>
-            <div className="flex items-center justify-center gap-2 text-sm text-gray-500">
-              <Upload className="w-4 h-4" />
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-2 text-xs sm:text-sm text-gray-500">
+              <Upload className="w-3 h-3 sm:w-4 sm:h-4" />
               <span>Click to upload or drag and drop</span>
             </div>
             <p className="text-xs text-gray-400 mt-2">
@@ -259,13 +259,13 @@ export function FilePreview({ documentType, isEditing }: FilePreviewProps) {
                   />
                 ) : (
                   <div className="w-full h-full flex items-center justify-center">
-                    <ImageIcon className="w-16 h-16 text-gray-400" />
+                    <ImageIcon className="w-12 h-12 sm:w-16 sm:h-16 text-gray-400" />
                   </div>
                 )}
               </div>
             ) : (
               <div className="aspect-square rounded-lg bg-gray-100 flex items-center justify-center">
-                <FileText className="w-16 h-16 text-gray-400" />
+                <FileText className="w-12 h-12 sm:w-16 sm:h-16 text-gray-400" />
               </div>
             )}
           </>
@@ -317,14 +317,11 @@ export function FilePreview({ documentType, isEditing }: FilePreviewProps) {
       {/* File Info */}
       {!isUploading && file && (
         <div className="mt-3">
-          <h3 className="font-semibold text-sm text-gray-900 mb-1">
-            {documentType.name}
-          </h3>
-          <h4 className="font-medium text-xs text-gray-700 truncate mb-1">
+          <h4 className="font-semibold text-xs sm:text-sm text-gray-900 truncate">
             {file.fileName || "Unknown file"}
           </h4>
           <p className="text-xs text-gray-500">{getFileSizeDisplay(file)}</p>
-          <div className="flex items-center justify-between mt-2">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1 sm:gap-0 mt-2">
             <span className="text-xs text-gray-600">
               {documentType.isImage ? "Image" : "Document"}
             </span>

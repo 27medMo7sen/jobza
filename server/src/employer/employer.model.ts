@@ -33,22 +33,22 @@ export class Employer {
   @Prop({ required: true })
   email: string;
 
-  @Prop({ required: true })
+  @Prop({ required: false })
   phoneNumber: string;
 
-  @Prop({ required: true })
+  @Prop({ required: false })
   gender: string;
 
-  @Prop({ required: true })
+  @Prop({ required: false })
   nationality: string;
 
-  @Prop({ required: true })
+  @Prop({ required: false })
   dateOfBirth: Date;
 
-  @Prop({ required: true })
+  @Prop({ required: false })
   country: string;
 
-  @Prop({ required: true })
+  @Prop({ required: false })
   householdSize: number;
 
   @Prop({
@@ -61,21 +61,21 @@ export class Employer {
     elders: number;
   };
 
-  @Prop({ required: true })
+  @Prop({ required: false })
   homeType: string;
 
-  @Prop({ required: true })
+  @Prop({ required: false })
   serviceRequirements: string[];
 
-  @Prop({ required: true })
+  @Prop({ required: false })
   workingHours: string;
 
-  @Prop({ required: true })
+  @Prop({ required: false })
   preferredStartDate: Date;
 
   @Prop({
     type: Object,
-    required: true,
+    required: false,
   })
   budgetRange: {
     min: number;

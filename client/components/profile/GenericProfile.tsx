@@ -19,16 +19,7 @@ import { AdminInformation } from "./AdminInformation";
 import { StatusSidebar } from "./StatusSidebar";
 import { useHttp } from "@/hooks/use-http";
 import { toast } from "sonner";
-import {
-  ProfileHeaderSkeleton,
-  PersonalInformationSkeleton,
-  SkillsSectionSkeleton,
-  BusinessInformationSkeleton,
-  HouseholdInformationSkeleton,
-  AdminInformationSkeleton,
-  StatusSidebarSkeleton,
-  DocumentsSectionSkeleton,
-} from "@/components/ui/skeleton-loaders";
+
 interface GenericProfileProps {
   role: "worker" | "employer" | "agency" | "admin";
   sidebarComponent?: React.ComponentType;
@@ -45,7 +36,6 @@ export function GenericProfile({
   const [isEditingSkills, setIsEditingSkills] = useState(false);
   const [profilePhoto, setProfilePhoto] = useState<File | null>(null);
   const [isLoadingFiles, setIsLoadingFiles] = useState(false);
-  const [isLoadingProfile, setIsLoadingProfile] = useState(true);
 
   const config = getProfileConfig(role);
   const [profileData, setProfileData] = useState<ProfileData>(
@@ -61,9 +51,6 @@ export function GenericProfile({
   useEffect(() => {
     if (user) {
       setProfileData(user as ProfileData);
-      setIsLoadingProfile(false);
-    } else {
-      setIsLoadingProfile(true);
     }
   }, [user]);
 
@@ -75,7 +62,6 @@ export function GenericProfile({
         try {
           const response = await get("/files/list");
           console.log("Fetched user files:", response);
-
           dispatch(setFiles(response as Record<string, any>));
         } catch (error) {
           console.error("Error fetching user files:", error);
@@ -166,15 +152,13 @@ export function GenericProfile({
     }
   };
 
-  // if (!user) {
-  //   return <div>Loading...</div>;
-  // }
-
   return (
-    <div className="flex min-h-screen bg-background">
+    <div className="min-h-screen bg-background">
       {SidebarComponent && <SidebarComponent />}
 
-      <div className="flex-1 p-6">
+      <div className="lg:ml-64 p-4 sm:p-6">
+        {/* Mobile spacer to prevent sidebar overlap */}
+        <div className="lg:hidden h-16"></div>
         <div className="mb-6">
           <Link href={`/${role}/dashboard`}>
             <Button variant="ghost" size="sm">
@@ -186,113 +170,85 @@ export function GenericProfile({
 
         <div className="max-w-6xl mx-auto">
           {/* Profile Header */}
-          {isLoadingProfile ? (
-            <ProfileHeaderSkeleton />
-          ) : (
-            <ProfileHeader
-              profileData={profileData}
-              onProfilePhotoUpload={handleProfilePhotoUpload}
-            />
-          )}
+          <ProfileHeader
+            profileData={profileData}
+            onProfilePhotoUpload={handleProfilePhotoUpload}
+          />
 
           {/* Profile Content */}
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            <div className="lg:col-span-2 space-y-8">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8">
+            <div className="lg:col-span-2 space-y-6 lg:space-y-8">
               {/* Personal Information */}
-              {isLoadingProfile ? (
-                <PersonalInformationSkeleton />
-              ) : (
-                <PersonalInformation
+              <PersonalInformation
+                profileData={profileData}
+                isEditing={isEditing}
+                onUpdate={updateProfileData}
+                onEdit={() => {
+                  setOriginalProfileData({ ...profileData });
+                  setIsEditing(true);
+                }}
+                onSave={handleSave}
+                onCancel={handleCancel}
+              />
+
+              {/* Skills Section - Only for workers */}
+              {config.sections.skills && (
+                <SkillsSection
                   profileData={profileData}
-                  isEditing={isEditing}
-                  onUpdate={updateProfileData}
-                  onEdit={() => {
-                    setOriginalProfileData({ ...profileData });
-                    setIsEditing(true);
+                  isEditingSkills={isEditingSkills}
+                  availableSkills={config.skills.available}
+                  onToggleEdit={async () => {
+                    if (isEditingSkills) {
+                      // User is finishing editing, save to backend
+                      await handleSkillsEditComplete();
+                    }
+                    setIsEditingSkills(!isEditingSkills);
                   }}
-                  onSave={handleSave}
-                  onCancel={handleCancel}
+                  onAddSkill={addSkill}
+                  onRemoveSkill={removeSkill}
                 />
               )}
 
-              {/* Skills Section - Only for workers */}
-              {config.sections.skills &&
-                (isLoadingProfile ? (
-                  <SkillsSectionSkeleton />
-                ) : (
-                  <SkillsSection
-                    profileData={profileData}
-                    isEditingSkills={isEditingSkills}
-                    availableSkills={config.skills.available}
-                    onToggleEdit={async () => {
-                      if (isEditingSkills) {
-                        // User is finishing editing, save to backend
-                        await handleSkillsEditComplete();
-                      }
-                      setIsEditingSkills(!isEditingSkills);
-                    }}
-                    onAddSkill={addSkill}
-                    onRemoveSkill={removeSkill}
-                  />
-                ))}
-
               {/* Business Information - Only for agencies */}
               {config.sections.businessInfo &&
-                profileData?.role === "agency" &&
-                (isLoadingProfile ? (
-                  <BusinessInformationSkeleton />
-                ) : (
+                profileData?.role === "agency" && (
                   <BusinessInformation
                     profileData={profileData as any}
                     isEditing={isEditing}
                     onUpdate={updateProfileData}
                   />
-                ))}
+                )}
 
               {/* Household Information - Only for employers */}
               {config.sections.householdInfo &&
-                profileData?.role === "employer" &&
-                (isLoadingProfile ? (
-                  <HouseholdInformationSkeleton />
-                ) : (
+                profileData?.role === "employer" && (
                   <HouseholdInformation
                     profileData={profileData as any}
                     isEditing={isEditing}
                     onUpdate={updateProfileData}
                   />
-                ))}
+                )}
 
               {/* Admin Information - Only for admins */}
-              {config.sections.adminInfo &&
-                profileData?.role === "admin" &&
-                (isLoadingProfile ? (
-                  <AdminInformationSkeleton />
-                ) : (
-                  <AdminInformation
-                    profileData={profileData as any}
-                    isEditing={isEditing}
-                    onUpdate={updateProfileData}
-                  />
-                ))}
+              {config.sections.adminInfo && profileData?.role === "admin" && (
+                <AdminInformation
+                  profileData={profileData as any}
+                  isEditing={isEditing}
+                  onUpdate={updateProfileData}
+                />
+              )}
 
               {/* Documents Section */}
-              {config.sections.documents &&
-                (isLoadingProfile ? (
-                  <DocumentsSectionSkeleton />
-                ) : (
-                  <DocumentsSection
-                    profileData={profileData}
-                    isLoadingFiles={isLoadingFiles}
-                  />
-                ))}
+              {config.sections.documents && (
+                <DocumentsSection
+                  profileData={profileData}
+                  isLoadingFiles={isLoadingFiles}
+                />
+              )}
             </div>
 
             {/* Sidebar */}
-            {isLoadingProfile ? (
-              <StatusSidebarSkeleton />
-            ) : (
-              <StatusSidebar profileData={profileData} />
-            )}
+            <StatusSidebar profileData={profileData} />
           </div>
         </div>
       </div>

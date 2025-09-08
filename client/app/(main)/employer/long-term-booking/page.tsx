@@ -23,6 +23,7 @@ import {
   AlertTriangle
 } from "lucide-react"
 import Link from "next/link"
+import { UnifiedSidebar } from "@/components/layout/unified-sidebar"
 
 export default function LongTermBookingPage() {
   const [currentStep, setCurrentStep] = useState(1)
@@ -681,25 +682,32 @@ export default function LongTermBookingPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <header className="bg-white shadow-sm border-b">
-        <div className="container mx-auto px-4 py-4">
-          <div className="flex items-center justify-between">
-            <Link href="/employer/dashboard" className="flex items-center space-x-2 text-blue-600 hover:text-blue-700">
-              <ArrowLeft className="w-4 h-4" />
-              <span>Back to Dashboard</span>
-            </Link>
-            <div className="flex items-center space-x-2">
-              <Crown className="w-5 h-5 text-yellow-500" />
-              <span className="text-sm text-gray-600">Premium Feature</span>
+    <div className="min-h-screen bg-background">
+      <UnifiedSidebar 
+        userRole="employer"
+        userName="John Smith"
+        userEmail="john@example.com"
+      />
+      
+      <div className="lg:ml-64">
+        {/* Header */}
+        <header className="bg-white shadow-sm border-b">
+          <div className="container mx-auto px-4 py-4">
+            <div className="flex items-center justify-between">
+              <Link href="/employer/dashboard" className="flex items-center space-x-2 text-blue-600 hover:text-blue-700">
+                <ArrowLeft className="w-4 h-4" />
+                <span>Back to Dashboard</span>
+              </Link>
+              <div className="flex items-center space-x-2">
+                <Crown className="w-5 h-5 text-yellow-500" />
+                <span className="text-sm text-gray-600">Premium Feature</span>
+              </div>
             </div>
           </div>
-        </div>
-      </header>
+        </header>
 
-      {/* Main Content */}
-      <div className="container mx-auto px-4 py-8">
+        {/* Main Content */}
+        <div className="container mx-auto px-4 py-8">
         <div className="max-w-4xl mx-auto">
           <div className="mb-8">
             <h1 className="text-3xl font-bold text-gray-900 mb-2">Long-Term Domestic Help Booking</h1>
@@ -738,6 +746,7 @@ export default function LongTermBookingPage() {
             )}
           </div>
         </div>
+      </div>
       </div>
     </div>
   )
