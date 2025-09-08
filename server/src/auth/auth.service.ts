@@ -1,7 +1,7 @@
 import { HttpException, Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Auth, Role, status } from './auth.model';
-import { Model } from 'mongoose';
+import { Model, Types } from 'mongoose';
 import { WorkerSignupDto } from './dto/workerSignup.dto';
 import * as bcrypt from 'bcrypt';
 import { LoginDto } from './dto/login.dto';
@@ -304,37 +304,37 @@ export class AuthService {
     };
   }
 
-  //MARK: replaceUserFile (multipart)
-  async replaceUserFile(
-    userId: string,
-    label: string,
-    type: 'picture' | 'documents',
-    file: Express.Multer.File,
-    issuanceDate?: Date,
-    expirationDate?: Date,
-  ) {
-    // fetch existing file by label
-    const filesByLabel = await this.filesService.listUserFiles(userId);
-    const existing = filesByLabel?.[label];
+  // //MARK: replaceUserFile (multipart)
+  // async replaceUserFile(
+  //   userId: string,
+  //   label: string,
+  //   type: 'picture' | 'documents',
+  //   file: Express.Multer.File,
+  //   issuanceDate?: Date,
+  //   expirationDate?: Date,
+  // ) {
+  //   // fetch existing file by label
+  //   const filesByLabel = await this.filesService.listUserFiles(userId);
+  //   const existing = filesByLabel?.[label];
 
-    if (existing && existing.url) {
-      // replace (delete old + upload new)
-      await this.filesService.deleteFileByUrl(userId, existing.url);
-    }
+  //   if (existing && existing.url) {
+  //     // replace (delete old + upload new)
+  //     await this.filesService.deleteFileByUrl(userId, existing.url);
+  //   }
 
-    // upload new file
-    const created = await this.filesService.uploadFile(
-      userId,
-      'worker', // role - this should be determined from user context
-      file,
-      type,
-      label,
-    );
+  //   // upload new file
+  //   const created = await this.filesService.uploadFile(
+  //     userId,
+  //     'worker', // role - this should be determined from user context
+  //     file,
+  //     type,
+  //     label,
+  //   );
 
-    return { message: 'File uploaded successfully', newFile: created };
-  }
+  //   return { message: 'File uploaded successfully', newFile: created };
+  // }
   //MARK: signatureUploaded
-  async signatureUploaded(userId: string) {
+  async signatureUploaded(userId: Types.ObjectId) {
     const user = await this.authModel.findById(userId);
     if (!user) {
       throw new HttpException('User not found', 404);
@@ -342,5 +342,20 @@ export class AuthService {
     user.signature = true;
     await user.save();
     return { message: 'Signature uploaded successfully' };
+  }
+  //MARK: updateProfilePhoto
+  async updateProfilePhoto(
+    userId: Types.ObjectId,
+    url: string,
+    key: string,
+    role: string,
+  ) {
+    const user = await this.authModel.findById(userId);
+    if (!user) {
+      throw new HttpException('User not found', 404);
+    }
+    user.profilePicture = { url, s3Key: key };
+    await user.save();
+    return { message: 'Profile photo updated successfully' };
   }
 }
