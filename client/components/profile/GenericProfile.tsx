@@ -64,7 +64,7 @@ export function GenericProfile({
     const fetchProfileData = async () => {
       if (user?.userId && !isProfileLoaded) {
         try {
-          const response = await get("/auth/profile");
+          const response = await get("/auth/user-by-token");
           console.log("Fetched fresh profile data:", response);
           dispatch(setUser(response));
           dispatch(setProfileLoaded(true));

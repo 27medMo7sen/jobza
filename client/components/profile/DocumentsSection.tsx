@@ -145,57 +145,6 @@ export function DocumentsSection({
             </Button>
           </div>
         )} */}
-
-        {/* Upload Progress Summary */}
-        {!isLoadingFiles && isClient && (
-          <div className="mt-6 p-4 bg-gray-50 rounded-lg">
-            <h4 className="font-semibold text-sm text-gray-900 mb-2">
-              Upload Summary
-            </h4>
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 text-sm">
-              <div>
-                <span className="text-gray-600">Required:</span>
-                <span className="ml-1 font-semibold">
-                  {
-                    requiredDocuments.filter((doc) => files?.[doc.id]?.file)
-                      .length
-                  }{" "}
-                  / {requiredDocuments.length}
-                </span>
-              </div>
-              <div>
-                <span className="text-gray-600">Optional:</span>
-                <span className="ml-1 font-semibold">
-                  {
-                    optionalDocuments.filter((doc) => files?.[doc.id]?.file)
-                      .length
-                  }{" "}
-                  / {optionalDocuments.length}
-                </span>
-              </div>
-              <div>
-                <span className="text-gray-600">Approved:</span>
-                <span className="ml-1 font-semibold text-green-600">
-                  {
-                    Object.values(files || {}).filter(
-                      (doc) => doc?.status === "approved"
-                    ).length
-                  }
-                </span>
-              </div>
-              <div>
-                <span className="text-gray-600">Pending:</span>
-                <span className="ml-1 font-semibold text-yellow-600">
-                  {
-                    Object.values(files || {}).filter(
-                      (doc) => doc?.status === "pending"
-                    ).length
-                  }
-                </span>
-              </div>
-            </div>
-          </div>
-        )}
       </CardContent>
     </Card>
   );

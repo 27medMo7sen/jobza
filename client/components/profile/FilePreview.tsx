@@ -46,7 +46,7 @@ export function FilePreview({ documentType, isEditing }: FilePreviewProps) {
       // Create FormData
       const formData = new FormData();
       formData.append("file", file);
-      formData.append("type", documentType.isImage ? "image" : "document");
+      formData.append("type", documentType.isImage ? "picture" : "document");
       formData.append("label", documentType.id);
 
       // Upload to backend

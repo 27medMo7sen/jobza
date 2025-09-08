@@ -77,7 +77,7 @@ export class WorkerService {
     console.log('userId', userId);
     console.log('updateData', updateData);
     const worker = await this.workerModel
-      .findByIdAndUpdate(userId, { $set: updateData }, { new: true })
+      .findOneAndUpdate({ userId }, { $set: updateData }, { new: true })
       .lean<Worker>()
       .exec();
     console.log('worker', worker);
