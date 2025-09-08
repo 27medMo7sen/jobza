@@ -18,6 +18,7 @@ import { ContractModule } from './contract/contract.module';
 import { ConnectionModule } from './connection/connection.module';
 import { JobOfferModule } from './job-offer/job-offer.module';
 import { ApplicationModule } from './application/application.module';
+import { AdminModule } from './admin/admin.module';
 
 @Module({
   imports: [
@@ -68,6 +69,7 @@ import { ApplicationModule } from './application/application.module';
     ContractModule,
     JobOfferModule,
     ApplicationModule,
+    AdminModule,
     // ConnectionModule,
   ],
   controllers: [AppController],
