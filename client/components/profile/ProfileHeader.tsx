@@ -49,19 +49,19 @@ export function ProfileHeader({
   };
 
   return (
-    <Card className="mb-8">
+    <Card className="mb-6 border-0 shadow-lg bg-gradient-to-r from-white to-gray-50">
       <CardContent className="p-6">
         <div className="flex flex-col md:flex-row items-start md:items-center gap-6">
           {/* Profile Photo */}
           <div className="relative group">
-            <Avatar className="w-24 h-24">
+            <Avatar className="w-20 h-20 ring-4 ring-white shadow-lg">
               {profileData?.profilePicture?.url ? (
                 <AvatarImage
                   src={profileData.profilePicture.url}
                   alt={profileData.name || "Profile"}
                 />
               ) : (
-                <AvatarFallback className="text-2xl">
+                <AvatarFallback className="text-xl bg-gradient-to-br from-blue-500 to-purple-600 text-white">
                   {(profileData?.name && profileData?.name !== ""
                     ? profileData?.name
                     : "U"
@@ -97,21 +97,27 @@ export function ProfileHeader({
           <div className="flex-1">
             <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
               <div>
-                <h1 className="text-2xl font-bold text-foreground">
+                <h2 className="text-2xl font-bold text-gray-900 mb-1">
                   {profileData?.name || "Unknown User"}
-                </h1>
-                <div className="flex flex-col sm:flex-row sm:items-center gap-2 mt-1">
+                </h2>
+                <div className="flex flex-col sm:flex-row sm:items-center gap-2">
                   <Badge className={getRoleColor(profileData?.role || "")}>
                     {getRoleIcon(profileData?.role || "")}{" "}
                     {profileData?.role?.toUpperCase() || "USER"}
                   </Badge>
-                  <Badge variant="outline" className="text-gray-600">
+                  <Badge
+                    variant="outline"
+                    className="text-gray-600 border-gray-300"
+                  >
                     {profileData?.email || "No email"}
                   </Badge>
+                  <Badge
+                    variant="outline"
+                    className="text-gray-600 border-gray-300"
+                  >
+                    {profileData?.phoneNumber || "No phone number"}
+                  </Badge>
                 </div>
-                <p className="text-gray-600 mt-2">
-                  {profileData?.phoneNumber || "No phone number"}
-                </p>
               </div>
             </div>
           </div>

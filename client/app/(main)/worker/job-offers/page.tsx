@@ -428,13 +428,14 @@ export default function JobOffersPage() {
                             {job.type === "long-term" ? job.agency : job.family}
                           </p>
                           {job.type === "long-term" &&
+                            job.agency &&
                             (pendingAffiliations.has(job.agency) ? (
                               <Button
                                 size="sm"
                                 variant="outline"
                                 className="h-6 px-2 text-xs border-yellow-300 text-yellow-600 hover:bg-yellow-50 hover:border-yellow-400 dark:border-yellow-600 dark:text-yellow-400 dark:hover:bg-yellow-950/30"
                                 onClick={() =>
-                                  handleCancelAffiliationRequest(job.agency)
+                                  handleCancelAffiliationRequest(job.agency!)
                                 }
                               >
                                 <Clock className="h-3 w-3 mr-1" />
@@ -446,7 +447,7 @@ export default function JobOffersPage() {
                                 variant="outline"
                                 className="h-6 px-2 text-xs border-blue-300 text-blue-600 hover:bg-blue-50 hover:border-blue-400 dark:border-blue-600 dark:text-blue-400 dark:hover:bg-blue-950/30"
                                 onClick={() =>
-                                  handleSendAffiliationRequest(job.agency)
+                                  handleSendAffiliationRequest(job.agency!)
                                 }
                               >
                                 <Plus className="h-3 w-1 mr-1" />
@@ -563,11 +564,12 @@ export default function JobOffersPage() {
         {/* Short-term Job Modal */}
         {showShortTermModal && selectedShortTermJob && (
           <ShortTermJobModal
-            job={selectedShortTermJob}
-            isOpen={showShortTermModal}
-            onClose={() => {
-              setShowShortTermModal(false);
-              setSelectedShortTermJob(null);
+            open={showShortTermModal}
+            onOpenChange={(open) => {
+              if (!open) {
+                setShowShortTermModal(false);
+                setSelectedShortTermJob(null);
+              }
             }}
           />
         )}

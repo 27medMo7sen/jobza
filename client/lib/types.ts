@@ -1,4 +1,4 @@
-export type UserRole = "family" | "worker" | "agency" | "admin";
+export type UserRole = "employer" | "worker" | "agency" | "admin";
 
 export type JobType = "long-term" | "short-term";
 
@@ -139,6 +139,15 @@ export interface WorkerProfile {
     url: string;
     verified: boolean;
   }[];
+  location: {
+    address: string;
+    city: string;
+    country: string;
+    coordinates?: {
+      lat: number;
+      lng: number;
+    };
+  };
   rating: number;
   reviewCount: number;
 }

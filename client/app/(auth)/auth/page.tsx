@@ -7,9 +7,9 @@ import LoginForm from "@/components/auth/loginForm";
 import UserIdentity from "@/components/auth/userIdentity";
 import WorkerSignupForm from "@/components/auth/workerSignupForm";
 import { useSearchParams } from "next/navigation";
-import { Fragment, useRef } from "react";
+import { Fragment, useRef, Suspense } from "react";
 
-export default function AuthPage() {
+function AuthContent() {
   const searchParams = useSearchParams();
   const mode = searchParams.get("mode");
   const drawerRef = useRef<HTMLButtonElement | null>(null);
@@ -26,8 +26,18 @@ export default function AuthPage() {
         <AgencySignupForm />
       ) : mode === "login" ? (
         <LoginForm />
-      ) : mode =="google"?<GoogleFetch/>:null}
+      ) : mode == "google" ? (
+        <GoogleFetch />
+      ) : null}
       <DrawerOpt drawerRef={drawerRef} />
     </Fragment>
+  );
+}
+
+export default function AuthPage() {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <AuthContent />
+    </Suspense>
   );
 }
