@@ -49,6 +49,7 @@ export class AwsS3Service {
           originalName: file.originalname,
           uploadedAt: new Date().toISOString(),
         },
+        ACL: 'public-read',
       });
 
       await this.s3.send(command);
@@ -76,18 +77,8 @@ export class AwsS3Service {
     }
   }
 
-  async getFileUrl(key: string, expiresIn: number = 3600): Promise<string> {
-    try {
-      const command = new GetObjectCommand({
-        Bucket: this.bucket,
-        Key: key,
-      });
-
-      return await getSignedUrl(this.s3, command, { expiresIn });
-    } catch (error) {
-      this.logger.error(`Failed to generate signed URL for: ${key}`, error);
-      throw new Error(`Failed to generate signed URL: ${error.message}`);
-    }
+  getFileUrl(key: string): string {
+    return `https://${this.bucket}.s3.amazonaws.com/${key}`;
   }
 
   async fileExists(key: string): Promise<boolean> {
