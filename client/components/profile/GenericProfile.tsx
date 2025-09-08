@@ -156,10 +156,12 @@ export function GenericProfile({
   // }
 
   return (
-    <div className="flex min-h-screen bg-background">
+    <div className="min-h-screen bg-background">
       {SidebarComponent && <SidebarComponent />}
 
-      <div className="flex-1 p-6">
+      <div className="lg:ml-64 p-4 sm:p-6">
+        {/* Mobile spacer to prevent sidebar overlap */}
+        <div className="lg:hidden h-16"></div>
         <div className="mb-6">
           <Link href={`/${role}/dashboard`}>
             <Button variant="ghost" size="sm">
@@ -177,8 +179,8 @@ export function GenericProfile({
           />
 
           {/* Profile Content */}
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            <div className="lg:col-span-2 space-y-8">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8">
+            <div className="lg:col-span-2 space-y-6 lg:space-y-8">
               {/* Personal Information */}
               <PersonalInformation
                 profileData={profileData}

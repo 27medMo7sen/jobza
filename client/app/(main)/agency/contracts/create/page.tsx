@@ -20,8 +20,7 @@ import {
   CheckCircle,
   Clock
 } from "lucide-react"
-import { DashboardLayout } from "@/components/dashboard/dashboard-layout"
-import { SharedHeader } from "@/components/layout/shared-header"
+import { UnifiedSidebar } from "@/components/layout/unified-sidebar"
 
 interface FamilyRequest {
   id: number
@@ -207,14 +206,31 @@ export default function CreateContractPage() {
   }
 
   return (
-    <DashboardLayout userRole="agency" userName="Elite Home Services" userEmail="admin@elitehomeservices.com">
-      <div className="space-y-6">
-        {/* Header */}
-        <SharedHeader 
-          title="Create New Contract" 
-          subtitle="Generate employment agreement between family and worker" 
-          showBackButton={true}
-        />
+    <div className="min-h-screen bg-background">
+      <UnifiedSidebar 
+        userRole="agency"
+        userName="Elite Home Services"
+        userEmail="admin@elitehomeservices.com"
+      />
+      
+      <div className="lg:ml-64">
+        <div className="container mx-auto px-4 py-8">
+          <div className="max-w-7xl mx-auto">
+            {/* Header */}
+            <div className="mb-8">
+              <div className="flex items-center gap-4 mb-4">
+                <Button
+                  variant="ghost"
+                  onClick={() => router.back()}
+                  className="flex items-center gap-2 text-gray-600 hover:text-gray-900 p-0 h-auto"
+                >
+                  <ArrowLeft className="w-4 h-4" />
+                  <span>Back</span>
+                </Button>
+              </div>
+              <h1 className="text-3xl font-bold text-gray-900">Create New Contract</h1>
+              <p className="text-gray-600 mt-2">Generate employment agreement between family and worker</p>
+            </div>
 
         {/* Contract Header */}
         <Card>
@@ -590,15 +606,15 @@ export default function CreateContractPage() {
                 {familyRequests.map((family) => (
                   <div
                     key={family.id}
-                    className="flex items-center justify-between p-4 border rounded-lg bg-card hover-lift transition-theme cursor-pointer"
+                    className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-4 border rounded-lg bg-card hover:shadow-sm transition-all duration-200 cursor-pointer"
                     onClick={() => handleFamilySelection(family)}
                   >
-                    <div className="flex-1">
-                      <div className="flex items-center gap-4">
-                        <Users className="h-5 w-5 text-primary" />
-                        <div>
-                          <p className="font-medium text-card-foreground">{family.jobTitle}</p>
-                          <p className="text-sm text-muted-foreground">
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-start gap-4">
+                        <Users className="h-5 w-5 text-primary flex-shrink-0 mt-1" />
+                        <div className="min-w-0 flex-1">
+                          <p className="font-medium text-card-foreground text-lg">{family.jobTitle}</p>
+                          <p className="text-sm text-muted-foreground break-words">
                             {family.familyName} • 📍 {family.location}
                           </p>
                           <p className="text-sm font-medium text-green-600">{family.budget}</p>
@@ -608,7 +624,7 @@ export default function CreateContractPage() {
                         </div>
                       </div>
                     </div>
-                    <Button variant="outline" size="sm">
+                    <Button variant="outline" size="sm" className="w-full sm:w-auto">
                       Select
                     </Button>
                   </div>
@@ -633,24 +649,24 @@ export default function CreateContractPage() {
                 {affiliatedWorkers.map((worker) => (
                   <div
                     key={worker.id}
-                    className="flex items-center justify-between p-4 border rounded-lg bg-card hover-lift transition-theme cursor-pointer"
+                    className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-4 border rounded-lg bg-card hover:shadow-sm transition-all duration-200 cursor-pointer"
                     onClick={() => handleWorkerSelection(worker)}
                   >
-                    <div className="flex-1">
-                      <div className="flex items-center gap-4">
-                        <Building2 className="h-5 w-5 text-primary" />
-                        <div>
-                          <p className="font-medium text-card-foreground">{worker.name}</p>
-                          <p className="text-sm text-muted-foreground">
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-start gap-4">
+                        <Building2 className="h-5 w-5 text-primary flex-shrink-0 mt-1" />
+                        <div className="min-w-0 flex-1">
+                          <p className="font-medium text-card-foreground text-lg">{worker.name}</p>
+                          <p className="text-sm text-muted-foreground break-words">
                             {worker.specialization} • ⭐ {worker.rating} • {worker.experience} years experience
                           </p>
-                          <p className="text-xs text-muted-foreground">
+                          <p className="text-xs text-muted-foreground break-words">
                             📍 {worker.location} • {worker.availability}
                           </p>
                         </div>
                       </div>
                     </div>
-                    <Button variant="outline" size="sm">
+                    <Button variant="outline" size="sm" className="w-full sm:w-auto">
                       Select
                     </Button>
                   </div>
@@ -693,7 +709,9 @@ export default function CreateContractPage() {
             </div>
           </div>
         )}
+          </div>
+        </div>
       </div>
-    </DashboardLayout>
+    </div>
   )
 }

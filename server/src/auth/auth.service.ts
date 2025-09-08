@@ -190,6 +190,16 @@ export class AuthService {
           newUser._id.toString(),
           {
             userName: _json.given_name,
+            fullName: _json.given_name || _json.name || 'Unknown User',
+            email: _json.email,
+            profilePicture: {
+              url: _json.picture || '',
+              s3Key: '',
+            },
+            phoneNumber: '',
+            gender: '',
+            nationality: '',
+            country: '',
             method: 'google',
             userId: newUser._id,
           },
@@ -197,7 +207,13 @@ export class AuthService {
         newUser.employer = employer._id as any;
       } else if (role === Role.AGENCY) {
         const agency = await this.agencyService.createAgency({
-          userName: _json.given_name,
+          agencyName: _json.given_name || 'Agency',
+          email: _json.email || '',
+          profilePicture: {
+            url: _json.picture || '',
+            s3Key: ''
+          },
+          agencyType: 'service',
           userId: newUser._id,
         });
         newUser.agency = agency._id as any;

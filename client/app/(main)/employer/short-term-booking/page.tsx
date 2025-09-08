@@ -15,6 +15,7 @@ import {
   Building2, FileText, AlertTriangle, MapPin, Calendar, DollarSign, Star, Eye
 } from "lucide-react"
 import Link from "next/link"
+import { UnifiedSidebar } from "@/components/layout/unified-sidebar"
 
 export default function ShortTermBookingPage() {
   const [currentStep, setCurrentStep] = useState(1)
@@ -662,38 +663,45 @@ export default function ShortTermBookingPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <header className="bg-white shadow-sm border-b">
-        <div className="container mx-auto px-4 py-4">
-          <div className="flex items-center justify-between">
-            <Link href="/employer/dashboard" className="flex items-center space-x-2 text-blue-600 hover:text-blue-700">
-              <ArrowLeft className="w-4 h-4" />
-              <span>Back to Dashboard</span>
-            </Link>
-            <div className="flex items-center space-x-2">
-              <Home className="w-5 h-5 text-blue-600" />
-              <span className="text-lg font-semibold text-gray-900">Short-term Booking</span>
+    <div className="min-h-screen bg-background">
+      <UnifiedSidebar 
+        userRole="employer"
+        userName="John Smith"
+        userEmail="john@example.com"
+      />
+      
+      <div className="lg:ml-64">
+        {/* Header */}
+        <header className="bg-white shadow-sm border-b">
+          <div className="container mx-auto px-4 py-4">
+            <div className="flex items-center justify-between">
+              <Link href="/employer/dashboard" className="flex items-center space-x-2 text-blue-600 hover:text-blue-700">
+                <ArrowLeft className="w-4 h-4" />
+                <span>Back to Dashboard</span>
+              </Link>
+              <div className="flex items-center space-x-2">
+                <Home className="w-5 h-5 text-blue-600" />
+                <span className="text-lg font-semibold text-gray-900">Short-term Booking</span>
+              </div>
+            </div>
+          </div>
+        </header>
+
+        {/* Progress Bar */}
+        <div className="bg-white border-b">
+          <div className="container mx-auto px-4 py-4">
+            <div className="max-w-4xl mx-auto">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-sm font-medium text-gray-700">Step {currentStep} of {totalSteps}</span>
+                <span className="text-sm text-gray-500">{Math.round((currentStep / totalSteps) * 100)}% Complete</span>
+              </div>
+              <Progress value={(currentStep / totalSteps) * 100} className="h-2" />
             </div>
           </div>
         </div>
-      </header>
 
-      {/* Progress Bar */}
-      <div className="bg-white border-b">
-        <div className="container mx-auto px-4 py-4">
-          <div className="max-w-4xl mx-auto">
-            <div className="flex items-center justify-between mb-2">
-              <span className="text-sm font-medium text-gray-700">Step {currentStep} of {totalSteps}</span>
-              <span className="text-sm text-gray-500">{Math.round((currentStep / totalSteps) * 100)}% Complete</span>
-            </div>
-            <Progress value={(currentStep / totalSteps) * 100} className="h-2" />
-          </div>
-        </div>
-      </div>
-
-      {/* Main Content */}
-      <div className="container mx-auto px-4 py-8">
+        {/* Main Content */}
+        <div className="container mx-auto px-4 py-8">
         <div className="max-w-4xl mx-auto">
           {renderCurrentStep()}
 
@@ -724,6 +732,7 @@ export default function ShortTermBookingPage() {
             </div>
           </div>
         </div>
+      </div>
       </div>
     </div>
   )

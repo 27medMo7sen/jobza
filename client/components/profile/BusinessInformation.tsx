@@ -33,7 +33,7 @@ export function BusinessInformation({
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <Label>Agency Type</Label>
               <Select
@@ -149,7 +149,7 @@ export function BusinessInformation({
         <CardTitle className="text-foreground">Business Information</CardTitle>
       </CardHeader>
       <CardContent>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
             <p className="text-sm text-gray-600">Agency Type</p>
             <p className="font-semibold">

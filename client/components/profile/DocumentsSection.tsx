@@ -70,7 +70,7 @@ export function DocumentsSection({
             <h3 className="text-lg font-semibold text-foreground mb-4">
               Required Documents
             </h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
               {requiredDocuments.map((docType) => (
                 <FilePreview
                   key={docType.id}
@@ -88,7 +88,7 @@ export function DocumentsSection({
             <h3 className="text-lg font-semibold text-foreground mb-4">
               Optional Documents
             </h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
               {optionalDocuments.map((docType) => (
                 <FilePreview
                   key={docType.id}
@@ -142,7 +142,7 @@ export function DocumentsSection({
             <h4 className="font-semibold text-sm text-gray-900 mb-2">
               Upload Summary
             </h4>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 text-sm">
               <div>
                 <span className="text-gray-600">Required:</span>
                 <span className="ml-1 font-semibold">

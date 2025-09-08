@@ -25,6 +25,9 @@ import {
   Trash2
 } from "lucide-react"
 import Link from "next/link"
+import { UnifiedSidebar } from "@/components/layout/unified-sidebar"
+import { ApplicantsList } from "@/components/shared/ApplicantsList"
+import { JobDetails } from "@/components/shared/JobDetails"
 
 // Mock job post data
 const mockJobPosts = {
@@ -60,6 +63,19 @@ const mockJobPosts = {
       "Paid vacation days",
       "Transportation allowance"
     ],
+    familyDetails: {
+      members: 4,
+      children: 0,
+      elderly: 0,
+      pets: false,
+      houseSize: "3-bedroom apartment"
+    },
+    additionalInfo: {
+      accommodation: true,
+      meals: true,
+      transportation: true,
+      benefits: ["Health insurance", "Paid vacation", "Performance bonus"]
+    },
     applications: [
       {
         id: 1,
@@ -134,6 +150,19 @@ const mockJobPosts = {
       "Competitive pay",
       "Potential for regular work"
     ],
+    familyDetails: {
+      members: 3,
+      children: 0,
+      elderly: 0,
+      pets: false,
+      houseSize: "3-bedroom apartment"
+    },
+    additionalInfo: {
+      accommodation: false,
+      meals: false,
+      transportation: false,
+      benefits: ["Performance bonus"]
+    },
     applications: [
       {
         id: 1,
@@ -180,6 +209,19 @@ const mockJobPosts = {
       "Beautiful garden environment",
       "Competitive daily rate"
     ],
+    familyDetails: {
+      members: 2,
+      children: 0,
+      elderly: 0,
+      pets: true,
+      houseSize: "House with garden"
+    },
+    additionalInfo: {
+      accommodation: false,
+      meals: false,
+      transportation: true,
+      benefits: ["Transport allowance"]
+    },
     applications: [
       {
         id: 1,
@@ -203,11 +245,12 @@ export default function JobPostDetailPage() {
   const params = useParams()
   const router = useRouter()
   const [jobPost, setJobPost] = useState<any>(null)
-  const [activeTab, setActiveTab] = useState("overview")
+  const [activeTab, setActiveTab] = useState("applications")
 
   useEffect(() => {
     const jobId = params.id as string
-    const post = mockJobPosts[jobId as keyof typeof mockJobPosts]
+    const numericId = Number(jobId) as keyof typeof mockJobPosts
+    const post = mockJobPosts[numericId]
     if (post) {
       setJobPost(post)
     }
@@ -215,13 +258,23 @@ export default function JobPostDetailPage() {
 
   if (!jobPost) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center">
-          <h2 className="text-2xl font-bold text-gray-900 mb-2">Job Post Not Found</h2>
-          <p className="text-gray-600 mb-4">The job post you're looking for doesn't exist.</p>
-          <Button asChild>
-            <Link href="/employer/dashboard">Back to Dashboard</Link>
-          </Button>
+      <div className="min-h-screen bg-background">
+        <UnifiedSidebar 
+          userRole="employer"
+          userName="John Smith"
+          userEmail="john@example.com"
+        />
+        
+        <div className="lg:ml-64">
+          <div className="flex items-center justify-center min-h-screen">
+            <div className="text-center">
+              <h2 className="text-2xl font-bold text-gray-900 mb-2">Job Post Not Found</h2>
+              <p className="text-gray-600 mb-4">The job post you're looking for doesn't exist.</p>
+              <Button asChild>
+                <Link href="/employer/dashboard">Back to Dashboard</Link>
+              </Button>
+            </div>
+          </div>
         </div>
       </div>
     )
@@ -261,334 +314,152 @@ export default function JobPostDetailPage() {
     }
   }
 
-  const handleEditJob = () => {
-    // TODO: Implement edit functionality
-    console.log("Edit job:", jobPost.id)
-  }
-
-  const handleDeleteJob = () => {
-    // TODO: Implement delete functionality
-    console.log("Delete job:", jobPost.id)
-  }
-
   const handleApplicationAction = (applicationId: number, action: string) => {
-    // TODO: Implement application actions
-    console.log(`${action} application:`, applicationId)
+    setJobPost((prev: any) => {
+      if (!prev) return prev
+      const nextStatus = action === "accept" ? "accepted" : action === "reject" ? "rejected" : action === "short_list" ? "short_list" : undefined
+      if (!nextStatus) return prev
+      return {
+        ...prev,
+        applications: prev.applications.map((app: any) =>
+          app.id === applicationId ? { ...app, status: nextStatus } : app
+        ),
+      }
+    })
+  }
+
+  const sortApplications = (applications: any[]) => {
+    const rank: Record<string, number> = {
+      accepted: 0,
+      short_list: 1,
+      pending: 2,
+      reviewed: 3,
+      completed: 4,
+      rejected: 5,
+    }
+    return [...applications].sort((a, b) => {
+      const ra = rank[a.status] ?? 99
+      const rb = rank[b.status] ?? 99
+      return ra - rb
+    })
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <header className="bg-white shadow-sm border-b">
-        <div className="container mx-auto px-4 py-4">
-          <div className="flex items-center justify-between">
-            <Link href="/employer/dashboard" className="flex items-center space-x-2 text-blue-600 hover:text-blue-700">
-              <ArrowLeft className="w-4 h-4" />
-              <span>Back to Dashboard</span>
-            </Link>
-            <div className="flex items-center space-x-3">
-              <Button variant="outline" size="sm" onClick={handleEditJob}>
-                <Edit className="w-4 h-4 mr-2" />
-                Edit
-              </Button>
-              <Button variant="outline" size="sm" onClick={handleDeleteJob} className="text-red-600 hover:text-red-700">
-                <Trash2 className="w-4 h-4 mr-2" />
-                Delete
-              </Button>
+    <div className="min-h-screen bg-background">
+      <UnifiedSidebar 
+        userRole="employer"
+        userName="John Smith"
+        userEmail="john@example.com"
+      />
+      
+      <div className="lg:ml-64">
+        {/* Header */}
+        <header className="bg-white shadow-sm border-b">
+          <div className="container mx-auto px-4 py-4">
+            <div className="flex items-center justify-between">
+              <Link href="/employer/dashboard" className="flex items-center space-x-2 text-blue-600 hover:text-blue-700">
+                <ArrowLeft className="w-4 h-4" />
+                <span>Back to Dashboard</span>
+              </Link>
             </div>
           </div>
-        </div>
-      </header>
+        </header>
 
-      {/* Main Content */}
-      <div className="container mx-auto px-4 py-8">
-        <div className="max-w-6xl mx-auto">
-          {/* Job Post Header */}
-          <div className="bg-white rounded-lg shadow-sm border p-6 mb-8">
-            <div className="flex items-start justify-between mb-4">
-              <div className="flex items-center space-x-3">
-                {jobPost.type === "long-term" ? (
-                  <Calendar className="w-8 h-8 text-blue-600" />
-                ) : (
-                  <Clock className="w-8 h-8 text-pink-600" />
-                )}
-                <div>
-                  <h1 className="text-3xl font-bold text-gray-900">{jobPost.title}</h1>
-                  <div className="flex items-center space-x-2 mt-2">
-                    <Badge className={getTypeColor(jobPost.type)}>
-                      {jobPost.type === "long-term" ? "Long-term" : "Short-term"}
-                    </Badge>
-                    <Badge className={getStatusColor(jobPost.status)}>
-                      {jobPost.status}
-                    </Badge>
-                  </div>
-                </div>
-              </div>
-              <div className="text-right">
-                <p className="text-2xl font-bold text-green-600">{jobPost.salary}</p>
-                <p className="text-sm text-gray-600">Posted: {jobPost.postedDate}</p>
-              </div>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              <div className="flex items-center space-x-2">
-                <Users className="w-5 h-5 text-gray-500" />
-                <span className="text-gray-600">{jobPost.applicants} applicants</span>
-              </div>
-              <div className="flex items-center space-x-2">
-                <MapPin className="w-5 h-5 text-gray-500" />
-                <span className="text-gray-600">{jobPost.location}</span>
-              </div>
-              <div className="flex items-center space-x-2">
-                <ClockIcon className="w-5 h-5 text-gray-500" />
-                <span className="text-gray-600">{jobPost.schedule}</span>
-              </div>
-            </div>
-          </div>
-
-          {/* Tabs */}
-          <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-            <TabsList className="grid w-full grid-cols-3">
-              <TabsTrigger value="overview">Overview</TabsTrigger>
-              <TabsTrigger value="applications">Applications ({jobPost.applications.length})</TabsTrigger>
-              <TabsTrigger value="details">Job Details</TabsTrigger>
-            </TabsList>
-
-            {/* Overview Tab */}
-            <TabsContent value="overview" className="space-y-6">
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Job Description</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <p className="text-gray-700 leading-relaxed">{jobPost.description}</p>
-                  </CardContent>
-                </Card>
-
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Quick Stats</CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-4">
-                    <div className="flex justify-between">
-                      <span className="text-gray-600">Status:</span>
-                      <Badge className={getStatusColor(jobPost.status)}>{jobPost.status}</Badge>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-gray-600">Type:</span>
+        {/* Main Content */}
+        <div className="container mx-auto px-4 py-8">
+          <div className="max-w-6xl mx-auto">
+            {/* Job Post Header */}
+            <div className="bg-white rounded-lg shadow-sm border p-6 mb-8">
+              <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4 mb-4">
+                <div className="flex items-center space-x-3">
+                  {jobPost.type === "long-term" ? (
+                    <Calendar className="w-8 h-8 text-blue-600" />
+                  ) : (
+                    <Clock className="w-8 h-8 text-pink-600" />
+                  )}
+                  <div className="flex-1 min-w-0">
+                    <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 break-words">{jobPost.title}</h1>
+                    <div className="flex flex-wrap items-center gap-2 mt-2">
                       <Badge className={getTypeColor(jobPost.type)}>
                         {jobPost.type === "long-term" ? "Long-term" : "Short-term"}
                       </Badge>
+                      <Badge className={getStatusColor(jobPost.status)}>
+                        {jobPost.status}
+                      </Badge>
                     </div>
-                    <div className="flex justify-between">
-                      <span className="text-gray-600">Applicants:</span>
-                      <span className="font-medium">{jobPost.applicants}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-gray-600">Posted:</span>
-                      <span className="font-medium">{jobPost.postedDate}</span>
-                    </div>
-                  </CardContent>
-                </Card>
+                  </div>
+                </div>
+                <div className="flex flex-col sm:text-right">
+                  <p className="text-xl sm:text-2xl font-bold text-green-600 break-words">{jobPost.salary}</p>
+                  <p className="text-sm text-gray-600">Posted: {jobPost.postedDate}</p>
+                </div>
               </div>
 
-              <Card>
-                <CardHeader>
-                  <CardTitle>Recent Applications</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-4">
-                    {jobPost.applications.slice(0, 3).map((app: any) => (
-                      <div key={app.id} className="flex items-center justify-between p-4 border rounded-lg">
-                        <div className="flex items-center space-x-3">
-                          <Avatar className="w-12 h-12">
-                            <AvatarImage src={app.workerAvatar} alt={app.workerName} />
-                            <AvatarFallback className="text-lg font-semibold">
-                              {app.workerName.split(' ').map((n: string) => n[0]).join('')}
-                            </AvatarFallback>
-                          </Avatar>
-                          <div>
-                            <p className="font-medium">{app.workerName}</p>
-                            <div className="flex items-center space-x-2 mt-1">
-                              <Star className="w-4 h-4 text-yellow-500 fill-current" />
-                              <span className="text-sm">{app.rating}</span>
-                              <span className="text-sm text-gray-500">({app.experience} exp)</span>
-                            </div>
-                          </div>
-                        </div>
-                        <div className="flex items-center space-x-2">
-                          <Badge className={getApplicationStatusColor(app.status)}>
-                            {app.status}
-                          </Badge>
-                          <Button size="sm" variant="outline">
-                            <Eye className="w-4 h-4 mr-2" />
-                            View
-                          </Button>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </CardContent>
-              </Card>
-            </TabsContent>
-
-            {/* Applications Tab */}
-            <TabsContent value="applications" className="space-y-6">
-              <Card>
-                <CardHeader>
-                  <CardTitle>All Applications</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-4">
-                    {jobPost.applications.map((app: any) => (
-                      <div key={app.id} className="border rounded-lg p-6">
-                        <div className="flex items-start justify-between mb-4">
-                          <div className="flex items-center space-x-4">
-                            <Avatar className="w-16 h-16">
-                              <AvatarImage src={app.workerAvatar} alt={app.workerName} />
-                              <AvatarFallback className="text-xl font-semibold">
-                                {app.workerName.split(' ').map((n: string) => n[0]).join('')}
-                              </AvatarFallback>
-                            </Avatar>
-                            <div>
-                              <h3 className="text-lg font-semibold">{app.workerName}</h3>
-                              <div className="flex items-center space-x-2 mt-1">
-                                <Star className="w-4 h-4 text-yellow-500 fill-current" />
-                                <span className="font-medium">{app.rating}</span>
-                                <span className="text-gray-500">({app.experience} experience)</span>
-                              </div>
-                              <p className="text-sm text-gray-600 mt-1">{app.location}</p>
-                            </div>
-                          </div>
-                          <Badge className={getApplicationStatusColor(app.status)}>
-                            {app.status}
-                          </Badge>
-                        </div>
-
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                          <div>
-                            <h4 className="font-medium mb-2">Skills</h4>
-                            <div className="flex flex-wrap gap-1">
-                              {app.skills.map((skill: string, index: number) => (
-                                <Badge key={index} variant="secondary" className="text-xs">
-                                  {skill}
-                                </Badge>
-                              ))}
-                            </div>
-                          </div>
-                          <div>
-                            <h4 className="font-medium mb-2">Languages</h4>
-                            <div className="flex flex-wrap gap-1">
-                              {app.languages.map((lang: string, index: number) => (
-                                <Badge key={index} variant="outline" className="text-xs">
-                                  {lang}
-                                </Badge>
-                              ))}
-                            </div>
-                          </div>
-                        </div>
-
-                        <div className="flex items-center justify-between pt-4 border-t">
-                          <div className="text-sm text-gray-600">
-                            Applied: {app.appliedDate}
-                          </div>
-                          <div className="flex space-x-2">
-                            <Button size="sm" variant="outline">
-                              <Eye className="w-4 h-4 mr-2" />
-                              View Profile
-                            </Button>
-                            <Button size="sm" variant="outline">
-                              <MessageCircle className="w-4 h-4 mr-2" />
-                              Contact
-                            </Button>
-                            {app.status === "pending" && (
-                              <>
-                                <Button 
-                                  size="sm" 
-                                  onClick={() => handleApplicationAction(app.id, "accept")}
-                                  className="bg-green-600 hover:bg-green-700"
-                                >
-                                  <CheckCircle className="w-4 h-4 mr-2" />
-                                  Accept
-                                </Button>
-                                <Button 
-                                  size="sm" 
-                                  variant="outline"
-                                  onClick={() => handleApplicationAction(app.id, "reject")}
-                                  className="text-red-600 hover:text-red-700"
-                                >
-                                  <XCircle className="w-4 h-4 mr-2" />
-                                  Reject
-                                </Button>
-                              </>
-                            )}
-                          </div>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </CardContent>
-              </Card>
-            </TabsContent>
-
-            {/* Job Details Tab */}
-            <TabsContent value="details" className="space-y-6">
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Requirements</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <ul className="space-y-2">
-                      {jobPost.requirements.map((req: string, index: number) => (
-                        <li key={index} className="flex items-start space-x-2">
-                          <div className="w-2 h-2 bg-blue-500 rounded-full mt-2 flex-shrink-0"></div>
-                          <span className="text-gray-700">{req}</span>
-                        </li>
-                      ))}
-                    </ul>
-                  </CardContent>
-                </Card>
-
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Responsibilities</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <ul className="space-y-2">
-                      {jobPost.responsibilities.map((resp: string, index: number) => (
-                        <li key={index} className="flex items-start space-x-2">
-                          <div className="w-2 h-2 bg-green-500 rounded-full mt-2 flex-shrink-0"></div>
-                          <span className="text-gray-700">{resp}</span>
-                        </li>
-                      ))}
-                    </ul>
-                  </CardContent>
-                </Card>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+                <div className="flex items-center space-x-2">
+                  <Users className="w-5 h-5 text-gray-500 flex-shrink-0" />
+                  <span className="text-gray-600 truncate">{jobPost.applicants} applicants</span>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <MapPin className="w-5 h-5 text-gray-500 flex-shrink-0" />
+                  <span className="text-gray-600 truncate">{jobPost.location}</span>
+                </div>
+                <div className="flex items-center space-x-2 sm:col-span-2 lg:col-span-1">
+                  <ClockIcon className="w-5 h-5 text-gray-500 flex-shrink-0" />
+                  <span className="text-gray-600 truncate">{jobPost.schedule}</span>
+                </div>
               </div>
+            </div>
 
-              <Card>
-                <CardHeader>
-                  <CardTitle>Benefits & Perks</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {jobPost.benefits.map((benefit: string, index: number) => (
-                      <div key={index} className="flex items-center space-x-2">
-                        <CheckCircle className="w-5 h-5 text-green-600" />
-                        <span className="text-gray-700">{benefit}</span>
-                      </div>
-                    ))}
-                  </div>
-                </CardContent>
-              </Card>
-            </TabsContent>
-          </Tabs>
+            {/* Tabs */}
+            <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
+              <TabsList className="grid w-full grid-cols-2">
+                <TabsTrigger value="applications">Applicants ({jobPost.applications.length})</TabsTrigger>
+                <TabsTrigger value="details">Job Details</TabsTrigger>
+              </TabsList>
+
+              {/* Applicants Tab */}
+              <TabsContent value="applications" className="space-y-6">
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Applicants</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <ApplicantsList 
+                      applications={jobPost.applications}
+                      onAction={(id, action) => handleApplicationAction(id, action)}
+                      getStatusBadgeClass={(status) => getApplicationStatusColor(status)}
+                    />
+                  </CardContent>
+                </Card>
+              </TabsContent>
+
+              {/* Job Details Tab (shared unified component) */}
+              <TabsContent value="details" className="space-y-6">
+                <JobDetails audience="employer"
+                  job={{
+                    title: jobPost.title,
+                    type: jobPost.type,
+                    status: jobPost.status,
+                    salary: jobPost.salary,
+                    postedDate: jobPost.postedDate,
+                    description: jobPost.description,
+                    schedule: jobPost.schedule,
+                    location: jobPost.location,
+                    requirements: jobPost.requirements,
+                    responsibilities: jobPost.responsibilities,
+                    benefits: jobPost.benefits,
+                    familyDetails: jobPost.familyDetails,
+                    additionalInfo: jobPost.additionalInfo,
+                  }}
+                  getTypeBadgeClass={(type) => getTypeColor(type)}
+                  getStatusBadgeClass={(status) => getStatusColor(status)}
+                />
+              </TabsContent>
+            </Tabs>
+          </div>
         </div>
       </div>
     </div>
   )
 }
-
-
