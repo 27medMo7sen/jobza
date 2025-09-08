@@ -354,7 +354,19 @@ export class AuthService {
     if (!user) {
       throw new HttpException('User not found', 404);
     }
-    user.profilePicture = { url, s3Key: key };
+    if (role === Role.WORKER) {
+      await this.workerService.updateWorker(userId, {
+        profilePicture: { url, s3Key: key },
+      });
+    } else if (role === Role.EMPLOYER) {
+      await this.employerService.updateEmployer(userId, {
+        profilePicture: { url, s3Key: key },
+      });
+    } else if (role === Role.AGENCY) {
+      await this.agencyService.updateAgency(userId, {
+        profilePicture: { url, s3Key: key },
+      });
+    }
     await user.save();
     return { message: 'Profile photo updated successfully' };
   }

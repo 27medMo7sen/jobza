@@ -14,10 +14,10 @@ export class FilesService {
 
   async uploadFile(
     userId: Types.ObjectId,
+    role: string,
     file: Express.Multer.File,
     type: string,
     label: string,
-    role: string,
   ) {
     const existingFile = await this.fileModel.findOne({ userId, label });
 
@@ -73,7 +73,7 @@ export class FilesService {
     return filesByLabel;
   }
 
-  async deleteFile(userId: Types.ObjectId, fileId: string) {
+  async deleteFile(userId: Types.ObjectId, fileId: Types.ObjectId) {
     const file = await this.fileModel.findOne({ _id: fileId, userId });
     if (!file)
       throw new Error('File not found or does not belong to this user');

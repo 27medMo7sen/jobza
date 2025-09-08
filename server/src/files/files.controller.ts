@@ -13,6 +13,7 @@ import {
 import { FilesService } from './files.service';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { LocalAuthGuard } from 'src/auth/auth.guard';
+import { Types } from 'mongoose';
 
 @Controller('files')
 export class FilesController {
@@ -48,6 +49,9 @@ export class FilesController {
   @UseGuards(LocalAuthGuard)
   async deleteFile(@Req() req: any, @Param('fileId') fileId: string) {
     const user = req.user;
-    return await this.filesService.deleteFile(user.userId, user.role, fileId);
+    return await this.filesService.deleteFile(
+      user.userId,
+      new Types.ObjectId(fileId),
+    );
   }
 }
