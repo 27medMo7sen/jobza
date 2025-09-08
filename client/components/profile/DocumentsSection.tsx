@@ -23,23 +23,26 @@ export function DocumentsSection({
   const { files } = useSelector((state: RootState) => state.auth);
   const dispatch = useDispatch();
   const [isClient, setIsClient] = useState(false);
-  const roleDocuments = getDocumentsForRole(profileData?.role, profileData);
+  const roleDocuments = getDocumentsForRole(
+    profileData?.role || "worker",
+    profileData
+  );
 
   useEffect(() => {
     setIsClient(true);
   }, []);
 
-  console.log("DocumentsSection - files from Redux:", files);
-  console.log("DocumentsSection - roleDocuments:", roleDocuments);
+  // console.log("DocumentsSection - files from Redux:", files);
+  // console.log("DocumentsSection - roleDocuments:", roleDocuments);
 
   const handleClearFiles = () => {
     dispatch(clearFiles());
     console.log("Files cleared from Redux");
   };
-  
+
   const requiredDocuments = roleDocuments.filter((doc) => doc.required);
   const optionalDocuments = roleDocuments.filter((doc) => !doc.required);
-  
+
   return (
     <Card>
       <CardHeader>
@@ -125,8 +128,12 @@ export function DocumentsSection({
               Debug Info (Remove in production)
             </h4>
             <div className="text-xs text-yellow-800 mb-2">
+              <p>Profile Role: {profileData?.role}</p>
+              <p>Required Documents: {requiredDocuments.length}</p>
+              <p>Optional Documents: {optionalDocuments.length}</p>
               <p>Files in Redux: {Object.keys(files || {}).length} files</p>
               <p>Files: {JSON.stringify(files, null, 2)}</p>
+              <p>Role Documents: {JSON.stringify(roleDocuments, null, 2)}</p>
             </div>
             <Button
               size="sm"

@@ -2,12 +2,17 @@
 
 import { useState, useRef, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, User, Settings, Edit3 } from "lucide-react";
+import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
 import { useSelector, useDispatch } from "react-redux";
 import { RootState } from "@/lib/store";
 import { ProfileData } from "@/types/profile";
-import { setUser, setFiles } from "@/lib/slices/authSlice";
+import {
+  setUser,
+  setFiles,
+  setProfileLoaded,
+  setFilesLoaded,
+} from "@/lib/slices/authSlice";
 import { getProfileConfig } from "@/lib/profile-config";
 import { ProfileHeader } from "./ProfileHeader";
 import { PersonalInformation } from "./PersonalInformation";
@@ -19,10 +24,16 @@ import { AdminInformation } from "./AdminInformation";
 import { StatusSidebar } from "./StatusSidebar";
 import { useHttp } from "@/hooks/use-http";
 import { toast } from "sonner";
-import { Card, CardContent } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-
+import {
+  ProfileHeaderSkeleton,
+  PersonalInformationSkeleton,
+  SkillsSectionSkeleton,
+  BusinessInformationSkeleton,
+  HouseholdInformationSkeleton,
+  AdminInformationSkeleton,
+  StatusSidebarSkeleton,
+  DocumentsSectionSkeleton,
+} from "@/components/ui/skeleton-loaders";
 interface GenericProfileProps {
   role: "worker" | "employer" | "agency" | "admin";
   sidebarComponent?: React.ComponentType;
@@ -32,51 +43,77 @@ export function GenericProfile({
   role,
   sidebarComponent: SidebarComponent,
 }: GenericProfileProps) {
-  const { put, get } = useHttp();
+  const { put, get, post } = useHttp();
   const dispatch = useDispatch();
-  const { user } = useSelector((state: RootState) => state.auth);
+  const { user, files, isProfileLoaded, isFilesLoaded } = useSelector(
+    (state: RootState) => state.auth
+  );
   const [isEditing, setIsEditing] = useState(false);
   const [isEditingSkills, setIsEditingSkills] = useState(false);
   const [profilePhoto, setProfilePhoto] = useState<File | null>(null);
-  const [isLoadingFiles, setIsLoadingFiles] = useState(false);
-
+  const [isUploadingProfilePhoto, setIsUploadingProfilePhoto] = useState(false);
   const config = getProfileConfig(role);
   const [profileData, setProfileData] = useState<ProfileData>(
-    user as ProfileData
+    (user as ProfileData) || ({ role: role } as ProfileData)
   );
-  useEffect(() => {
-    setProfileData(user as ProfileData);
-    console.log(profileData);
-  }, [user]);
   const [originalProfileData, setOriginalProfileData] =
     useState<ProfileData | null>(null);
 
+  // Fetch fresh profile data on component mount
   useEffect(() => {
-    if (user) {
-      setProfileData(user as ProfileData);
-    }
-  }, [user]);
+    const fetchProfileData = async () => {
+      if (user?.userId && !isProfileLoaded) {
+        try {
+          const response = await get("/auth/profile");
+          console.log("Fetched fresh profile data:", response);
+          dispatch(setUser(response));
+          dispatch(setProfileLoaded(true));
+        } catch (error) {
+          console.error("Error fetching profile data:", error);
+          dispatch(setProfileLoaded(true)); // Mark as loaded even if failed
+        }
+      } else if (!user && !isProfileLoaded) {
+        // If no user is available, mark as loaded to prevent infinite loading
+        console.log("No user available, marking profile as loaded");
+        dispatch(setProfileLoaded(true));
+      }
+    };
 
-  // Fetch user files when component mounts and user is available
+    fetchProfileData();
+  }, [user?.userId, isProfileLoaded, dispatch, get]);
+
+  // Fetch fresh files data on component mount
   useEffect(() => {
     const fetchUserFiles = async () => {
-      if (user?.userId) {
-        setIsLoadingFiles(true);
+      if (user?.userId && !isFilesLoaded) {
         try {
           const response = await get("/files/list");
-          console.log("Fetched user files:", response);
+          console.log("Fetched fresh user files:", response);
           dispatch(setFiles(response as Record<string, any>));
+          dispatch(setFilesLoaded(true));
         } catch (error) {
           console.error("Error fetching user files:", error);
-          // Don't show error toast as this is a background operation
-        } finally {
-          setIsLoadingFiles(false);
+          dispatch(setFilesLoaded(true)); // Mark as loaded even if failed
         }
+      } else if (!user && !isFilesLoaded) {
+        // If no user is available, mark as loaded to prevent infinite loading
+        console.log("No user available, marking files as loaded");
+        dispatch(setFilesLoaded(true));
       }
     };
 
     fetchUserFiles();
-  }, [user?.userId, dispatch, get]);
+  }, [user?.userId, isFilesLoaded, dispatch, get]);
+
+  // Update local profile data when Redux user changes
+  useEffect(() => {
+    if (user) {
+      setProfileData(user as ProfileData);
+    } else {
+      // If no user data, use the role as fallback
+      setProfileData({ role: role } as ProfileData);
+    }
+  }, [user, role]);
 
   const updateProfileData = (updatedData: Partial<ProfileData>) => {
     const newProfileData = { ...profileData, ...updatedData };
@@ -84,8 +121,60 @@ export function GenericProfile({
     dispatch(setUser(newProfileData));
   };
 
-  const handleProfilePhotoUpload = (file: File | null) => {
-    setProfilePhoto(file);
+  const handleProfilePhotoUpload = async (file: File | null) => {
+    if (!file) return;
+
+    const previousProfilePicture = profileData?.profilePicture;
+    setIsUploadingProfilePhoto(true);
+
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+      // Server expects 'picture' for profile photos folder routing
+      formData.append("type", "picture");
+      formData.append("label", "profile_photo");
+
+      const uploaded: any = await post("/files/upload", formData, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      });
+
+      console.log(uploaded);
+      if (uploaded?.profilePicture?.url && uploaded?.profilePicture?.s3Key) {
+        const updated = {
+          ...profileData,
+          profilePicture: {
+            url: uploaded.profilePicture.url,
+            s3Key: uploaded.profilePicture.s3Key,
+          },
+        } as ProfileData;
+
+        setProfileData(updated);
+        dispatch(setUser(updated));
+
+        toast.success("Profile Photo Uploaded", {
+          description: "Your profile photo has been uploaded successfully!",
+        });
+      } else {
+        throw new Error("Upload response missing url/s3Key");
+      }
+    } catch (error) {
+      // Revert to previous photo in local state and Redux
+      const reverted = {
+        ...profileData,
+        profilePicture: previousProfilePicture,
+      } as ProfileData;
+      setProfileData(reverted);
+      dispatch(setUser(reverted));
+
+      toast.error("Upload Failed", {
+        description:
+          "Could not upload profile photo. Reverted to previous photo.",
+      });
+    } finally {
+      setIsUploadingProfilePhoto(false);
+    }
   };
 
   const handleSave = async () => {
@@ -155,182 +244,49 @@ export function GenericProfile({
     }
   };
 
-  const getRoleColor = (role: string) => {
-    switch (role) {
-      case "worker":
-        return "bg-blue-100 text-blue-800 border-blue-200";
-      case "employer":
-        return "bg-green-100 text-green-800 border-green-200";
-      case "agency":
-        return "bg-purple-100 text-purple-800 border-purple-200";
-      case "admin":
-        return "bg-red-100 text-red-800 border-red-200";
-      default:
-        return "bg-gray-100 text-gray-800 border-gray-200";
-    }
-  };
+  // Debug logging (remove in production)
+  // console.log("GenericProfile - isProfileLoaded:", isProfileLoaded);
+  // console.log("GenericProfile - isFilesLoaded:", isFilesLoaded);
+  // console.log("GenericProfile - user:", user);
+  // console.log("GenericProfile - files:", files);
 
-  const getRoleIcon = (role: string) => {
-    switch (role) {
-      case "worker":
-        return "👷";
-      case "employer":
-        return "🏠";
-      case "agency":
-        return "🏢";
-      case "admin":
-        return "⚙️";
-      default:
-        return "👤";
-    }
-  };
+  // if (!user) {
+  //   return <div>Loading...</div>;
+  // }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
+    <div className="flex min-h-screen bg-background">
       {SidebarComponent && <SidebarComponent />}
 
-      <div className="lg:ml-64">
-        {/* Compact Header Section */}
-        <div className="bg-white border-b border-gray-200 shadow-sm">
-          <div className="px-4 sm:px-6 py-4">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-4">
-                <Link href={`/${role}/dashboard`}>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="text-gray-600 hover:text-gray-900"
-                  >
-                    <ArrowLeft className="h-4 w-4 mr-2" />
-                    Back to Dashboard
-                  </Button>
-                </Link>
-                <div className="h-6 w-px bg-gray-300"></div>
-                <div className="flex items-center gap-3">
-                  <User className="h-5 w-5 text-gray-500" />
-                  <h1 className="text-xl font-semibold text-gray-900">
-                    Profile
-                  </h1>
-                </div>
-              </div>
-              <div className="flex items-center gap-2">
-                <Badge
-                  className={`${getRoleColor(profileData?.role || "")} border`}
-                >
-                  {getRoleIcon(profileData?.role || "")}{" "}
-                  {profileData?.role?.toUpperCase() || "USER"}
-                </Badge>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => {
-                    setOriginalProfileData({ ...profileData });
-                    setIsEditing(true);
-                  }}
-                  className="hidden sm:flex items-center gap-2"
-                >
-                  <Edit3 className="h-4 w-4" />
-                  Edit Profile
-                </Button>
-              </div>
-            </div>
-          </div>
+      <div className="flex-1 p-6">
+        <div className="mb-6">
+          <Link href={`/${role}/dashboard`}>
+            <Button variant="ghost" size="sm">
+              <ArrowLeft className="h-4 w-4 mr-2" />
+              Back to Dashboard
+            </Button>
+          </Link>
         </div>
 
-        {/* Main Content */}
-        <div className="p-4 sm:p-6">
-          <div className="max-w-6xl mx-auto">
-            {/* Enhanced Profile Header */}
-            <Card className="mb-6 border-0 shadow-lg bg-gradient-to-r from-white to-gray-50">
-              <CardContent className="p-6">
-                <div className="flex flex-col md:flex-row items-start md:items-center gap-6">
-                  {/* Profile Photo */}
-                  <div className="relative group">
-                    <Avatar className="w-20 h-20 ring-4 ring-white shadow-lg">
-                      {profileData?.profilePicture?.url ? (
-                        <AvatarImage
-                          src={profileData.profilePicture.url}
-                          alt={profileData.name || "Profile"}
-                        />
-                      ) : (
-                        <AvatarFallback className="text-xl bg-gradient-to-br from-blue-500 to-purple-600 text-white">
-                          {(profileData?.name && profileData?.name !== ""
-                            ? profileData?.name
-                            : "U"
-                          )
-                            .split(" ")
-                            .map((n: string) => n[0])
-                            .join("")}
-                        </AvatarFallback>
-                      )}
-                    </Avatar>
-                    <div className="absolute inset-0 bg-black bg-opacity-50 rounded-full opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                      <input
-                        type="file"
-                        accept="image/*"
-                        onChange={(e) =>
-                          handleProfilePhotoUpload(e.target.files?.[0] || null)
-                        }
-                        className="hidden"
-                        id="profilePhoto"
-                      />
-                      <label htmlFor="profilePhoto">
-                        <Button variant="secondary" size="sm" asChild>
-                          <span className="cursor-pointer">
-                            <Settings className="w-4 h-4 mr-2" />
-                            Change
-                          </span>
-                        </Button>
-                      </label>
-                    </div>
-                  </div>
+        <div className="max-w-6xl mx-auto">
+          {/* Profile Header */}
+          {!isProfileLoaded ? (
+            <ProfileHeaderSkeleton />
+          ) : (
+            <ProfileHeader
+              profileData={profileData}
+              onProfilePhotoUpload={handleProfilePhotoUpload}
+              isUploadingProfilePhoto={isUploadingProfilePhoto}
+            />
+          )}
 
-                  {/* Profile Info */}
-                  <div className="flex-1">
-                    <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-                      <div>
-                        <h2 className="text-2xl font-bold text-gray-900 mb-1">
-                          {profileData?.name || "Unknown User"}
-                        </h2>
-                        <div className="flex flex-col sm:flex-row sm:items-center gap-2">
-                          <Badge
-                            variant="outline"
-                            className="text-gray-600 border-gray-300"
-                          >
-                            {profileData?.email || "No email"}
-                          </Badge>
-                          <Badge
-                            variant="outline"
-                            className="text-gray-600 border-gray-300"
-                          >
-                            {profileData?.phoneNumber || "No phone number"}
-                          </Badge>
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => {
-                            setOriginalProfileData({ ...profileData });
-                            setIsEditing(true);
-                          }}
-                          className="sm:hidden"
-                        >
-                          <Edit3 className="h-4 w-4 mr-2" />
-                          Edit
-                        </Button>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Profile Content */}
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-              <div className="lg:col-span-2 space-y-6">
-                {/* Personal Information */}
+          {/* Profile Content */}
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <div className="lg:col-span-2 space-y-8">
+              {/* Personal Information */}
+              {!isProfileLoaded ? (
+                <PersonalInformationSkeleton />
+              ) : (
                 <PersonalInformation
                   profileData={profileData}
                   isEditing={isEditing}
@@ -342,9 +298,13 @@ export function GenericProfile({
                   onSave={handleSave}
                   onCancel={handleCancel}
                 />
+              )}
 
-                {/* Skills Section - Only for workers */}
-                {config.sections.skills && (
+              {/* Skills Section - Only for workers */}
+              {config.sections.skills &&
+                (!isProfileLoaded ? (
+                  <SkillsSectionSkeleton />
+                ) : (
                   <SkillsSection
                     profileData={profileData}
                     isEditingSkills={isEditingSkills}
@@ -359,49 +319,62 @@ export function GenericProfile({
                     onAddSkill={addSkill}
                     onRemoveSkill={removeSkill}
                   />
-                )}
+                ))}
 
-                {/* Business Information - Only for agencies */}
-                {config.sections.businessInfo &&
-                  profileData?.role === "agency" && (
-                    <BusinessInformation
-                      profileData={profileData as any}
-                      isEditing={isEditing}
-                      onUpdate={updateProfileData}
-                    />
-                  )}
+              {/* Business Information - Only for agencies */}
+              {config.sections.businessInfo &&
+                profileData?.role === "agency" &&
+                (!isProfileLoaded ? (
+                  <BusinessInformationSkeleton />
+                ) : (
+                  <BusinessInformation
+                    profileData={profileData as any}
+                    isEditing={isEditing}
+                    onUpdate={updateProfileData}
+                  />
+                ))}
 
-                {/* Household Information - Only for employers */}
-                {config.sections.householdInfo &&
-                  profileData?.role === "employer" && (
-                    <HouseholdInformation
-                      profileData={profileData as any}
-                      isEditing={isEditing}
-                      onUpdate={updateProfileData}
-                    />
-                  )}
+              {/* Household Information - Only for employers */}
+              {config.sections.householdInfo &&
+                profileData?.role === "employer" &&
+                (!isProfileLoaded ? (
+                  <HouseholdInformationSkeleton />
+                ) : (
+                  <HouseholdInformation
+                    profileData={profileData as any}
+                    isEditing={isEditing}
+                    onUpdate={updateProfileData}
+                  />
+                ))}
 
-                {/* Admin Information - Only for admins */}
-                {config.sections.adminInfo && profileData?.role === "admin" && (
+              {/* Admin Information - Only for admins */}
+              {config.sections.adminInfo &&
+                profileData?.role === "admin" &&
+                (!isProfileLoaded ? (
+                  <AdminInformationSkeleton />
+                ) : (
                   <AdminInformation
                     profileData={profileData as any}
                     isEditing={isEditing}
                     onUpdate={updateProfileData}
                   />
-                )}
+                ))}
 
-                {/* Documents Section */}
-                {config.sections.documents && (
-                  <DocumentsSection
-                    profileData={profileData}
-                    isLoadingFiles={isLoadingFiles}
-                  />
-                )}
-              </div>
-
-              {/* Sidebar */}
-              <StatusSidebar profileData={profileData} />
+              {/* Documents Section */}
+              {config.sections.documents && (
+                <DocumentsSection
+                  profileData={profileData || ({ role: role } as ProfileData)}
+                  isLoadingFiles={!isFilesLoaded}
+                />
+              )}
             </div>
+
+            {/* Sidebar */}
+            {!isProfileLoaded ? (
+              <StatusSidebarSkeleton />
+            ) : (
+              <StatusSidebar profileData={profileData} />
+            )}
           </div>
         </div>
       </div>

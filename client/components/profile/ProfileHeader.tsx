@@ -12,11 +12,13 @@ import { ProfileData } from "@/types/profile";
 interface ProfileHeaderProps {
   profileData: ProfileData;
   onProfilePhotoUpload: (file: File | null) => void;
+  isUploadingProfilePhoto?: boolean;
 }
 
 export function ProfileHeader({
   profileData,
   onProfilePhotoUpload,
+  isUploadingProfilePhoto = false,
 }: ProfileHeaderProps) {
   const getRoleColor = (role: string) => {
     switch (role) {
@@ -81,12 +83,18 @@ export function ProfileHeader({
                 }
                 className="hidden"
                 id="profilePhoto"
+                disabled={isUploadingProfilePhoto}
               />
               <label htmlFor="profilePhoto">
-                <Button variant="secondary" size="sm" asChild>
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  asChild
+                  disabled={isUploadingProfilePhoto}
+                >
                   <span className="cursor-pointer">
                     <Camera className="w-4 h-4 mr-2" />
-                    Change
+                    {isUploadingProfilePhoto ? "Uploading..." : "Change"}
                   </span>
                 </Button>
               </label>

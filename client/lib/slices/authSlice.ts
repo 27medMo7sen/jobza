@@ -4,6 +4,8 @@ export interface AuthState {
   token: string | null;
   user: Record<string, any> | null;
   files: Record<string, any> | null;
+  isProfileLoaded: boolean;
+  isFilesLoaded: boolean;
 }
 
 // Initialize from localStorage if available
@@ -59,6 +61,8 @@ const initialState: AuthState = {
   token: getInitialToken(),
   user: getInitialUser(),
   files: getInitialFiles(),
+  isProfileLoaded: false,
+  isFilesLoaded: false,
 };
 
 const authSlice = createSlice({
@@ -170,6 +174,12 @@ const authSlice = createSlice({
         }
       }
     },
+    setProfileLoaded(state: AuthState, action: PayloadAction<boolean>) {
+      state.isProfileLoaded = action.payload;
+    },
+    setFilesLoaded(state: AuthState, action: PayloadAction<boolean>) {
+      state.isFilesLoaded = action.payload;
+    },
   },
 });
 
@@ -181,5 +191,7 @@ export const {
   setFiles,
   clearFiles,
   updateFileStatus,
+  setProfileLoaded,
+  setFilesLoaded,
 } = authSlice.actions;
 export default authSlice.reducer;
