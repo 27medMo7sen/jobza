@@ -372,18 +372,7 @@ export function UnifiedSidebar({
                 </span>
               </Link>
             )}
-            {collapsed && (
-              <Link
-                href="/"
-                className="flex items-center justify-center w-full"
-              >
-                <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
-                  <span className="text-primary-foreground font-bold text-sm">
-                    J
-                  </span>
-                </div>
-              </Link>
-            )}
+
             <Button
               variant="ghost"
               size="sm"

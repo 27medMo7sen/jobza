@@ -4,6 +4,7 @@ import { Model, Types } from 'mongoose';
 import { Worker } from './worker.model';
 import { Auth } from 'src/auth/auth.model';
 import { Affiliation } from 'src/affiliations/affiliation.model';
+import { WorkerProfileStatusService } from './worker-profile-status.service';
 
 @Injectable()
 export class WorkerService {
@@ -12,13 +13,16 @@ export class WorkerService {
     @InjectModel('Auth') private readonly authModel: Model<Auth>,
     @InjectModel('Affiliation')
     private readonly affiliationModel: Model<Affiliation>,
+    private readonly workerProfileStatusService: WorkerProfileStatusService,
   ) {}
 
   async createWorker(
     workerData: any,
   ): Promise<Worker & { _id: Types.ObjectId }> {
     console.log(workerData);
+    console.log("i'm here");
     const createdWorker = new this.workerModel(workerData);
+    console.log('createdWorker', createdWorker);
     return createdWorker.save();
   }
 
@@ -36,11 +40,13 @@ export class WorkerService {
   async getAvailableWorkers() {
     return this.workerModel.find({ isAffiliated: false });
   }
-  async getWorkerByUserId(userId: Types.ObjectId): Promise<Worker | null> {
+  async getWorkerByUserId(
+    userId: Types.ObjectId,
+  ): Promise<(Worker & { _id: Types.ObjectId }) | null> {
     console.log('userId', userId);
     const worker = await this.workerModel
       .findOne({ userId: new Types.ObjectId(userId) })
-      .lean<Worker>()
+      .lean<Worker & { _id: Types.ObjectId }>()
       .exec();
     console.log('worker', worker);
     return worker;
@@ -71,16 +77,21 @@ export class WorkerService {
   }
 
   async updateWorker(
-    userId: Types.ObjectId,
+    workerId: Types.ObjectId,
     updateData: any,
   ): Promise<Worker | null> {
-    console.log('userId', userId);
+    console.log('workerId', workerId);
     console.log('updateData', updateData);
-    const worker = await this.workerModel
-      .findOneAndUpdate({ userId }, { $set: updateData }, { new: true })
-      .lean<Worker>()
-      .exec();
+    const worker = (await this.workerModel
+      .findOneAndUpdate({ _id: workerId }, { $set: updateData }, { new: true })
+      .exec()) as Worker;
     console.log('worker', worker);
+
+    // Trigger profile status update after worker data is updated
+    if (worker && worker.userId) {
+      await this.workerProfileStatusService.handleProfileUpdate(worker.userId);
+    }
+
     return worker;
   }
 
@@ -91,21 +102,4 @@ export class WorkerService {
       .lean<Worker>()
       .exec();
   }
-
-  //         : workerData.userId;
-  //     const worker = await this.workerModel
-  //       .findOneAndUpdate(
-  //         { userId: userObjectId },
-  //         { $set: { isAffiliated: workerData.isAffiliated } },
-  //         { new: true },
-  //       )
-  //       .lean<Worker>()
-  //       .exec();
-  //     console.log('worker', worker);
-  //     if (!worker) {
-  //       throw new BadRequestException('Worker not found');
-  //     }
-  //     return worker;
-  //   }
-  // }
 }

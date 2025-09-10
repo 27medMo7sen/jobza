@@ -248,7 +248,10 @@ export class AuthService {
       .findOne({ token })
       .populate('worker')
       .populate('employer')
-      .populate('agency');
+      .populate('agency')
+      .select(
+        '-password -_id -code -token -createdAt -updatedAt -isVerified -method',
+      );
     if (!user) {
       console.log('User not found');
       throw new HttpException('User not found', 404);
@@ -321,8 +324,11 @@ export class AuthService {
     console.log('updatedUser', updatedUser);
     console.log('user', user);
     if (user.role === Role.WORKER) {
-      console.log('goning to worker service');
-      await this.workerService.updateWorker(user.userId, updateData);
+      console.log('going to worker service');
+      await this.workerService.updateWorker(
+        updatedUser?.worker._id,
+        updateData,
+      );
     } else if (user.role === Role.EMPLOYER) {
       await this.employerService.updateEmployer(
         updatedUser?.employer._id,
@@ -334,6 +340,7 @@ export class AuthService {
         updateData,
       );
     }
+
     return {
       message: 'User updated successfully',
     };
@@ -349,17 +356,43 @@ export class AuthService {
     role: string,
   ) {
     if (role === Role.WORKER) {
-      return await this.workerService.updateWorker(userId, {
-        profilePicture: { url, s3Key },
-      });
+      // Find the worker document first to get its _id
+      const user = await this.authModel.findById(userId);
+      if (!user) {
+        throw new HttpException('Worker not found', 404);
+      }
+      return await this.workerService.updateWorker(
+        user.worker as Types.ObjectId,
+        {
+          profilePicture: { url, s3Key },
+        },
+      );
     } else if (role === Role.EMPLOYER) {
-      return await this.employerService.updateEmployer(userId, {
-        profilePicture: { url, s3Key },
-      });
+      // Find the employer document first to get its _id
+      const employer = await this.employerService.getEmployerByUserId(
+        userId.toString(),
+      );
+      if (!employer) {
+        throw new HttpException('Employer not found', 404);
+      }
+      return await this.employerService.updateEmployer(
+        employer._id as Types.ObjectId,
+        {
+          profilePicture: { url, s3Key },
+        },
+      );
     } else if (role === Role.AGENCY) {
-      return await this.agencyService.updateAgency(userId, {
-        profilePicture: { url, s3Key },
-      });
+      // Find the agency document first to get its _id
+      const agency = await this.agencyService.getAgencyByUserId(userId);
+      if (!agency) {
+        throw new HttpException('Agency not found', 404);
+      }
+      return await this.agencyService.updateAgency(
+        agency._id as Types.ObjectId,
+        {
+          profilePicture: { url, s3Key },
+        },
+      );
     }
   }
 }

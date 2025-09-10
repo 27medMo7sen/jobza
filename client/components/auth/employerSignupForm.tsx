@@ -35,7 +35,7 @@ const validateNumber = (value: string): boolean => {
 
 const EmployerSignupForm: React.FC = () => {
   // Initialize form inputs with useInput hook
-  const userName = useInput(validateName);
+  const fullName = useInput(validateName);
   const email = useInput(validateEmail);
   const phone = useInput(validatePhone);
   const password = useInput(validatePassword);
@@ -114,7 +114,7 @@ const EmployerSignupForm: React.FC = () => {
     }));
   };
   const isFormValid =
-    userName.isValid &&
+    fullName.isValid &&
     email.isValid &&
     phone.isValid &&
     password.isValid &&
@@ -139,7 +139,7 @@ const EmployerSignupForm: React.FC = () => {
 
     if (isFormValid) {
       const formData = {
-        userName: userName.value,
+        name: fullName.value,
         email: email.value,
         phone: phone.value,
         dateOfBirth: dateOfBirth.value,
@@ -166,7 +166,7 @@ const EmployerSignupForm: React.FC = () => {
       console.log("Employer form submitted:", formData);
     } else {
       // Touch all fields to show validation errors
-      userName.onBlur();
+      fullName.onBlur();
       email.onBlur();
       phone.onBlur();
       password.onBlur();
@@ -240,17 +240,17 @@ const EmployerSignupForm: React.FC = () => {
 
           {/* Form */}
           <div className="space-y-6">
-            {/* Name Fields */}
+            {/* Full Name */}
             <Input
-              label="User Name"
+              label="Full Name"
               type="text"
-              placeholder="Enter user name"
+              placeholder="Enter full name"
               required
-              value={userName.value}
-              onChange={userName.onChange}
-              onBlur={userName.onBlur}
-              hasError={userName.hasError}
-              errorMessage="User name must be at least 2 characters"
+              value={fullName.value}
+              onChange={fullName.onChange}
+              onBlur={fullName.onBlur}
+              hasError={fullName.hasError}
+              errorMessage="Full name must be at least 2 characters"
             />
 
             {/* Email and Phone */}
@@ -494,8 +494,6 @@ const EmployerSignupForm: React.FC = () => {
                         }}
                         className="w-full px-3 py-2 text-left hover:bg-gray-50 first:rounded-t-lg last:rounded-b-lg"
                       >
-                        {" "}
-                        bg-b
                         {hours}
                       </button>
                     ))}
@@ -546,7 +544,7 @@ const EmployerSignupForm: React.FC = () => {
 
                 {/* Currency Dropdown */}
                 <div className="relative">
-                  <label className="block text-sm font-medium text-gray-900 mb-2">
+                  <label className="block text sm font-medium text-gray-900 mb-2">
                     Currency <span className="text-red-500">*</span>
                   </label>
                   <button

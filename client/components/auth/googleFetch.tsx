@@ -17,7 +17,7 @@ export default function GoogleFetch() {
     dispatch(setToken(token as string));
 
     const getUserByToken = async () => {
-      const user = await get<User>("/auth/user-by-token");
+      const user = await get<User>("/auth/authenticate");
       dispatch(setUser(user));
       console.log("that's the user", user);
       if (!user) {
@@ -29,6 +29,8 @@ export default function GoogleFetch() {
         router.push("/employer/dashboard");
       } else if (user?.role === "agency") {
         router.push("/agency/dashboard");
+      } else if (user?.role === "admin") {
+        router.push("/admin/dashboard");
       }
     };
     getUserByToken();

@@ -2,17 +2,19 @@
 
 import { useState, useRef, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft } from "lucide-react";
-import Link from "next/link";
 import { useSelector, useDispatch } from "react-redux";
 import { RootState } from "@/lib/store";
 import { ProfileData } from "@/types/profile";
 import {
   setUser,
-  setFiles,
   setProfileLoaded,
-  setFilesLoaded,
+  setProfileStatus,
 } from "@/lib/slices/authSlice";
+import {
+  setFiles,
+  setLoading as setFilesLoading,
+  setFilesLoaded as setIsfilesLoaded,
+} from "@/lib/slices/filesSlice";
 import { getProfileConfig } from "@/lib/profile-config";
 import { ProfileHeader } from "./ProfileHeader";
 import { PersonalInformation } from "./PersonalInformation";
@@ -45,8 +47,11 @@ export function GenericProfile({
 }: GenericProfileProps) {
   const { put, get, post } = useHttp();
   const dispatch = useDispatch();
-  const { user, files, isProfileLoaded, isFilesLoaded } = useSelector(
+  const { user, isProfileLoaded } = useSelector(
     (state: RootState) => state.auth
+  );
+  const { files, isLoading: isFilesLoading } = useSelector(
+    (state: RootState) => state.files
   );
   const [isEditing, setIsEditing] = useState(false);
   const [isEditingSkills, setIsEditingSkills] = useState(false);
@@ -56,6 +61,7 @@ export function GenericProfile({
   const [profileData, setProfileData] = useState<ProfileData>(
     (user as ProfileData) || ({ role: role } as ProfileData)
   );
+  const { isFilesLoaded } = useSelector((state: RootState) => state.files);
   const [originalProfileData, setOriginalProfileData] =
     useState<ProfileData | null>(null);
 
@@ -64,7 +70,7 @@ export function GenericProfile({
     const fetchProfileData = async () => {
       if (user?.userId && !isProfileLoaded) {
         try {
-          const response = await get("/auth/user-by-token");
+          const response = await get("/auth/authenticate");
           console.log("Fetched fresh profile data:", response);
           dispatch(setUser(response));
           dispatch(setProfileLoaded(true));
@@ -85,25 +91,23 @@ export function GenericProfile({
   // Fetch fresh files data on component mount
   useEffect(() => {
     const fetchUserFiles = async () => {
-      if (user?.userId && !isFilesLoaded) {
+      if (user?.userId) {
         try {
+          dispatch(setFilesLoading(true));
           const response = await get("/files/list");
           console.log("Fetched fresh user files:", response);
           dispatch(setFiles(response as Record<string, any>));
-          dispatch(setFilesLoaded(true));
         } catch (error) {
           console.error("Error fetching user files:", error);
-          dispatch(setFilesLoaded(true)); // Mark as loaded even if failed
+        } finally {
+          dispatch(setFilesLoading(false));
+          dispatch(setIsfilesLoaded(true));
         }
-      } else if (!user && !isFilesLoaded) {
-        // If no user is available, mark as loaded to prevent infinite loading
-        console.log("No user available, marking files as loaded");
-        dispatch(setFilesLoaded(true));
       }
     };
 
     fetchUserFiles();
-  }, [user?.userId, isFilesLoaded, dispatch, get]);
+  }, [user?.userId, dispatch, get]);
 
   // Update local profile data when Redux user changes
   useEffect(() => {
@@ -180,8 +184,8 @@ export function GenericProfile({
   const handleSave = async () => {
     setIsEditing(false);
     try {
-      const updatedProfile = await put(`auth/profile`, profileData);
-      console.log(updatedProfile);
+      const response = await put<any>(`auth/profile`, profileData);
+      console.log(response);
       dispatch(setUser(profileData));
       toast.success("Profile Updated", {
         description: "Your profile has been updated successfully!",
@@ -229,7 +233,10 @@ export function GenericProfile({
   const handleSkillsEditComplete = async () => {
     if (profileData?.role === "worker" && "skillSet" in profileData) {
       try {
-        await put(`auth/profile`, profileData);
+        // Send skills update through the unified profile update endpoint
+        const response = await put<any>(`auth/profile`, {
+          skillSet: profileData.skillSet,
+        });
         dispatch(setUser(profileData));
         toast.success("Skills Updated", {
           description: "Your skills have been updated successfully!",
@@ -259,15 +266,6 @@ export function GenericProfile({
       {SidebarComponent && <SidebarComponent />}
 
       <div className="flex-1 p-6">
-        <div className="mb-6">
-          <Link href={`/${role}/dashboard`}>
-            <Button variant="ghost" size="sm">
-              <ArrowLeft className="h-4 w-4 mr-2" />
-              Back to Dashboard
-            </Button>
-          </Link>
-        </div>
-
         <div className="max-w-6xl mx-auto">
           {/* Profile Header */}
           {!isProfileLoaded ? (
@@ -361,12 +359,15 @@ export function GenericProfile({
                 ))}
 
               {/* Documents Section */}
-              {config.sections.documents && (
-                <DocumentsSection
-                  profileData={profileData || ({ role: role } as ProfileData)}
-                  isLoadingFiles={!isFilesLoaded}
-                />
-              )}
+              {config.sections.documents &&
+                (isFilesLoaded ? (
+                  <DocumentsSection
+                    profileData={profileData || ({ role: role } as ProfileData)}
+                    isLoadingFiles={isFilesLoading}
+                  />
+                ) : (
+                  <DocumentsSectionSkeleton />
+                ))}
             </div>
 
             {/* Sidebar */}

@@ -7,9 +7,10 @@ import { ProfileData } from "@/types/profile";
 import SignaturePad from "./SignatureSection";
 import { useSelector, useDispatch } from "react-redux";
 import { RootState } from "@/lib/store";
-import { clearFiles } from "@/lib/slices/authSlice";
+import { clearFiles, setFilesLoaded } from "@/lib/slices/filesSlice";
 import { Button } from "@/components/ui/button";
 import { useState, useEffect } from "react";
+import { DocumentsSectionSkeleton } from "@/components/ui/skeleton-loaders";
 
 interface DocumentsSectionProps {
   profileData: ProfileData;
@@ -20,7 +21,7 @@ export function DocumentsSection({
   profileData,
   isLoadingFiles = false,
 }: DocumentsSectionProps) {
-  const { files } = useSelector((state: RootState) => state.auth);
+  const { files } = useSelector((state: RootState) => state.files);
   const dispatch = useDispatch();
   const [isClient, setIsClient] = useState(false);
   const roleDocuments = getDocumentsForRole(
@@ -57,16 +58,7 @@ export function DocumentsSection({
       </CardHeader>
       <CardContent>
         {/* Loading State */}
-        {isLoadingFiles && (
-          <div className="flex items-center justify-center py-8">
-            <div className="flex items-center space-x-2">
-              <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600"></div>
-              <span className="text-sm text-gray-600">
-                Loading documents...
-              </span>
-            </div>
-          </div>
-        )}
+        {isLoadingFiles && <DocumentsSectionSkeleton />}
 
         {/* Required Documents */}
         {!isLoadingFiles && requiredDocuments.length > 0 && (

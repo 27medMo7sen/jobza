@@ -1,15 +1,31 @@
-import { Injectable, NotAcceptableException } from '@nestjs/common';
+import {
+  Injectable,
+  NotAcceptableException,
+  Inject,
+  forwardRef,
+} from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { File } from './files.model';
 import { Model, Types } from 'mongoose';
 import { AwsS3Service } from 'src/aws-s3/aws-s3.service';
 import { AuthService } from 'src/auth/auth.service';
+import { WorkerProfileStatusService } from 'src/worker/worker-profile-status.service';
+import { EmployerProfileStatusService } from 'src/employer/employer-profile-status.service';
+import { AgencyProfileStatusService } from 'src/agency/agency-profile-status.service';
+import { Auth } from 'src/auth/auth.model';
 @Injectable()
 export class FilesService {
   constructor(
     @InjectModel(File.name) private fileModel: Model<File>,
+    @InjectModel('Auth') private authModel: Model<Auth>,
     private awsS3Service: AwsS3Service,
     private authService: AuthService,
+    @Inject(forwardRef(() => WorkerProfileStatusService))
+    private workerProfileStatusService: WorkerProfileStatusService,
+    @Inject(forwardRef(() => EmployerProfileStatusService))
+    private employerProfileStatusService: EmployerProfileStatusService,
+    @Inject(forwardRef(() => AgencyProfileStatusService))
+    private agencyProfileStatusService: AgencyProfileStatusService,
   ) {}
 
   async uploadFile(
@@ -18,7 +34,7 @@ export class FilesService {
     file: Express.Multer.File,
     type: string,
     label: string,
-  ) {
+  ): Promise<File | any> {
     const existingFile = await this.fileModel.findOne({ userId, label });
 
     if (existingFile) {
@@ -51,6 +67,16 @@ export class FilesService {
       if (label === 'signature') {
         await this.authService.signatureUploaded(userId);
       }
+
+      // Trigger profile status update based on role
+      if (role === 'worker') {
+        await this.workerProfileStatusService.handleFileUpload(userId);
+      } else if (role === 'employer') {
+        await this.employerProfileStatusService.handleFileUpload(userId);
+      } else if (role === 'agency') {
+        await this.agencyProfileStatusService.handleFileUpload(userId);
+      }
+
       return savedFile;
     }
   }
@@ -120,6 +146,84 @@ export class FilesService {
       }
     }
     return results;
+  }
+
+  /**
+   * Update file status (for admin approval/rejection)
+   */
+  async updateFileStatus(
+    fileId: Types.ObjectId,
+    status: string,
+    rejectionReason?: string,
+  ): Promise<File | null> {
+    const updateData: any = { status };
+    if (rejectionReason) {
+      updateData.rejectionReason = rejectionReason;
+    }
+
+    const updatedFile = await this.fileModel.findByIdAndUpdate(
+      fileId,
+      updateData,
+      { new: true },
+    );
+
+    if (updatedFile) {
+      // Get the user's role to determine if we need to update profile status
+      const auth = await this.authModel.findById(updatedFile.userId);
+      if (auth) {
+        if (status === 'rejected') {
+          if (auth.role === 'worker') {
+            await this.workerProfileStatusService.handleFileRejection(
+              updatedFile.userId,
+            );
+          } else if (auth.role === 'employer') {
+            await this.employerProfileStatusService.handleFileRejection(
+              updatedFile.userId,
+            );
+          } else if (auth.role === 'agency') {
+            await this.agencyProfileStatusService.handleFileRejection(
+              updatedFile.userId,
+            );
+          }
+        } else if (status === 'approved') {
+          if (auth.role === 'worker') {
+            await this.workerProfileStatusService.handleFileApproval(
+              updatedFile.userId,
+            );
+          } else if (auth.role === 'employer') {
+            await this.employerProfileStatusService.handleFileApproval(
+              updatedFile.userId,
+            );
+          } else if (auth.role === 'agency') {
+            await this.agencyProfileStatusService.handleFileApproval(
+              updatedFile.userId,
+            );
+          }
+        }
+      }
+    }
+
+    return updatedFile;
+  }
+
+  /**
+   * Get profile completeness details for admin/debugging purposes
+   */
+  async getProfileCompletenessDetails(userId: Types.ObjectId, role: string) {
+    if (role === 'worker') {
+      return await this.workerProfileStatusService.getProfileCompletenessDetails(
+        userId,
+      );
+    } else if (role === 'employer') {
+      return await this.employerProfileStatusService.getProfileCompletenessDetails(
+        userId,
+      );
+    } else if (role === 'agency') {
+      return await this.agencyProfileStatusService.getProfileCompletenessDetails(
+        userId,
+      );
+    }
+    throw new Error(`Unknown role: ${role}`);
   }
 
   // async getFileMetadata(userId: string, fileUrl: string) {

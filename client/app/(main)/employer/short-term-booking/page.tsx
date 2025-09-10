@@ -828,13 +828,6 @@ export default function ShortTermBookingPage() {
         <header className="bg-white shadow-sm border-b">
           <div className="container mx-auto px-4 py-4">
             <div className="flex items-center justify-between">
-              <Link
-                href="/employer/dashboard"
-                className="flex items-center space-x-2 text-blue-600 hover:text-blue-700"
-              >
-                <ArrowLeft className="w-4 h-4" />
-                <span>Back to Dashboard</span>
-              </Link>
               <div className="flex items-center space-x-2">
                 <Home className="w-5 h-5 text-blue-600" />
                 <span className="text-lg font-semibold text-gray-900">

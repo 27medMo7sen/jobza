@@ -11,7 +11,20 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Edit, Save, X } from "lucide-react";
+import {
+  Edit,
+  Save,
+  X,
+  User,
+  AtSign,
+  Mail,
+  Phone,
+  MapPin,
+  Flag,
+  Calendar,
+  GraduationCap,
+  Users,
+} from "lucide-react";
 import { ProfileData } from "@/types/profile";
 import { CountryNationalitySelect } from "@/components/auth/CountryNationalitySelect";
 import { GenderSelect } from "@/components/auth/GenderSelect";
@@ -61,38 +74,50 @@ export function PersonalInformation({
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <Label>Full Name</Label>
+            <div className="space-y-2">
+              <Label className="flex items-center gap-2">
+                <User className="w-4 h-4" />
+                Full Name
+              </Label>
               <Input
                 value={profileData?.name || ""}
                 onChange={(e) => onUpdate({ name: e.target.value })}
               />
             </div>
-            <div>
-              <Label>Username</Label>
+            <div className="space-y-2">
+              <Label className="flex items-center gap-2">
+                <AtSign className="w-4 h-4" />
+                Username
+              </Label>
               <Input
                 value={profileData?.userName || ""}
                 disabled
                 className="bg-gray-100 cursor-not-allowed"
               />
             </div>
-            <div>
-              <Label>Email</Label>
+            <div className="space-y-2">
+              <Label className="flex items-center gap-2">
+                <Mail className="w-4 h-4" />
+                Email
+              </Label>
               <Input
                 value={profileData?.email || ""}
                 disabled
                 className="bg-gray-100 cursor-not-allowed"
               />
             </div>
-            <div>
-              <Label>Phone Number</Label>
+            <div className="space-y-2">
+              <Label className="flex items-center gap-2">
+                <Phone className="w-4 h-4" />
+                Phone Number
+              </Label>
               <Input
                 value={profileData?.phoneNumber || ""}
                 onChange={(e) => onUpdate({ phoneNumber: e.target.value })}
               />
             </div>
             {/* Country and Nationality */}
-            <div className="md:col-span-2">
+            <div className="md:col-span-2 space-y-2">
               <CountryNationalitySelect
                 country={profileData?.country || ""}
                 nationality={profileData?.nationality || ""}
@@ -103,8 +128,11 @@ export function PersonalInformation({
                 required
               />
             </div>
-            <div>
-              <Label>Date of Birth</Label>
+            <div className="space-y-2">
+              <Label className="flex items-center gap-2">
+                <Calendar className="w-4 h-4" />
+                Date of Birth
+              </Label>
               <Input
                 type="date"
                 value={profileData?.dateOfBirth || ""}
@@ -112,34 +140,42 @@ export function PersonalInformation({
               />
             </div>
             {profileData?.role === "worker" && (
-              <GenderSelect
-                value={profileData.gender || ""}
-                onChange={(value) => onUpdate({ gender: value } as any)}
-                required
-              />
+              <div className="space-y-2">
+                <GenderSelect
+                  value={profileData.gender || ""}
+                  onChange={(value) => onUpdate({ gender: value } as any)}
+                  required
+                />
+              </div>
             )}
             {profileData?.role === "worker" && (
-              <EducationLevelSelect
-                value={profileData.heighestEducationalLevel || ""}
-                onChange={(value) =>
-                  onUpdate({ heighestEducationalLevel: value } as any)
-                }
-                required
-              />
+              <div className="md:col-span-2 space-y-2">
+                <EducationLevelSelect
+                  value={profileData.heighestEducationalLevel || ""}
+                  onChange={(value) =>
+                    onUpdate({ heighestEducationalLevel: value } as any)
+                  }
+                  required
+                />
+              </div>
             )}
             {profileData?.role === "employer" && "gender" in profileData && (
-              <GenderSelect
-                value={profileData.gender || ""}
-                onChange={(value) => onUpdate({ gender: value } as any)}
-                required
-              />
+              <div className="space-y-2">
+                <GenderSelect
+                  value={profileData.gender || ""}
+                  onChange={(value) => onUpdate({ gender: value } as any)}
+                  required
+                />
+              </div>
             )}
             {profileData?.role === "admin" && "gender" in profileData && (
-              <GenderSelect
-                value={profileData.gender || ""}
-                onChange={(value) => onUpdate({ gender: value } as any)}
-                required
-              />
+              <div className="space-y-2">
+                <GenderSelect
+                  value={profileData.gender || ""}
+                  onChange={(value) => onUpdate({ gender: value } as any)}
+                  required
+                />
+              </div>
             )}
           </div>
         </CardContent>
@@ -163,50 +199,74 @@ export function PersonalInformation({
       <CardContent>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
-            <p className="text-sm text-gray-600">Full Name</p>
+            <p className="text-sm text-gray-600 flex items-center gap-2">
+              <User className="w-4 h-4" />
+              Full Name
+            </p>
             <p className="font-semibold">
               {profileData?.name || "Not provided"}
             </p>
           </div>
           <div>
-            <p className="text-sm text-gray-600">Username</p>
+            <p className="text-sm text-gray-600 flex items-center gap-2">
+              <AtSign className="w-4 h-4" />
+              Username
+            </p>
             <p className="font-semibold">
               {profileData?.userName || "Not provided"}
             </p>
           </div>
           <div>
-            <p className="text-sm text-gray-600">Email</p>
+            <p className="text-sm text-gray-600 flex items-center gap-2">
+              <Mail className="w-4 h-4" />
+              Email
+            </p>
             <p className="font-semibold break-all">
               {profileData?.email || "Not provided"}
             </p>
           </div>
           <div>
-            <p className="text-sm text-gray-600">Phone Number</p>
+            <p className="text-sm text-gray-600 flex items-center gap-2">
+              <Phone className="w-4 h-4" />
+              Phone Number
+            </p>
             <p className="font-semibold">
               {profileData?.phoneNumber || "Not provided"}
             </p>
           </div>
           <div>
-            <p className="text-sm text-gray-600">Country</p>
+            <p className="text-sm text-gray-600 flex items-center gap-2">
+              <MapPin className="w-4 h-4" />
+              Country
+            </p>
             <p className="font-semibold">
               {profileData?.country || "Not provided"}
             </p>
           </div>
           <div>
-            <p className="text-sm text-gray-600">Nationality</p>
+            <p className="text-sm text-gray-600 flex items-center gap-2">
+              <Flag className="w-4 h-4" />
+              Nationality
+            </p>
             <p className="font-semibold">
               {profileData?.nationality || "Not provided"}
             </p>
           </div>
           <div>
-            <p className="text-sm text-gray-600">Date of Birth</p>
+            <p className="text-sm text-gray-600 flex items-center gap-2">
+              <Calendar className="w-4 h-4" />
+              Date of Birth
+            </p>
             <p className="font-semibold">
               {profileData?.dateOfBirth || "Not provided"}
             </p>
           </div>
           {profileData?.role === "worker" && (
             <div>
-              <p className="text-sm text-gray-600">Gender</p>
+              <p className="text-sm text-gray-600 flex items-center gap-2">
+                <Users className="w-4 h-4" />
+                Gender
+              </p>
               <p className="font-semibold">
                 {profileData.gender || "Not provided"}
               </p>
@@ -214,7 +274,10 @@ export function PersonalInformation({
           )}
           {profileData?.role === "worker" && (
             <div>
-              <p className="text-sm text-gray-600">Education Level</p>
+              <p className="text-sm text-gray-600 flex items-center gap-2">
+                <GraduationCap className="w-4 h-4" />
+                Education Level
+              </p>
               <p className="font-semibold">
                 {profileData.heighestEducationalLevel || "Not provided"}
               </p>
@@ -222,7 +285,10 @@ export function PersonalInformation({
           )}
           {profileData?.role === "employer" && "gender" in profileData && (
             <div>
-              <p className="text-sm text-gray-600">Gender</p>
+              <p className="text-sm text-gray-600 flex items-center gap-2">
+                <Users className="w-4 h-4" />
+                Gender
+              </p>
               <p className="font-semibold">
                 {profileData.gender || "Not provided"}
               </p>
@@ -230,7 +296,10 @@ export function PersonalInformation({
           )}
           {profileData?.role === "admin" && (
             <div>
-              <p className="text-sm text-gray-600">Gender</p>
+              <p className="text-sm text-gray-600 flex items-center gap-2">
+                <Users className="w-4 h-4" />
+                Gender
+              </p>
               <p className="font-semibold">
                 {profileData.gender || "Not provided"}
               </p>

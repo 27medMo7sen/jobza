@@ -13,7 +13,7 @@ import {
 import { DocumentType } from "@/lib/document-config";
 import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "@/lib/store";
-import { addFile } from "@/lib/slices/authSlice";
+import { addFile } from "@/lib/slices/filesSlice";
 import { useHttp } from "@/hooks/use-http";
 import { toast } from "sonner";
 import {
@@ -30,7 +30,7 @@ export function FilePreview({ documentType, isEditing }: FilePreviewProps) {
   const [isDragOver, setIsDragOver] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
   const dispatch = useDispatch();
-  const { files } = useSelector((state: RootState) => state.auth);
+  const { files, isLoading } = useSelector((state: RootState) => state.files);
   const { post } = useHttp();
 
   // Get file data from Redux store
@@ -55,21 +55,24 @@ export function FilePreview({ documentType, isEditing }: FilePreviewProps) {
           "Content-Type": "multipart/form-data",
         },
       });
+
       // Create a data URL for the file to store in Redux
       const reader = new FileReader();
       reader.onload = () => {
         const fileData = {
-          [documentType.id]: {
-            url: result.url,
-            fileName: result.fileName,
-            s3Key: result.s3Key,
-            status: result.status,
-            rejectionReason: result.rejectionReason,
-            size: result.size,
-            type: result.fileType,
-            // Store the data URL for immediate display
-            dataUrl: reader.result as string,
-          },
+          id: documentType.id,
+          name: result.fileName,
+          type: result.fileType,
+          url: result.url,
+          status: result.status,
+          rejectionReason: result.rejectionReason,
+          uploadedAt: new Date().toISOString(),
+          // Additional properties
+          fileName: result.fileName,
+          s3Key: result.s3Key,
+          size: result.size,
+          // Store the data URL for immediate display
+          dataUrl: reader.result as string,
         };
 
         console.log("Adding file to Redux:", fileData);
@@ -146,7 +149,7 @@ export function FilePreview({ documentType, isEditing }: FilePreviewProps) {
       case "rejected":
         return "border-red-500 bg-red-50";
       default:
-        return "border-gray-300 bg-gray-50";
+        return "border-gray-300 bg-card";
     }
   };
 
@@ -250,7 +253,7 @@ export function FilePreview({ documentType, isEditing }: FilePreviewProps) {
         ) : (
           <>
             {documentType.isImage ? (
-              <div className="aspect-square rounded-lg overflow-hidden bg-gray-100">
+              <div className="aspect-square rounded-lg overflow-hidden ">
                 {getFileUrl(file) ? (
                   <img
                     src={getFileUrl(file)!}

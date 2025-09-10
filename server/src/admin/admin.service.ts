@@ -2,22 +2,24 @@ import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { Admin } from './admin.model';
-import { Auth } from 'src/auth/auth.model';
-import { Worker } from 'src/worker/worker.model';
+import { Auth, status } from 'src/auth/auth.model';
 import { File } from 'src/files/files.model';
 import { PaginationDto } from 'src/auth/dto/pagination.dto';
-import { fileLabel } from 'src/files/files.model';
 import { Types } from 'mongoose';
 import { NotFoundException } from '@nestjs/common';
-
+import { WorkerProfileStatusService } from 'src/worker/worker-profile-status.service';
+import { EmployerProfileStatusService } from 'src/employer/employer-profile-status.service';
+import { AgencyProfileStatusService } from 'src/agency/agency-profile-status.service';
 
 @Injectable()
 export class AdminService {
   constructor(
     @InjectModel('Admin') private readonly adminModel: Model<Admin>,
     @InjectModel('Auth') private readonly authModel: Model<Auth>,
-    @InjectModel('Worker') private readonly workerModel: Model<Worker>,
     @InjectModel('File') private readonly fileModel: Model<File>,
+    private readonly workerProfileStatusService: WorkerProfileStatusService,
+    private readonly employerProfileStatusService: EmployerProfileStatusService,
+    private readonly agencyProfileStatusService: AgencyProfileStatusService,
   ) {}
 
   private async getWorkerStats() {
@@ -26,40 +28,40 @@ export class AdminService {
       this.authModel.countDocuments({ role: 'worker', status: 'approved' }),
       this.authModel.countDocuments({ role: 'worker', status: 'rejected' }),
     ]);
-  
+
     return { total, approved, rejected };
   }
-  
+
   private async getEmployerStats() {
     const [total, approved, rejected] = await Promise.all([
       this.authModel.countDocuments({ role: 'employer' }),
       this.authModel.countDocuments({ role: 'employer', status: 'approved' }),
       this.authModel.countDocuments({ role: 'employer', status: 'rejected' }),
     ]);
-  
+
     return { total, approved, rejected };
   }
-  
+
   private async getAgencyStats() {
     const [total, approved, rejected] = await Promise.all([
       this.authModel.countDocuments({ role: 'agency' }),
       this.authModel.countDocuments({ role: 'agency', status: 'approved' }),
       this.authModel.countDocuments({ role: 'agency', status: 'rejected' }),
     ]);
-  
+
     return { total, approved, rejected };
   }
 
-  private async getContractsStats() { }
+  private async getContractsStats() {}
 
   // Dashboard stats
   async getDashboardStats(
     paginationDto: PaginationDto,
-    role?: 'worker' | 'employer' | 'agency' | 'contract'
+    role?: 'worker' | 'employer' | 'agency' | 'contract',
   ) {
     const { page = 1, limit = 10 } = paginationDto;
     const skip = (page - 1) * limit;
-  
+
     // Pending list (filtered by role if provided)
     const roleFilter = role ? { role } : {};
     // in case of pending contracts
@@ -71,26 +73,25 @@ export class AdminService {
       .limit(limit)
       .exec();
 
-
-
     //add contract alogic t be added to the add
     const totalPending = await this.authModel.countDocuments({
       status: 'pending',
       ...roleFilter,
     });
-  
+
     // Decide what to fetch
     let counts: any = {};
     if (!role) {
       // Fetch everything (summary dashboard)
-      const [workers, employers, agencies, totalUsers, contracts] = await Promise.all([
-        this.getWorkerStats(),
-        this.getEmployerStats(),
-        this.getAgencyStats(),
-        this.authModel.countDocuments({role: {$ne: 'admin'}}),
-        this.getContractsStats(),
-      ]);
-  
+      const [workers, employers, agencies, totalUsers, contracts] =
+        await Promise.all([
+          this.getWorkerStats(),
+          this.getEmployerStats(),
+          this.getAgencyStats(),
+          this.authModel.countDocuments({ role: { $ne: 'admin' } }),
+          this.getContractsStats(),
+        ]);
+
       counts = { users: totalUsers, workers, employers, agencies, contracts };
     } else {
       // Fetch only selected role
@@ -100,11 +101,11 @@ export class AdminService {
         agency: () => this.getAgencyStats(),
         // contract: () => this.getContractStats(), // for future
       };
-  
+
       const roleStats = await statsMap[role]();
       counts = { [role + 's']: roleStats }; // e.g., { workers: { total, approved, rejected } }
     }
-  
+
     return {
       role: role || 'all',
       pending: pendingList,
@@ -116,7 +117,6 @@ export class AdminService {
       counts,
     };
   }
-  
 
   // user documents
   async getUserDocuments(userId: string) {
@@ -125,17 +125,20 @@ export class AdminService {
     if (!user) throw new Error('User not found');
 
     const documents = await this.fileModel
-      .find({ userId: user._id.toString()})
+      .find({ userId: user._id.toString() })
       .select(
         'fileName label url s3Key size fileType status rejectionReason createdAt',
       )
       .sort({ createdAt: -1 });
     console.log('documents in getUserDocuments', documents);
 
-    const documentsByLabel = documents.reduce((acc, doc) => {
-      acc[doc.label] = doc;
-      return acc;
-    }, {} as Record<string, any>);
+    const documentsByLabel = documents.reduce(
+      (acc, doc) => {
+        acc[doc.label] = doc;
+        return acc;
+      },
+      {} as Record<string, any>,
+    );
 
     return {
       user: {
@@ -155,104 +158,172 @@ export class AdminService {
     status: string,
     rejectionReason?: string,
   ) {
-    
     const document = await this.fileModel.findById(documentId);
     console.log('document', document);
     if (!document) throw new NotFoundException('Document not found');
 
     document.status = status as any;
-    document.rejectionReason = status === 'rejected' ? (rejectionReason || '') : '';
+    document.rejectionReason =
+      status === 'rejected' ? rejectionReason || '' : '';
     await document.save();
 
     console.log('document after update', document);
 
     // sync worker/auth status after updating document
-    const userStatus = await this.updateUserStatusBasedOnDocuments(document.userId.toString(), role);
+    const userStatus = await this.updateUserStatusBasedOnDocuments(
+      document.userId.toString(),
+      role,
+    );
     console.log('userStatus in updateDocumentStatus', userStatus);
 
     return { document, userStatus };
   }
 
-
   // update contract status
-  async updateContractStatus( contractId: string, status: string, rejectionReason?: string ){ return { message: 'Contract status updated' }; }
-
-  
-  private requiredDocumentsMap: Record<string, string[]> = {
-    worker: [
-      fileLabel.PASSPORT,
-      fileLabel.RESIDENCE_PERMIT,
-      fileLabel.FACE_PHOTO,
-      fileLabel.FULL_BODY_PHOTO,
-      fileLabel.MEDICAL_CERTIFICATE,
-      fileLabel.EDUCATIONAL_CERTIFICATE,
-      fileLabel.EXPERIENCE_LETTER,
-      fileLabel.POLICE_CLEARANCE_CERTIFICATE,
-      fileLabel.SIGNATURE,
-    ],
-    employer: [
-      // fileLabel.FACE_PHOTO,
-      // fileLabel.NATIONAL_ID,
-      // fileLabel.PROOF_OF_ADDRESS,
-    ],
-    agency: [
-      // fileLabel.FACE_PHOTO,
-      // fileLabel.BUSINESS_LICENSE,
-      // fileLabel.REGISTRATION_CERTIFICATE,
-    ],
-  };
-  
-  private determineUserStatus(role: string, documents: File[]): string {
-    const requiredLabels = this.requiredDocumentsMap[role] ?? this.requiredDocumentsMap['worker'];
-    console.log('Required labels for', role, ':', requiredLabels);
-  
-    // 1. Check if all required docs are present
-    const presentLabels = documents.map((doc) => doc.label);
-    console.log('Required labels for', role, ':', requiredLabels);
-    console.log('Present labels:', presentLabels);
-    
-    const hasAllRequired = requiredLabels.every((label) =>
-      presentLabels.includes(label as any),
-    );
-    console.log('Has all required documents:', hasAllRequired);
-    
-    if (!hasAllRequired) return 'not_completed';
-  
-    // 2. All required docs are present → check statuses
-    const documentStatuses = documents.map(doc => ({ label: doc.label, status: doc.status }));
-    console.log('Document statuses:', documentStatuses);
-    
-    if (documents.some((doc) => doc.status === 'rejected')) return 'rejected';
-    if (documents.every((doc) => doc.status === 'approved')) return 'approved';
-  
-    // 3. Otherwise, pending
-    return 'pending';
+  async updateContractStatus(
+    contractId: string,
+    status: string,
+    rejectionReason?: string,
+  ) {
+    return { message: 'Contract status updated' };
   }
 
-  // Update worker status from documents
-  async updateUserStatusBasedOnDocuments(userId: string, role: string) {
-    const documents = await this.fileModel.find({ userId: userId.toString() });
-    if (documents.length === 0) {
-      return { message: 'No documents found for this user' };
+  /**
+   * Get the appropriate profile status service based on role
+   */
+  private getProfileStatusService(role: string) {
+    switch (role) {
+      case 'worker':
+        return this.workerProfileStatusService;
+      case 'employer':
+        return this.employerProfileStatusService;
+      case 'agency':
+        return this.agencyProfileStatusService;
+      default:
+        throw new Error(`Unknown role: ${role}`);
     }
+  }
 
-    console.log('documents in updateUserStatusBasedOnDocuments', documents);
+  /**
+   * Determine the current profile status based on all criteria
+   */
+  async determineProfileStatus(
+    userId: Types.ObjectId,
+    role: string,
+  ): Promise<status> {
+    const profileService = this.getProfileStatusService(role);
+    return await profileService.determineProfileStatus(userId);
+  }
 
-    const newStatus = this.determineUserStatus(role, documents);
+  /**
+   * Update user profile status in Auth collection
+   */
+  async updateProfileStatus(
+    userId: Types.ObjectId,
+    newStatus: status,
+    role: string,
+  ): Promise<void> {
+    const profileService = this.getProfileStatusService(role);
+    await profileService.updateProfileStatus(userId, newStatus);
+  }
 
-    const user = await this.authModel.findOneAndUpdate(
-      { _id: new Types.ObjectId(userId) },
-      { status: newStatus },
-      { new: true },
+  /**
+   * Auto-update profile status based on current state
+   */
+  async autoUpdateProfileStatus(
+    userId: Types.ObjectId,
+    role: string,
+  ): Promise<status> {
+    const profileService = this.getProfileStatusService(role);
+    return await profileService.autoUpdateProfileStatus(userId);
+  }
+
+  /**
+   * Handle file upload - re-evaluate status based on current state
+   */
+  async handleFileUpload(userId: Types.ObjectId, role: string): Promise<void> {
+    const profileService = this.getProfileStatusService(role);
+    await profileService.handleFileUpload(userId);
+  }
+
+  /**
+   * Handle file rejection - set status to rejected
+   */
+  async handleFileRejection(
+    userId: Types.ObjectId,
+    role: string,
+  ): Promise<void> {
+    const profileService = this.getProfileStatusService(role);
+    await profileService.handleFileRejection(userId);
+  }
+
+  /**
+   * Handle file approval - check if all files are approved and update accordingly
+   */
+  async handleFileApproval(
+    userId: Types.ObjectId,
+    role: string,
+  ): Promise<void> {
+    const profileService = this.getProfileStatusService(role);
+    await profileService.handleFileApproval(userId);
+  }
+
+  /**
+   * Handle profile information update - re-evaluate status
+   */
+  async handleProfileUpdate(
+    userId: Types.ObjectId,
+    role: string,
+  ): Promise<void> {
+    const profileService = this.getProfileStatusService(role);
+    await profileService.handleProfileUpdate(userId);
+  }
+
+  /**
+   * Handle skills update - re-evaluate status (for workers)
+   */
+  async handleSkillsUpdate(
+    userId: Types.ObjectId,
+    role: string,
+  ): Promise<void> {
+    const profileService = this.getProfileStatusService(role);
+    if (role === 'worker') {
+      await (profileService as WorkerProfileStatusService).handleSkillsUpdate(
+        userId,
+      );
+    }
+  }
+
+  /**
+   * Get profile completeness details for debugging/admin purposes
+   */
+  async getProfileCompletenessDetails(
+    userId: Types.ObjectId,
+    role: string,
+  ): Promise<{
+    personalInfoComplete: boolean;
+    documentsUploaded: boolean;
+    hasSkills: boolean;
+    hasRejectedFiles: boolean;
+    allFilesApproved: boolean;
+    currentStatus: status;
+    missingFields: string[];
+    missingDocuments: string[];
+  }> {
+    const profileService = this.getProfileStatusService(role);
+    return await profileService.getProfileCompletenessDetails(userId);
+  }
+
+  // Legacy method for backward compatibility
+  async updateUserStatusBasedOnDocuments(userId: string, role: string) {
+    const newStatus = await this.autoUpdateProfileStatus(
+      new Types.ObjectId(userId),
+      role,
     );
-
-    if (!user) throw new NotFoundException('user not found for this user');
-
     return {
-      userId: user._id,
+      userId: new Types.ObjectId(userId),
       status: newStatus,
       updated: true,
     };
   }
-
 }

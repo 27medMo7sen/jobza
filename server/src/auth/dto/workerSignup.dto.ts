@@ -25,9 +25,6 @@ export class WorkerSignupDto {
   confirmPassword: string;
 
   @IsString()
-  userName: string;
-
-  @IsString()
   @MinLength(3)
   name: string;
 

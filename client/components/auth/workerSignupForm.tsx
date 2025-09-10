@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useRef, useState } from "react";
 import { ChevronDown } from "lucide-react";
 import Input from "@/components/auth/input";
 import useInput from "@/hooks/use-input";
@@ -7,11 +7,11 @@ import { CountryNationalitySelect } from "./CountryNationalitySelect";
 import { GenderSelect } from "./GenderSelect";
 import { EducationLevelSelect } from "./EducationLevelSelect";
 import { SkillsInput } from "./SkillsInput";
+import { useHttp } from "@/hooks/use-http";
+import { DrawerOpt } from "./drawerOpt";
 // Validation functions
-const validateUsername = (value: string): boolean => {
-  return (
-    value.length >= 3 && value.length <= 20 && /^[a-zA-Z0-9_]+$/.test(value)
-  );
+const validateFullName = (value: string): boolean => {
+  return value.trim().length >= 2;
 };
 
 const validateEmail = (value: string): boolean => {
@@ -34,7 +34,7 @@ const validateRequired = (value: string): boolean => {
 
 const WorkerSignupForm: React.FC = () => {
   // Initialize form inputs with useInput hook
-  const username = useInput(validateUsername);
+  const fullName = useInput(validateFullName);
   const email = useInput(validateEmail);
   const phone = useInput(validatePhone);
   const dateOfBirth = useInput(validateRequired);
@@ -49,6 +49,9 @@ const WorkerSignupForm: React.FC = () => {
   const [gender, setGender] = useState("");
   const [educationLevel, setEducationLevel] = useState("");
   const [skills, setSkills] = useState<string[]>([]);
+
+  const { post, isLoading, error } = useHttp();
+  const drawerRef = useRef<HTMLButtonElement | null>(null);
 
   // Available skills for workers
   const availableSkills = [
@@ -68,7 +71,7 @@ const WorkerSignupForm: React.FC = () => {
   ];
 
   const isFormValid =
-    username.isValid &&
+    fullName.isValid &&
     email.isValid &&
     phone.isValid &&
     dateOfBirth.isValid &&
@@ -79,10 +82,10 @@ const WorkerSignupForm: React.FC = () => {
     gender &&
     educationLevel &&
     skills.length > 0;
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     // Validate all required fields
     const isFormValid =
-      username.isValid &&
+      fullName.isValid &&
       email.isValid &&
       phone.isValid &&
       dateOfBirth.isValid &&
@@ -95,22 +98,43 @@ const WorkerSignupForm: React.FC = () => {
       skills.length > 0;
 
     if (isFormValid) {
-      const formData = {
-        username: username.value,
+      const body: any = {
+        role: "worker",
+        name: fullName.value,
         email: email.value,
-        phone: phone.value,
+        phoneNumber: phone.value,
         country,
         nationality,
         gender,
         dateOfBirth: dateOfBirth.value,
-        educationLevel,
-        skills,
+        heighestEducationalLevel: educationLevel,
+        skillSet: skills,
         password: password.value,
+        confirmPassword: password.value,
       };
-      console.log("Form submitted:", formData);
+      try {
+        await post("/auth/worker/signup", body);
+        // Persist email/password for OTP verify + auto-login (use sessionStorage)
+        if (typeof window !== "undefined") {
+          sessionStorage.setItem("signupEmail", email.value);
+          sessionStorage.setItem("signupPassword", password.value);
+          sessionStorage.setItem("signupRole", "worker");
+        }
+        // Open OTP drawer
+        if (drawerRef.current) drawerRef.current.click();
+      } catch (e) {
+        // Touch all fields to show validation errors
+        fullName.onBlur();
+        email.onBlur();
+        phone.onBlur();
+        dateOfBirth.onBlur();
+        password.onBlur();
+        confirmPassword.onBlur();
+        console.error("Signup failed", e);
+      }
     } else {
       // Touch all fields to show validation errors
-      username.onBlur();
+      fullName.onBlur();
       email.onBlur();
       phone.onBlur();
       dateOfBirth.onBlur();
@@ -126,6 +150,7 @@ const WorkerSignupForm: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-gray-50 py-12 px-4">
+      <DrawerOpt drawerRef={drawerRef} />
       <div className="max-w-2xl mx-auto">
         <div className="bg-white rounded-lg shadow-sm p-8">
           {/* Header */}
@@ -172,17 +197,17 @@ const WorkerSignupForm: React.FC = () => {
 
           {/* Form */}
           <div className="space-y-6">
-            {/* Username Field */}
+            {/* Full Name Field */}
             <Input
-              label="Username"
+              label="Full Name"
               type="text"
-              placeholder="Enter username"
+              placeholder="Enter your full name"
               required
-              value={username.value}
-              onChange={username.onChange}
-              onBlur={username.onBlur}
-              hasError={username.hasError}
-              errorMessage="Username must be 3-20 characters long and contain only letters, numbers, and underscores"
+              value={fullName.value}
+              onChange={fullName.onChange}
+              onBlur={fullName.onBlur}
+              hasError={fullName.hasError}
+              errorMessage="Full name must be at least 2 characters"
             />
 
             {/* Email and Phone Row */}
@@ -279,11 +304,11 @@ const WorkerSignupForm: React.FC = () => {
             {/* Submit Button */}
             <button
               type="button"
-              disabled={!isFormValid}
+              disabled={!isFormValid || isLoading}
               onClick={handleSubmit}
               className={`w-full bg-blue-600 disabled:bg-gray-300 disabled:cursor-not-allowed text-white py-3 px-4 rounded-lg font-medium hover:bg-blue-700 transition-colors duration-200`}
             >
-              Create Worker Account
+              {isLoading ? "Creating Account..." : "Create Worker Account"}
             </button>
           </div>
           <div className="text-center">

@@ -5,8 +5,10 @@ import { DM_Sans } from "next/font/google";
 import "../globals.css";
 import { ThemeProvider } from "@/lib/theme-provider";
 import { useEffect } from "react";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { setToken, setUser } from "@/lib/slices/authSlice";
+import { RootState } from "@/lib/store";
+import { useHttp } from "@/hooks/use-http";
 
 // const dmSans = DM_Sans({
 //   subsets: ["latin"],
@@ -28,12 +30,15 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   const dispatch = useDispatch();
+  const { get } = useHttp();
+  const { user } = useSelector((state: RootState) => state.auth);
+
   useEffect(() => {
     if (typeof window !== "undefined" && typeof localStorage !== "undefined") {
       try {
-        const user = localStorage.getItem("user");
-        if (user) {
-          dispatch(setUser(JSON.parse(user)));
+        const userStr = localStorage.getItem("user");
+        if (userStr) {
+          dispatch(setUser(JSON.parse(userStr)));
         }
         const token = localStorage.getItem("token");
         if (token) {
@@ -44,6 +49,27 @@ export default function RootLayout({
       }
     }
   }, [dispatch]);
+
+  useEffect(() => {
+    const hydrateUser = async () => {
+      const hasLocalUser =
+        typeof window !== "undefined" && localStorage.getItem("user");
+      const hasReduxUser = !!user;
+      if (!hasLocalUser && !hasReduxUser) {
+        try {
+          const resp: any = await get("/auth/authenticate");
+          if (resp) {
+            localStorage.setItem("user", JSON.stringify(resp));
+            dispatch(setUser(resp));
+          }
+        } catch (e) {
+          // ignore
+        }
+      }
+    };
+    hydrateUser();
+  }, [user, dispatch, get]);
+
   return (
     <div className={`font-sans  antialiased`}>
       <ThemeProvider>{children}</ThemeProvider>
