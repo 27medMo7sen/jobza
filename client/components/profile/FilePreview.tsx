@@ -13,13 +13,13 @@ import {
 import { DocumentType } from "@/lib/document-config";
 import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "@/lib/store";
-import { addFile } from "@/lib/slices/authSlice";
+import { addFile } from "@/lib/slices/filesSlice";
 import { useHttp } from "@/hooks/use-http";
 import { toast } from "sonner";
 import {
   FileUploadSkeleton,
   FilePreviewAreaSkeleton,
-} from "@/components/ui/file-upload-skeleton";
+} from "@/components/ui/skeleton-loaders";
 
 interface FilePreviewProps {
   documentType: DocumentType;
@@ -30,7 +30,7 @@ export function FilePreview({ documentType, isEditing }: FilePreviewProps) {
   const [isDragOver, setIsDragOver] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
   const dispatch = useDispatch();
-  const { files } = useSelector((state: RootState) => state.auth);
+  const { files, isLoading } = useSelector((state: RootState) => state.files);
   const { post } = useHttp();
 
   // Get file data from Redux store
@@ -46,7 +46,7 @@ export function FilePreview({ documentType, isEditing }: FilePreviewProps) {
       // Create FormData
       const formData = new FormData();
       formData.append("file", file);
-      formData.append("type", documentType.isImage ? "image" : "document");
+      formData.append("type", documentType.isImage ? "picture" : "document");
       formData.append("label", documentType.id);
 
       // Upload to backend
@@ -55,21 +55,24 @@ export function FilePreview({ documentType, isEditing }: FilePreviewProps) {
           "Content-Type": "multipart/form-data",
         },
       });
+
       // Create a data URL for the file to store in Redux
       const reader = new FileReader();
       reader.onload = () => {
         const fileData = {
-          [documentType.id]: {
-            url: result.url,
-            fileName: result.fileName,
-            s3Key: result.s3Key,
-            status: result.status,
-            rejectionReason: result.rejectionReason,
-            size: result.size,
-            type: result.fileType,
-            // Store the data URL for immediate display
-            dataUrl: reader.result as string,
-          },
+          id: documentType.id,
+          name: result.fileName,
+          type: result.fileType,
+          url: result.url,
+          status: result.status,
+          rejectionReason: result.rejectionReason,
+          uploadedAt: new Date().toISOString(),
+          // Additional properties
+          fileName: result.fileName,
+          s3Key: result.s3Key,
+          size: result.size,
+          // Store the data URL for immediate display
+          dataUrl: reader.result as string,
         };
 
         console.log("Adding file to Redux:", fileData);
@@ -146,7 +149,7 @@ export function FilePreview({ documentType, isEditing }: FilePreviewProps) {
       case "rejected":
         return "border-red-500 bg-red-50";
       default:
-        return "border-gray-300 bg-gray-50";
+        return "border-gray-300 bg-card";
     }
   };
 
@@ -172,14 +175,14 @@ export function FilePreview({ documentType, isEditing }: FilePreviewProps) {
       return URL.createObjectURL(file);
     }
 
-    // If file has a data URL (for immediate display), use that first
-    if (file && file.dataUrl) {
-      return file.dataUrl;
-    }
-
-    // If file has a URL property (from backend response), use that
+    // If file has a URL property (from backend response), use that first for opening
     if (file && file.url) {
       return file.url;
+    }
+
+    // If file has a data URL (for immediate display), use that as fallback
+    if (file && file.dataUrl) {
+      return file.dataUrl;
     }
 
     return null;
@@ -250,7 +253,7 @@ export function FilePreview({ documentType, isEditing }: FilePreviewProps) {
         ) : (
           <>
             {documentType.isImage ? (
-              <div className="aspect-square rounded-lg overflow-hidden bg-gray-100">
+              <div className="aspect-square rounded-lg overflow-hidden ">
                 {getFileUrl(file) ? (
                   <img
                     src={getFileUrl(file)!}
@@ -271,12 +274,37 @@ export function FilePreview({ documentType, isEditing }: FilePreviewProps) {
           </>
         )}
 
+        {/* Status Indicator */}
+        {!isUploading && file && (
+          <div className="absolute top-2 right-2">
+            <div
+              className={`w-4 h-4 rounded-full border-2 border-white shadow-sm ${
+                status === "approved"
+                  ? "bg-green-500"
+                  : status === "rejected"
+                  ? "bg-red-500"
+                  : "bg-yellow-500"
+              }`}
+              title={
+                status === "rejected" && rejectionReason
+                  ? `Rejected: ${rejectionReason}`
+                  : status === "approved"
+                  ? "Approved"
+                  : status === "rejected"
+                  ? "Rejected"
+                  : "Pending"
+              }
+            />
+          </div>
+        )}
+
         {/* Hover Actions */}
         {!isUploading && (
-          <div className="absolute inset-0 bg-black bg-opacity-50 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center gap-2">
+          <div className="absolute inset-0 group-hover:bg-gradient-to-t cursor-pointer group-hover:from-black group-hover:to-transparent rounded-lg opacity-0 group-hover:opacity-80 transition-opacity flex flex-col items-center justify-center gap-2">
             <Button
               size="sm"
               variant="secondary"
+              className="cursor-pointer"
               onClick={() => handleFileOpen(file)}
             >
               <Eye className="w-4 h-4 mr-1" />
@@ -286,6 +314,7 @@ export function FilePreview({ documentType, isEditing }: FilePreviewProps) {
               <Button
                 size="sm"
                 variant="secondary"
+                className="cursor-pointer"
                 onClick={() => {
                   const input = document.getElementById(
                     `replace-${documentType.id}`
@@ -317,7 +346,10 @@ export function FilePreview({ documentType, isEditing }: FilePreviewProps) {
       {/* File Info */}
       {!isUploading && file && (
         <div className="mt-3">
-          <h4 className="font-semibold text-sm text-gray-900 truncate">
+          <h3 className="font-semibold text-sm text-gray-900 mb-1">
+            {documentType.name}
+          </h3>
+          <h4 className="font-medium text-xs text-gray-700 truncate mb-1">
             {file.fileName || "Unknown file"}
           </h4>
           <p className="text-xs text-gray-500">{getFileSizeDisplay(file)}</p>

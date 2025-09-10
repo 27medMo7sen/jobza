@@ -1,47 +1,53 @@
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
-import { MapPin, Clock, DollarSign, Calendar, Users } from "lucide-react"
-import Link from "next/link"
-import type { Job } from "@/lib/types"
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { MapPin, Clock, DollarSign, Calendar, Users } from "lucide-react";
+import Link from "next/link";
+import type { Job } from "@/lib/types";
 
 interface JobCardProps {
   job: Job & {
     family?: {
-      familyName: string
+      familyName: string;
       location: {
-        city: string
-        country: string
-      }
-    }
-  }
-  showApplyButton?: boolean
+        city: string;
+        country: string;
+      };
+    };
+  };
+  showApplyButton?: boolean;
 }
 
 export function JobCard({ job, showApplyButton = true }: JobCardProps) {
   const formatBudget = (min: number, max: number, currency: string) => {
-    return `${currency} ${min}-${max}`
-  }
+    return `${currency} ${min}-${max}`;
+  };
 
   const formatServiceType = (serviceType: string) => {
     return serviceType
       .split("-")
       .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-      .join(" ")
-  }
+      .join(" ");
+  };
 
   const getUrgencyColor = (urgency: string) => {
     switch (urgency) {
       case "high":
-        return "destructive"
+        return "destructive";
       case "medium":
-        return "secondary"
+        return "secondary";
       case "low":
-        return "outline"
+        return "outline";
       default:
-        return "outline"
+        return "outline";
     }
-  }
+  };
 
   return (
     <Card className="hover:shadow-md transition-shadow">
@@ -55,24 +61,36 @@ export function JobCard({ job, showApplyButton = true }: JobCardProps) {
             </CardDescription>
           </div>
           <div className="flex flex-col gap-2">
-            <Badge variant={getUrgencyColor(job.urgencyLevel)}>{job.urgencyLevel} priority</Badge>
-            <Badge variant="outline">{formatServiceType(job.serviceType)}</Badge>
+            <Badge variant={getUrgencyColor(job.urgencyLevel)}>
+              {job.urgencyLevel} priority
+            </Badge>
+            <Badge variant="outline">
+              {formatServiceType(job.serviceType)}
+            </Badge>
           </div>
         </div>
       </CardHeader>
       <CardContent className="space-y-4">
-        <p className="text-sm text-muted-foreground line-clamp-2">{job.description}</p>
+        <p className="text-sm text-muted-foreground line-clamp-2">
+          {job.description}
+        </p>
 
         <div className="grid grid-cols-2 gap-4 text-sm">
           <div className="flex items-center gap-2">
             <MapPin className="h-4 w-4 text-muted-foreground" />
             <span>
-              {job.city}, {job.country}
+              {job.location.city}, {job.location.country}
             </span>
           </div>
           <div className="flex items-center gap-2">
             <DollarSign className="h-4 w-4 text-muted-foreground" />
-            <span>{formatBudget(job.budget.min, job.budget.max, job.currency)}</span>
+            <span>
+              {formatBudget(
+                job.budget.min,
+                job.budget.max,
+                job.budget.currency
+              )}
+            </span>
           </div>
           <div className="flex items-center gap-2">
             <Clock className="h-4 w-4 text-muted-foreground" />
@@ -80,7 +98,7 @@ export function JobCard({ job, showApplyButton = true }: JobCardProps) {
           </div>
           <div className="flex items-center gap-2">
             <Calendar className="h-4 w-4 text-muted-foreground" />
-            <span>{new Date(job.startDate).toLocaleDateString()}</span>
+            <span>{new Date(job.schedule.startDate).toLocaleDateString()}</span>
           </div>
         </div>
 
@@ -104,7 +122,8 @@ export function JobCard({ job, showApplyButton = true }: JobCardProps) {
 
         <div className="flex items-center justify-between pt-2">
           <div className="text-xs text-muted-foreground">
-            {job.applicationsCount} application{job.applicationsCount !== 1 ? "s" : ""}
+            {job.applicationsCount} application
+            {job.applicationsCount !== 1 ? "s" : ""}
           </div>
           {showApplyButton && (
             <div className="flex gap-2">
@@ -119,5 +138,5 @@ export function JobCard({ job, showApplyButton = true }: JobCardProps) {
         </div>
       </CardContent>
     </Card>
-  )
+  );
 }

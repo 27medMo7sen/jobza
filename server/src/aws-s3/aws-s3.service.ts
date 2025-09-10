@@ -4,16 +4,15 @@ import {
   S3Client,
   PutObjectCommand,
   DeleteObjectCommand,
-  GetObjectCommand,
   HeadObjectCommand,
 } from '@aws-sdk/client-s3';
-import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 
 @Injectable()
 export class AwsS3Service {
   private readonly logger = new Logger(AwsS3Service.name);
   private readonly s3: S3Client;
   private readonly bucket: string;
+  private readonly region: string;
 
   constructor(private readonly configService: ConfigService) {
     const region = this.configService.get<string>('AWS_REGION');
@@ -22,6 +21,7 @@ export class AwsS3Service {
       'AWS_SECRET_ACCESS_KEY',
     );
     this.bucket = this.configService.get<string>('AWS_S3_BUCKET')!;
+    this.region = region!;
 
     if (!region || !accessKeyId || !secretAccessKey || !this.bucket) {
       throw new Error('Missing required AWS S3 configuration');
@@ -49,6 +49,7 @@ export class AwsS3Service {
           originalName: file.originalname,
           uploadedAt: new Date().toISOString(),
         },
+        ACL: 'public-read',
       });
 
       await this.s3.send(command);
@@ -76,18 +77,9 @@ export class AwsS3Service {
     }
   }
 
-  async getFileUrl(key: string, expiresIn: number = 3600): Promise<string> {
-    try {
-      const command = new GetObjectCommand({
-        Bucket: this.bucket,
-        Key: key,
-      });
-
-      return await getSignedUrl(this.s3, command, { expiresIn });
-    } catch (error) {
-      this.logger.error(`Failed to generate signed URL for: ${key}`, error);
-      throw new Error(`Failed to generate signed URL: ${error.message}`);
-    }
+  async getFileUrl(key: string): Promise<string> {
+    // Return public URL (objects must be ACL public-read or bucket policy must allow public reads)
+    return `https://${this.bucket}.s3.${this.region}.amazonaws.com/${key}`;
   }
 
   async fileExists(key: string): Promise<boolean> {

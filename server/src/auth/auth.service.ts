@@ -1,7 +1,7 @@
 import { HttpException, Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Auth, Role } from './auth.model';
-import { Model } from 'mongoose';
+import { Model, Types } from 'mongoose';
 import { WorkerSignupDto } from './dto/workerSignup.dto';
 import * as bcrypt from 'bcrypt';
 import { LoginDto } from './dto/login.dto';
@@ -16,7 +16,6 @@ import { Worker } from 'src/worker/worker.model';
 import { Employer } from 'src/employer/employer.model';
 import { Agency } from 'src/agency/agency.model';
 import { status } from './auth.model';
-
 @Injectable()
 export class AuthService {
   constructor(
@@ -211,10 +210,10 @@ export class AuthService {
       await newUser.save();
       return newUser;
     }
-    token = this.jwtService.sign({ userId: user._id, email: user.email });
+    token = this.jwtService.sign({ userId: user._id, email: user.email, role });
     const userUpdate = await this.authModel.findOneAndUpdate(
       { email: _json.email },
-      { token },
+      { token, role },
       { new: true },
     );
     console.log('userUpdate', userUpdate);
@@ -249,7 +248,10 @@ export class AuthService {
       .findOne({ token })
       .populate('worker')
       .populate('employer')
-      .populate('agency');
+      .populate('agency')
+      .select(
+        '-password -_id -code -token -createdAt -updatedAt -isVerified -method',
+      );
     if (!user) {
       console.log('User not found');
       throw new HttpException('User not found', 404);
@@ -316,20 +318,81 @@ export class AuthService {
         new: true,
       },
     );
-    console.log('updatedUser', updatedUser);
-    if (user.role === Role.WORKER) {
-      await this.workerService.updateWorker(user.userId, updateData);
-    } else if (user.role === Role.EMPLOYER) {
-      await this.employerService.updateEmployer(user.userId, updateData);
-    } else if (user.role === Role.AGENCY) {
-      await this.agencyService.updateAgency(user.userId, updateData);
+    if (!updatedUser?.worker) {
+      throw new HttpException('Worker not found', 404);
     }
+    console.log('updatedUser', updatedUser);
+    console.log('user', user);
+    if (user.role === Role.WORKER) {
+      console.log('going to worker service');
+      await this.workerService.updateWorker(
+        updatedUser?.worker._id,
+        updateData,
+      );
+    } else if (user.role === Role.EMPLOYER) {
+      await this.employerService.updateEmployer(
+        updatedUser?.employer._id,
+        updateData,
+      );
+    } else if (user.role === Role.AGENCY) {
+      await this.agencyService.updateAgency(
+        updatedUser?.agency._id,
+        updateData,
+      );
+    }
+
     return {
       message: 'User updated successfully',
     };
   }
 
-  async signatureUploaded(userId: string) {
+  async signatureUploaded(userId: Types.ObjectId) {
     await this.authModel.findByIdAndUpdate(userId, { signature: true });
+  }
+  async updateProfilePhoto(
+    userId: Types.ObjectId,
+    url: string,
+    s3Key: string,
+    role: string,
+  ) {
+    if (role === Role.WORKER) {
+      // Find the worker document first to get its _id
+      const user = await this.authModel.findById(userId);
+      if (!user) {
+        throw new HttpException('Worker not found', 404);
+      }
+      return await this.workerService.updateWorker(
+        user.worker as Types.ObjectId,
+        {
+          profilePicture: { url, s3Key },
+        },
+      );
+    } else if (role === Role.EMPLOYER) {
+      // Find the employer document first to get its _id
+      const employer = await this.employerService.getEmployerByUserId(
+        userId.toString(),
+      );
+      if (!employer) {
+        throw new HttpException('Employer not found', 404);
+      }
+      return await this.employerService.updateEmployer(
+        employer._id as Types.ObjectId,
+        {
+          profilePicture: { url, s3Key },
+        },
+      );
+    } else if (role === Role.AGENCY) {
+      // Find the agency document first to get its _id
+      const agency = await this.agencyService.getAgencyByUserId(userId);
+      if (!agency) {
+        throw new HttpException('Agency not found', 404);
+      }
+      return await this.agencyService.updateAgency(
+        agency._id as Types.ObjectId,
+        {
+          profilePicture: { url, s3Key },
+        },
+      );
+    }
   }
 }

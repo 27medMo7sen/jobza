@@ -7,9 +7,10 @@ import { ProfileData } from "@/types/profile";
 import SignaturePad from "./SignatureSection";
 import { useSelector, useDispatch } from "react-redux";
 import { RootState } from "@/lib/store";
-import { clearFiles } from "@/lib/slices/authSlice";
+import { clearFiles, setFilesLoaded } from "@/lib/slices/filesSlice";
 import { Button } from "@/components/ui/button";
 import { useState, useEffect } from "react";
+import { DocumentsSectionSkeleton } from "@/components/ui/skeleton-loaders";
 
 interface DocumentsSectionProps {
   profileData: ProfileData;
@@ -20,17 +21,20 @@ export function DocumentsSection({
   profileData,
   isLoadingFiles = false,
 }: DocumentsSectionProps) {
-  const { files } = useSelector((state: RootState) => state.auth);
+  const { files } = useSelector((state: RootState) => state.files);
   const dispatch = useDispatch();
   const [isClient, setIsClient] = useState(false);
-  const roleDocuments = getDocumentsForRole(profileData?.role, profileData);
+  const roleDocuments = getDocumentsForRole(
+    profileData?.role || "worker",
+    profileData
+  );
 
   useEffect(() => {
     setIsClient(true);
   }, []);
 
-  console.log("DocumentsSection - files from Redux:", files);
-  console.log("DocumentsSection - roleDocuments:", roleDocuments);
+  // console.log("DocumentsSection - files from Redux:", files);
+  // console.log("DocumentsSection - roleDocuments:", roleDocuments);
 
   const handleClearFiles = () => {
     dispatch(clearFiles());
@@ -39,6 +43,7 @@ export function DocumentsSection({
 
   const requiredDocuments = roleDocuments.filter((doc) => doc.required);
   const optionalDocuments = roleDocuments.filter((doc) => !doc.required);
+
   return (
     <Card>
       <CardHeader>
@@ -53,16 +58,7 @@ export function DocumentsSection({
       </CardHeader>
       <CardContent>
         {/* Loading State */}
-        {isLoadingFiles && (
-          <div className="flex items-center justify-center py-8">
-            <div className="flex items-center space-x-2">
-              <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600"></div>
-              <span className="text-sm text-gray-600">
-                Loading documents...
-              </span>
-            </div>
-          </div>
-        )}
+        {isLoadingFiles && <DocumentsSectionSkeleton />}
 
         {/* Required Documents */}
         {!isLoadingFiles && requiredDocuments.length > 0 && (
@@ -70,7 +66,7 @@ export function DocumentsSection({
             <h3 className="text-lg font-semibold text-foreground mb-4">
               Required Documents
             </h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
               {requiredDocuments.map((docType) => (
                 <FilePreview
                   key={docType.id}
@@ -88,7 +84,7 @@ export function DocumentsSection({
             <h3 className="text-lg font-semibold text-foreground mb-4">
               Optional Documents
             </h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
               {optionalDocuments.map((docType) => (
                 <FilePreview
                   key={docType.id}
@@ -99,6 +95,7 @@ export function DocumentsSection({
             </div>
           </div>
         )}
+
         {/* Signature Section */}
         {!isLoadingFiles &&
           (profileData?.role === "worker" ||
@@ -115,6 +112,7 @@ export function DocumentsSection({
               <SignaturePad />
             </div>
           )}
+
         {/* Debug Section - Remove in production */}
         {/* {!isLoadingFiles && isClient && (
           <div className="mt-6 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
@@ -122,8 +120,12 @@ export function DocumentsSection({
               Debug Info (Remove in production)
             </h4>
             <div className="text-xs text-yellow-800 mb-2">
+              <p>Profile Role: {profileData?.role}</p>
+              <p>Required Documents: {requiredDocuments.length}</p>
+              <p>Optional Documents: {optionalDocuments.length}</p>
               <p>Files in Redux: {Object.keys(files || {}).length} files</p>
               <p>Files: {JSON.stringify(files, null, 2)}</p>
+              <p>Role Documents: {JSON.stringify(roleDocuments, null, 2)}</p>
             </div>
             <Button
               size="sm"
@@ -135,57 +137,6 @@ export function DocumentsSection({
             </Button>
           </div>
         )} */}
-
-        {/* Upload Progress Summary */}
-        {!isLoadingFiles && isClient && (
-          <div className="mt-6 p-4 bg-gray-50 rounded-lg">
-            <h4 className="font-semibold text-sm text-gray-900 mb-2">
-              Upload Summary
-            </h4>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
-              <div>
-                <span className="text-gray-600">Required:</span>
-                <span className="ml-1 font-semibold">
-                  {
-                    requiredDocuments.filter((doc) => files?.[doc.id]?.file)
-                      .length
-                  }{" "}
-                  / {requiredDocuments.length}
-                </span>
-              </div>
-              <div>
-                <span className="text-gray-600">Optional:</span>
-                <span className="ml-1 font-semibold">
-                  {
-                    optionalDocuments.filter((doc) => files?.[doc.id]?.file)
-                      .length
-                  }{" "}
-                  / {optionalDocuments.length}
-                </span>
-              </div>
-              <div>
-                <span className="text-gray-600">Approved:</span>
-                <span className="ml-1 font-semibold text-green-600">
-                  {
-                    Object.values(files || {}).filter(
-                      (doc) => doc?.status === "approved"
-                    ).length
-                  }
-                </span>
-              </div>
-              <div>
-                <span className="text-gray-600">Pending:</span>
-                <span className="ml-1 font-semibold text-yellow-600">
-                  {
-                    Object.values(files || {}).filter(
-                      (doc) => doc?.status === "pending"
-                    ).length
-                  }
-                </span>
-              </div>
-            </div>
-          </div>
-        )}
       </CardContent>
     </Card>
   );

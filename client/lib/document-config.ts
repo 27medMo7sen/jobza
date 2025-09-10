@@ -32,20 +32,10 @@ export const DOCUMENT_TYPES: Record<string, DocumentType> = {
     isImage: true,
     icon: "👤",
   },
-  passportId: {
+  passport: {
     id: "passport",
     name: "Passport",
     description: "Valid passport document",
-    required: true,
-    acceptedTypes: ["image/jpeg", "image/png", "application/pdf"],
-    maxSize: 10,
-    isImage: false,
-    icon: "🆔",
-  },
-  nationalIdWorker: {
-    id: "national_id_worker",
-    name: "National ID",
-    description: "Valid national identification document",
     required: true,
     acceptedTypes: ["image/jpeg", "image/png", "application/pdf"],
     maxSize: 10,
@@ -271,14 +261,14 @@ export const getDocumentsForRole = (
 
     if (isSameCountry) {
       // If country equals nationality, only ask for national ID
-      roleDocuments.worker.push("nationalIdWorker");
+      roleDocuments.worker.push("nationalId");
     } else {
       // If different country, ask for passport and visa
-      roleDocuments.worker.push("passportId", "visa");
+      roleDocuments.worker.push("passport", "visa");
     }
   } else if (role === "worker") {
     // Default case when no profile data is provided - include both passport and visa
-    roleDocuments.worker.push("passportId", "visa");
+    roleDocuments.worker.push("passport", "visa");
   }
 
   const documentIds = roleDocuments[role] || [];

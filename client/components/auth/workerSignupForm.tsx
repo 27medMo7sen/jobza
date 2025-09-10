@@ -1,13 +1,17 @@
-import React, { useState } from "react";
+import React, { useRef, useState } from "react";
 import { ChevronDown } from "lucide-react";
 import Input from "@/components/auth/input";
 import useInput from "@/hooks/use-input";
 import Link from "next/link";
+import { CountryNationalitySelect } from "./CountryNationalitySelect";
+import { GenderSelect } from "./GenderSelect";
+import { EducationLevelSelect } from "./EducationLevelSelect";
+import { SkillsInput } from "./SkillsInput";
+import { useHttp } from "@/hooks/use-http";
+import { DrawerOpt } from "./drawerOpt";
 // Validation functions
-const validateUsername = (value: string): boolean => {
-  return (
-    value.length >= 3 && value.length <= 20 && /^[a-zA-Z0-9_]+$/.test(value)
-  );
+const validateFullName = (value: string): boolean => {
+  return value.trim().length >= 2;
 };
 
 const validateEmail = (value: string): boolean => {
@@ -30,7 +34,7 @@ const validateRequired = (value: string): boolean => {
 
 const WorkerSignupForm: React.FC = () => {
   // Initialize form inputs with useInput hook
-  const username = useInput(validateUsername);
+  const fullName = useInput(validateFullName);
   const email = useInput(validateEmail);
   const phone = useInput(validatePhone);
   const dateOfBirth = useInput(validateRequired);
@@ -44,59 +48,30 @@ const WorkerSignupForm: React.FC = () => {
   const [nationality, setNationality] = useState("");
   const [gender, setGender] = useState("");
   const [educationLevel, setEducationLevel] = useState("");
+  const [skills, setSkills] = useState<string[]>([]);
 
-  const [showCountryDropdown, setShowCountryDropdown] = useState(false);
-  const [showNationalityDropdown, setShowNationalityDropdown] = useState(false);
-  const [showGenderDropdown, setShowGenderDropdown] = useState(false);
-  const [showEducationDropdown, setShowEducationDropdown] = useState(false);
+  const { post, isLoading, error } = useHttp();
+  const drawerRef = useRef<HTMLButtonElement | null>(null);
 
-  const countries = [
-    "United States",
-    "United Kingdom",
-    "Canada",
-    "Australia",
-    "Germany",
-    "France",
-    "Japan",
-    "Other",
-  ];
-  const nationalities = [
-    "American",
-    "British",
-    "Canadian",
-    "Australian",
-    "German",
-    "French",
-    "Japanese",
-    "Other",
-  ];
-  const genders = ["Male", "Female", "Non-binary", "Prefer not to say"];
-  const educationLevels = [
-    "None",
-    "Primary",
-    "Secondary",
-    "Vocational",
-    "University",
+  // Available skills for workers
+  const availableSkills = [
+    "House Cleaning",
+    "Deep Cleaning",
+    "Laundry & Ironing",
+    "Kitchen Cleaning",
+    "Elderly Care",
+    "Child Care",
+    "Pet Care",
+    "Garden Maintenance",
+    "Cooking",
+    "Organization",
+    "Window Cleaning",
+    "Carpet Cleaning",
+    "Bathroom Cleaning",
   ];
 
-  const handleInputChange = (field: string, value: string) => {
-    switch (field) {
-      case "country":
-        setCountry(value);
-        break;
-      case "nationality":
-        setNationality(value);
-        break;
-      case "gender":
-        setGender(value);
-        break;
-      case "educationLevel":
-        setEducationLevel(value);
-        break;
-    }
-  };
   const isFormValid =
-    username.isValid &&
+    fullName.isValid &&
     email.isValid &&
     phone.isValid &&
     dateOfBirth.isValid &&
@@ -105,11 +80,12 @@ const WorkerSignupForm: React.FC = () => {
     country &&
     nationality &&
     gender &&
-    educationLevel;
-  const handleSubmit = () => {
+    educationLevel &&
+    skills.length > 0;
+  const handleSubmit = async () => {
     // Validate all required fields
     const isFormValid =
-      username.isValid &&
+      fullName.isValid &&
       email.isValid &&
       phone.isValid &&
       dateOfBirth.isValid &&
@@ -118,24 +94,47 @@ const WorkerSignupForm: React.FC = () => {
       country &&
       nationality &&
       gender &&
-      educationLevel;
+      educationLevel &&
+      skills.length > 0;
 
     if (isFormValid) {
-      const formData = {
-        username: username.value,
+      const body: any = {
+        role: "worker",
+        name: fullName.value,
         email: email.value,
-        phone: phone.value,
+        phoneNumber: phone.value,
         country,
         nationality,
         gender,
         dateOfBirth: dateOfBirth.value,
-        educationLevel,
+        heighestEducationalLevel: educationLevel,
+        skillSet: skills,
         password: password.value,
+        confirmPassword: password.value,
       };
-      console.log("Form submitted:", formData);
+      try {
+        await post("/auth/worker/signup", body);
+        // Persist email/password for OTP verify + auto-login (use sessionStorage)
+        if (typeof window !== "undefined") {
+          sessionStorage.setItem("signupEmail", email.value);
+          sessionStorage.setItem("signupPassword", password.value);
+          sessionStorage.setItem("signupRole", "worker");
+        }
+        // Open OTP drawer
+        if (drawerRef.current) drawerRef.current.click();
+      } catch (e) {
+        // Touch all fields to show validation errors
+        fullName.onBlur();
+        email.onBlur();
+        phone.onBlur();
+        dateOfBirth.onBlur();
+        password.onBlur();
+        confirmPassword.onBlur();
+        console.error("Signup failed", e);
+      }
     } else {
       // Touch all fields to show validation errors
-      username.onBlur();
+      fullName.onBlur();
       email.onBlur();
       phone.onBlur();
       dateOfBirth.onBlur();
@@ -151,6 +150,7 @@ const WorkerSignupForm: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-gray-50 py-12 px-4">
+      <DrawerOpt drawerRef={drawerRef} />
       <div className="max-w-2xl mx-auto">
         <div className="bg-white rounded-lg shadow-sm p-8">
           {/* Header */}
@@ -197,17 +197,17 @@ const WorkerSignupForm: React.FC = () => {
 
           {/* Form */}
           <div className="space-y-6">
-            {/* Username Field */}
+            {/* Full Name Field */}
             <Input
-              label="Username"
+              label="Full Name"
               type="text"
-              placeholder="Enter username"
+              placeholder="Enter your full name"
               required
-              value={username.value}
-              onChange={username.onChange}
-              onBlur={username.onBlur}
-              hasError={username.hasError}
-              errorMessage="Username must be 3-20 characters long and contain only letters, numbers, and underscores"
+              value={fullName.value}
+              onChange={fullName.onChange}
+              onBlur={fullName.onBlur}
+              hasError={fullName.hasError}
+              errorMessage="Full name must be at least 2 characters"
             />
 
             {/* Email and Phone Row */}
@@ -237,111 +237,17 @@ const WorkerSignupForm: React.FC = () => {
             </div>
 
             {/* Country and Nationality Row */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="relative">
-                <label className="block text-sm font-medium text-gray-900 mb-2">
-                  Country <span className="text-red-500">*</span>
-                </label>
-                <button
-                  type="button"
-                  onClick={() => setShowCountryDropdown(!showCountryDropdown)}
-                  className="w-full px-3 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-left flex items-center justify-between"
-                >
-                  <span className={country ? "text-gray-900" : "text-gray-500"}>
-                    {country || "Select country"}
-                  </span>
-                  <ChevronDown size={20} className="text-gray-400" />
-                </button>
-                {showCountryDropdown && (
-                  <div className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg">
-                    {countries.map((country) => (
-                      <button
-                        key={country}
-                        type="button"
-                        onClick={() => {
-                          handleInputChange("country", country);
-                          setShowCountryDropdown(false);
-                        }}
-                        className="w-full px-3 py-2 text-left text-black hover:bg-gray-50 first:rounded-t-lg last:rounded-b-lg"
-                      >
-                        {country}
-                      </button>
-                    ))}
-                  </div>
-                )}
-              </div>
-              <div className="relative">
-                <label className="block text-sm font-medium text-gray-900 mb-2">
-                  Nationality <span className="text-red-500">*</span>
-                </label>
-                <button
-                  type="button"
-                  onClick={() =>
-                    setShowNationalityDropdown(!showNationalityDropdown)
-                  }
-                  className="w-full px-3 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-left flex items-center justify-between"
-                >
-                  <span
-                    className={nationality ? "text-gray-900" : "text-gray-500"}
-                  >
-                    {nationality || "Select nationality"}
-                  </span>
-                  <ChevronDown size={20} className="text-gray-400" />
-                </button>
-                {showNationalityDropdown && (
-                  <div className="absolute z-10 w-full mt-1 text-black bg-white border border-gray-300 rounded-lg shadow-lg">
-                    {nationalities.map((nationality) => (
-                      <button
-                        key={nationality}
-                        type="button"
-                        onClick={() => {
-                          handleInputChange("nationality", nationality);
-                          setShowNationalityDropdown(false);
-                        }}
-                        className="w-full px-3 py-2 text-left hover:bg-gray-50 first:rounded-t-lg last:rounded-b-lg"
-                      >
-                        {nationality}
-                      </button>
-                    ))}
-                  </div>
-                )}
-              </div>
-            </div>
+            <CountryNationalitySelect
+              country={country}
+              nationality={nationality}
+              onCountryChange={setCountry}
+              onNationalityChange={setNationality}
+              required
+            />
 
             {/* Gender and Date of Birth Row */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="relative">
-                <label className="block text-sm font-medium text-gray-900 mb-2">
-                  Gender <span className="text-red-500">*</span>
-                </label>
-                <button
-                  type="button"
-                  onClick={() => setShowGenderDropdown(!showGenderDropdown)}
-                  className="w-full px-3 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-left flex items-center justify-between"
-                >
-                  <span className={gender ? "text-gray-900" : "text-gray-500"}>
-                    {gender || "Select gender"}
-                  </span>
-                  <ChevronDown size={20} className="text-gray-400" />
-                </button>
-                {showGenderDropdown && (
-                  <div className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg">
-                    {genders.map((gender) => (
-                      <button
-                        key={gender}
-                        type="button"
-                        onClick={() => {
-                          handleInputChange("gender", gender);
-                          setShowGenderDropdown(false);
-                        }}
-                        className="w-full px-3 py-2 text-left text-black hover:bg-gray-50 first:rounded-t-lg last:rounded-b-lg"
-                      >
-                        {gender}
-                      </button>
-                    ))}
-                  </div>
-                )}
-              </div>
+              <GenderSelect value={gender} onChange={setGender} required />
               <Input
                 label="Date of Birth"
                 type="date"
@@ -355,40 +261,19 @@ const WorkerSignupForm: React.FC = () => {
             </div>
 
             {/* Education Level */}
-            <div className="relative">
-              <label className="block text-sm font-medium text-gray-900 mb-2">
-                Highest Education Level <span className="text-red-500">*</span>
-              </label>
-              <button
-                type="button"
-                onClick={() => setShowEducationDropdown(!showEducationDropdown)}
-                className="w-full px-3 py-3 border border-gray-300 text-black rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-left flex items-center justify-between"
-              >
-                <span
-                  className={educationLevel ? "text-gray-900" : "text-gray-500"}
-                >
-                  {educationLevel || "Select your education level"}
-                </span>
-                <ChevronDown size={20} className="text-gray-400" />
-              </button>
-              {showEducationDropdown && (
-                <div className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg">
-                  {educationLevels.map((level) => (
-                    <button
-                      key={level}
-                      type="button"
-                      onClick={() => {
-                        handleInputChange("educationLevel", level);
-                        setShowEducationDropdown(false);
-                      }}
-                      className="w-full px-3 py-2 text-left hover:bg-gray-50 text-black first:rounded-t-lg last:rounded-b-lg"
-                    >
-                      {level}
-                    </button>
-                  ))}
-                </div>
-              )}
-            </div>
+            <EducationLevelSelect
+              value={educationLevel}
+              onChange={setEducationLevel}
+              required
+            />
+
+            {/* Skills Input */}
+            <SkillsInput
+              skills={skills}
+              onSkillsChange={setSkills}
+              availableSkills={availableSkills}
+              required
+            />
 
             {/* Password Fields */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -419,11 +304,11 @@ const WorkerSignupForm: React.FC = () => {
             {/* Submit Button */}
             <button
               type="button"
-              disabled={!isFormValid}
+              disabled={!isFormValid || isLoading}
               onClick={handleSubmit}
               className={`w-full bg-blue-600 disabled:bg-gray-300 disabled:cursor-not-allowed text-white py-3 px-4 rounded-lg font-medium hover:bg-blue-700 transition-colors duration-200`}
             >
-              Create Worker Account
+              {isLoading ? "Creating Account..." : "Create Worker Account"}
             </button>
           </div>
           <div className="text-center">

@@ -1,13 +1,13 @@
-"use client"
+"use client";
 
-import type React from "react"
+import type React from "react";
 
-import { useState } from "react"
-import Link from "next/link"
-import { usePathname } from "next/navigation"
-import { Button } from "@/components/ui/button"
-import { Badge } from "@/components/ui/badge"
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import { useState } from "react";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -15,25 +15,37 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
-import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
-import { Home, Briefcase, Users, MessageSquare, Settings, Bell, Menu, LogOut, User, Plus, Search } from "lucide-react"
-import { cn } from "@/lib/utils"
-import type { UserRole } from "@/lib/types"
+} from "@/components/ui/dropdown-menu";
+import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+import {
+  Home,
+  Briefcase,
+  Users,
+  MessageSquare,
+  Settings,
+  Bell,
+  Menu,
+  LogOut,
+  User,
+  Plus,
+  Search,
+} from "lucide-react";
+import { cn } from "@/lib/utils";
+import type { UserRole } from "@/lib/types";
 
 interface DashboardLayoutProps {
-  children: React.ReactNode
-  userRole: UserRole
-  userName?: string
-  userEmail?: string
-  userAvatar?: string
+  children: React.ReactNode;
+  userRole: UserRole;
+  userName?: string;
+  userEmail?: string;
+  userAvatar?: string;
 }
 
 interface NavItem {
-  title: string
-  href: string
-  icon: React.ComponentType<{ className?: string }>
-  badge?: string
+  title: string;
+  href: string;
+  icon: React.ComponentType<{ className?: string }>;
+  badge?: string;
 }
 
 const getNavigationItems = (role: UserRole): NavItem[] => {
@@ -42,56 +54,70 @@ const getNavigationItems = (role: UserRole): NavItem[] => {
     { title: "Messages", href: `/${role}/messages`, icon: MessageSquare },
     { title: "Profile", href: `/${role}/profile`, icon: User },
     { title: "Settings", href: `/${role}/settings`, icon: Settings },
-  ]
+  ];
 
   switch (role) {
-    case "family":
+    case "employer":
       return [
         ...baseItems.slice(0, 1),
-        { title: "My Jobs", href: "/family/jobs", icon: Briefcase },
+        { title: "My Jobs", href: "/employer/jobs", icon: Briefcase },
         { title: "Post Job", href: "/post-job", icon: Plus },
         { title: "Browse Workers", href: "/browse-workers", icon: Search },
         ...baseItems.slice(1),
-      ]
+      ];
     case "worker":
       return [
         ...baseItems.slice(0, 1),
         { title: "Find Jobs", href: "/browse-jobs", icon: Search },
-        { title: "My Applications", href: "/worker/applications", icon: Briefcase },
+        {
+          title: "My Applications",
+          href: "/worker/applications",
+          icon: Briefcase,
+        },
         { title: "My Jobs", href: "/worker/jobs", icon: Briefcase },
         ...baseItems.slice(1),
-      ]
+      ];
     case "agency":
       return [
         ...baseItems.slice(0, 1),
         { title: "Workers", href: "/agency/workers", icon: Users },
         { title: "Jobs", href: "/agency/jobs", icon: Briefcase },
-        { title: "Applications", href: "/agency/applications", icon: Briefcase },
+        {
+          title: "Applications",
+          href: "/agency/applications",
+          icon: Briefcase,
+        },
         ...baseItems.slice(1),
-      ]
+      ];
     default:
-      return baseItems
+      return baseItems;
   }
-}
+};
 
-export function DashboardLayout({ children, userRole, userName, userEmail, userAvatar }: DashboardLayoutProps) {
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
-  const pathname = usePathname()
-  const navigationItems = getNavigationItems(userRole)
+export function DashboardLayout({
+  children,
+  userRole,
+  userName,
+  userEmail,
+  userAvatar,
+}: DashboardLayoutProps) {
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const pathname = usePathname();
+  const navigationItems = getNavigationItems(userRole);
 
   const handleSignOut = async () => {
     try {
-      await fetch("/api/auth/signout", { method: "POST" })
-      window.location.href = "/"
+      await fetch("/api/auth/signout", { method: "POST" });
+      window.location.href = "/";
     } catch (error) {
-      console.error("Sign out error:", error)
+      console.error("Sign out error:", error);
     }
-  }
+  };
 
   const NavItems = ({ className }: { className?: string }) => (
     <nav className={cn("space-y-2", className)}>
       {navigationItems.map((item) => {
-        const isActive = pathname === item.href
+        const isActive = pathname === item.href;
         return (
           <Link
             key={item.href}
@@ -100,7 +126,7 @@ export function DashboardLayout({ children, userRole, userName, userEmail, userA
               "flex items-center gap-3 rounded-lg px-3 py-2 text-sm transition-colors",
               isActive
                 ? "bg-primary text-primary-foreground"
-                : "text-muted-foreground hover:bg-muted hover:text-foreground",
+                : "text-muted-foreground hover:bg-muted hover:text-foreground"
             )}
             onClick={() => setIsMobileMenuOpen(false)}
           >
@@ -112,10 +138,10 @@ export function DashboardLayout({ children, userRole, userName, userEmail, userA
               </Badge>
             )}
           </Link>
-        )
+        );
       })}
     </nav>
-  )
+  );
 
   return (
     <div className="min-h-screen bg-background">
@@ -124,7 +150,11 @@ export function DashboardLayout({ children, userRole, userName, userEmail, userA
         <div className="flex h-16 items-center gap-4 px-4 lg:px-6">
           <Sheet open={isMobileMenuOpen} onOpenChange={setIsMobileMenuOpen}>
             <SheetTrigger asChild>
-              <Button variant="outline" size="icon" className="shrink-0 md:hidden bg-transparent">
+              <Button
+                variant="outline"
+                size="icon"
+                className="shrink-0 md:hidden bg-transparent"
+              >
                 <Menu className="h-5 w-5" />
                 <span className="sr-only">Toggle navigation menu</span>
               </Button>
@@ -132,7 +162,9 @@ export function DashboardLayout({ children, userRole, userName, userEmail, userA
             <SheetContent side="left" className="flex flex-col">
               <div className="flex items-center gap-2 mb-6">
                 <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
-                  <span className="text-primary-foreground font-bold text-lg">J</span>
+                  <span className="text-primary-foreground font-bold text-lg">
+                    J
+                  </span>
                 </div>
                 <span className="text-xl font-bold">Jobza</span>
               </div>
@@ -142,23 +174,34 @@ export function DashboardLayout({ children, userRole, userName, userEmail, userA
 
           <Link href="/" className="flex items-center gap-2">
             <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
-              <span className="text-primary-foreground font-bold text-lg">J</span>
+              <span className="text-primary-foreground font-bold text-lg">
+                J
+              </span>
             </div>
             <span className="text-xl font-bold hidden sm:block">Jobza</span>
           </Link>
 
           <div className="flex-1" />
 
-          <Button variant="outline" size="icon" className="relative bg-transparent">
+          <Button
+            variant="outline"
+            size="icon"
+            className="relative bg-transparent"
+          >
             <Bell className="h-4 w-4" />
-            <Badge className="absolute -top-1 -right-1 h-5 w-5 flex items-center justify-center p-0 text-xs">3</Badge>
+            <Badge className="absolute -top-1 -right-1 h-5 w-5 flex items-center justify-center p-0 text-xs">
+              3
+            </Badge>
           </Button>
 
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" className="relative h-8 w-8 rounded-full">
                 <Avatar className="h-8 w-8">
-                  <AvatarImage src={userAvatar || "/placeholder.svg"} alt={userName} />
+                  <AvatarImage
+                    src={userAvatar || "/placeholder.svg"}
+                    alt={userName}
+                  />
                   <AvatarFallback>{userName?.charAt(0) || "U"}</AvatarFallback>
                 </Avatar>
               </Button>
@@ -166,8 +209,12 @@ export function DashboardLayout({ children, userRole, userName, userEmail, userA
             <DropdownMenuContent className="w-56" align="end" forceMount>
               <DropdownMenuLabel className="font-normal">
                 <div className="flex flex-col space-y-1">
-                  <p className="text-sm font-medium leading-none">{userName || "User"}</p>
-                  <p className="text-xs leading-none text-muted-foreground">{userEmail}</p>
+                  <p className="text-sm font-medium leading-none">
+                    {userName || "User"}
+                  </p>
+                  <p className="text-xs leading-none text-muted-foreground">
+                    {userEmail}
+                  </p>
                 </div>
               </DropdownMenuLabel>
               <DropdownMenuSeparator />
@@ -205,5 +252,5 @@ export function DashboardLayout({ children, userRole, userName, userEmail, userA
         <main className="flex-1 p-6">{children}</main>
       </div>
     </div>
-  )
+  );
 }

@@ -68,7 +68,12 @@ export const calculateProfileCompleteness = (user: User): number => {
   let totalFields = requiredFields.length;
 
   // Check common fields
-  if (user.profilePicture && user.profilePicture.trim()) filledFields++;
+  if (
+    user.profilePicture &&
+    user.profilePicture.url &&
+    user.profilePicture.url.trim()
+  )
+    filledFields++;
   if (user.userName && user.userName.trim()) filledFields++;
   if (user.email && user.email.trim()) filledFields++;
 

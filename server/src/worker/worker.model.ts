@@ -12,6 +12,9 @@ export class Worker {
   @Prop()
   userName: string;
 
+  @Prop()
+  name: string;
+
   @Prop({ required: true })
   email: string;
 

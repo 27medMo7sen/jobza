@@ -40,7 +40,7 @@ export class LocalAuthGuard implements CanActivate {
 
     // attach user to request
     request.user = decoded;
-
+    console.log('decoded', decoded);
     // ✅ role check
     const requiredRoles = this.reflector.getAllAndOverride<string[]>(
       ROLES_KEY,

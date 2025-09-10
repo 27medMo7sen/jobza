@@ -75,6 +75,7 @@ export interface AgencyProfileData extends BaseProfileData {
 export interface AdminProfileData extends BaseProfileData {
   role: "admin";
   gender: string;
+  country: string;
   department: string;
   permissions: string[];
   data: AdminData;

@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { Module, forwardRef } from '@nestjs/common';
 import { FilesService } from './files.service';
 import { FilesController } from './files.controller';
 import { MongooseModule } from '@nestjs/mongoose';
@@ -8,10 +8,15 @@ import { JwtModule } from '@nestjs/jwt';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { LocalAuthGuard } from 'src/auth/auth.guard';
 import { AuthModule } from 'src/auth/auth.module';
+import { WorkerModule } from 'src/worker/worker.module';
+import { EmployerModule } from 'src/employer/employer.module';
+import { AgencyModule } from 'src/agency/agency.module';
+import { AuthSchema } from 'src/auth/auth.model';
 
 @Module({
   imports: [
     MongooseModule.forFeature([{ name: File.name, schema: FileSchema }]),
+    MongooseModule.forFeature([{ name: 'Auth', schema: AuthSchema }]),
     AwsS3Module,
     ConfigModule,
     JwtModule.registerAsync({
@@ -25,7 +30,9 @@ import { AuthModule } from 'src/auth/auth.module';
       }),
     }),
     AuthModule,
-    
+    forwardRef(() => WorkerModule),
+    forwardRef(() => EmployerModule),
+    forwardRef(() => AgencyModule),
   ],
   controllers: [FilesController],
   providers: [FilesService, LocalAuthGuard],

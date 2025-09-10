@@ -38,7 +38,7 @@ export class UpdateWorkerDto {
   @IsOptional()
   @IsArray()
   @IsString({ each: true })
-  skills?: string[];
+  skillSet?: string[];
 
   @IsOptional()
   @IsArray()

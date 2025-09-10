@@ -91,7 +91,7 @@ export class AuthController {
     return await this.authService.refreshToken(body.token);
   }
 
-  @Get('user-by-token')
+  @Get('authenticate')
   async getUserByToken(@Req() req) {
     // console.log('req', req);
     const token = req.headers.authorization?.split(' ')[1];

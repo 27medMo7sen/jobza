@@ -1,8 +1,10 @@
 "use client";
 
 import { GenericProfile } from "@/components/profile/GenericProfile";
-import { EmployerSidebar } from "@/components/layout/employer-sidebar";
+import { UnifiedSidebar } from "@/components/layout/unified-sidebar";
+
+const EmployerSidebarAdapter = () => <UnifiedSidebar userRole="employer" />;
 
 export default function EmployerProfile() {
-  return <GenericProfile role="employer" sidebarComponent={EmployerSidebar} />;
+  return <GenericProfile role="employer" sidebarComponent={EmployerSidebarAdapter} />;
 }

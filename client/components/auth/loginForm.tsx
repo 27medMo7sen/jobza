@@ -4,6 +4,10 @@ import React, { useState } from "react";
 import Input from "./input";
 import useInput from "@/hooks/use-input"; // Adjust path as needed
 import Link from "next/link";
+import { useHttp } from "@/hooks/use-http";
+import { useDispatch } from "react-redux";
+import { setToken, setUser } from "@/lib/slices/authSlice";
+import { useRouter } from "next/navigation";
 
 // Validation functions
 const validateEmail = (email: string): boolean => {
@@ -16,7 +20,10 @@ const validatePassword = (password: string): boolean => {
 };
 
 const LoginForm: React.FC = () => {
-  const [isLoading, setIsLoading] = useState(false);
+  const [formError, setFormError] = useState<string | null>(null);
+  const dispatch = useDispatch();
+  const router = useRouter();
+  const { post, isLoading } = useHttp();
 
   // Using the useInput hook for form fields
   const {
@@ -35,32 +42,43 @@ const LoginForm: React.FC = () => {
     isValid: passwordIsValid,
   } = useInput(validatePassword);
 
+  const redirectByRole = (role?: string) => {
+    if (role === "worker") router.replace("/worker/dashboard");
+    else if (role === "employer") router.replace("/employer/dashboard");
+    else if (role === "agency") router.replace("/agency/dashboard");
+    else if (role === "admin") router.replace("/admin/dashboard");
+    else router.replace("/");
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
+    setFormError(null);
     if (!emailIsValid || !passwordIsValid) {
       return;
     }
 
-    setIsLoading(true);
-
     try {
-      // Add your authentication logic here
-      console.log("Login attempt:", {
+      const res: any = await post("/auth/login", {
         email: emailValue,
         password: passwordValue,
       });
+      const token = res?.token;
+      const user = res?.user || res?.user?.user || res;
+      if (!token || !user) {
+        throw new Error("Invalid response from server");
+      }
+      console.log("user", user);
+      localStorage.setItem("token", token);
+      dispatch(setToken(token));
 
-      // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-
-      // Handle successful login
-      alert("Login successful!");
-    } catch (error) {
-      console.error("Login failed:", error);
-      alert("Login failed. Please try again.");
-    } finally {
-      setIsLoading(false);
+      redirectByRole(user?.role);
+    } catch (err: any) {
+      setFormError(
+        err?.message === "Invalid credentials"
+          ? "Invalid email or password"
+          : "Login failed. Please try again."
+      );
     }
   };
 
@@ -70,12 +88,10 @@ const LoginForm: React.FC = () => {
   };
 
   const handleForgotPassword = () => {
-    // Add forgot password logic here
     console.log("Forgot password clicked");
   };
 
   const handleSignUp = () => {
-    // Add navigation to sign-up page
     console.log("Sign up clicked");
   };
 
@@ -143,6 +159,8 @@ const LoginForm: React.FC = () => {
                 : ""
             }
           />
+
+          {formError && <p className="text-sm text-red-600">{formError}</p>}
 
           {/* Forgot Password Link */}
           <div className="text-right">

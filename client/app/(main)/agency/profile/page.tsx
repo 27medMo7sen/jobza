@@ -1,8 +1,10 @@
 "use client";
 
 import { GenericProfile } from "@/components/profile/GenericProfile";
-import { AgencySidebar } from "@/components/layout/agency-sidebar";
+import { UnifiedSidebar } from "@/components/layout/unified-sidebar";
+
+const AgencySidebarAdapter = () => <UnifiedSidebar userRole="agency" />;
 
 export default function AgencyProfile() {
-  return <GenericProfile role="agency" sidebarComponent={AgencySidebar} />;
+  return <GenericProfile role="agency" sidebarComponent={AgencySidebarAdapter} />;
 }

@@ -3,10 +3,12 @@ import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { Employer } from './employer.model';
 import { Types } from 'mongoose';
+import { EmployerProfileStatusService } from './employer-profile-status.service';
 @Injectable()
 export class EmployerService {
   constructor(
     @InjectModel('Employer') private readonly employerModel: Model<Employer>,
+    private readonly employerProfileStatusService: EmployerProfileStatusService,
   ) {}
   async createEmployer(
     EmployerData: any,
@@ -25,12 +27,25 @@ export class EmployerService {
   }
 
   async updateEmployer(
-    userId: string,
+    employerId: Types.ObjectId,
     updateData: any,
   ): Promise<Employer | null> {
-    return this.employerModel.findOneAndUpdate({ userId }, updateData, {
-      new: true,
-    });
+    const employer = await this.employerModel.findOneAndUpdate(
+      { _id: employerId },
+      updateData,
+      {
+        new: true,
+      },
+    );
+
+    // Trigger profile status update after employer data is updated
+    if (employer && employer.userId) {
+      await this.employerProfileStatusService.handleProfileUpdate(
+        employer.userId,
+      );
+    }
+
+    return employer;
   }
 
   async deleteEmployer(userId: string): Promise<boolean> {
@@ -38,8 +53,13 @@ export class EmployerService {
     return result !== null;
   }
 
-  async getEmployerByUserId(userId: string): Promise<Employer | null> {
-    return this.employerModel.findOne({ userId });
+  async getEmployerByUserId(
+    userId: string,
+  ): Promise<(Employer & { _id: Types.ObjectId }) | null> {
+    return this.employerModel
+      .findOne({ userId })
+      .lean<Employer & { _id: Types.ObjectId }>()
+      .exec();
   }
 
   async getEmployerById(employerId: string): Promise<Employer | null> {

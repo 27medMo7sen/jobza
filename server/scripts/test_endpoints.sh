@@ -76,20 +76,20 @@ scenario() {
   [[ -n "$token" ]] || fail "login-token" "$login"
   pass "login"
 
-  # 5) Negative: user-by-token without header -> 400
+  # 5) Negative: authenticate without header -> 400
   local noauth_code
-  noauth_code=$(code GET "$BASE_URL/auth/user-by-token")
-  [[ "$noauth_code" == "400" ]] || fail "user-by-token-missing-header" "$noauth_code"
-  pass "user-by-token-missing-header"
+  noauth_code=$(code GET "$BASE_URL/auth/authenticate")
+  [[ "$noauth_code" == "400" ]] || fail "authenticate-missing-header" "$noauth_code"
+  pass "authenticate-missing-header"
 
   # 6) User by token (get user id & email)
   local user_by_token user_id user_email
-  user_by_token=$(curl -sS -H "Authorization: Bearer $token" "$BASE_URL/auth/user-by-token" || true)
-  echo "$user_by_token" | jq . >/dev/null 2>&1 || fail "user-by-token" "$user_by_token"
+  user_by_token=$(curl -sS -H "Authorization: Bearer $token" "$BASE_URL/auth/authenticate" || true)
+  echo "$user_by_token" | jq . >/dev/null 2>&1 || fail "authenticate" "$user_by_token"
   user_id=$(echo "$user_by_token" | jq -r '._id // .id // empty')
   user_email=$(echo "$user_by_token" | jq -r '.email // empty')
   [[ -n "$user_id" ]] || fail "extract-user-id" "$user_by_token"
-  pass "user-by-token"
+  pass "authenticate"
 
   # 7) Get user by email
   local by_email

@@ -3,27 +3,52 @@ import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 export interface AuthState {
   token: string | null;
   user: Record<string, any> | null;
-  files: Record<string, any> | null;
+  isProfileLoaded: boolean;
+  profileStatus: string | null;
 }
 
 // Initialize from localStorage if available
-const getInitialFiles = () => {
+
+const getInitialToken = () => {
   if (typeof window !== "undefined" && typeof localStorage !== "undefined") {
     try {
-      const storedFiles = localStorage.getItem("files");
-      return storedFiles ? JSON.parse(storedFiles) : {};
+      return localStorage.getItem("token");
     } catch (error) {
-      console.warn("Error parsing files from localStorage:", error);
-      return {};
+      console.warn("Error getting token from localStorage:", error);
+      return null;
     }
   }
-  return {};
+  return null;
+};
+
+const getInitialUser = () => {
+  if (typeof window !== "undefined" && typeof localStorage !== "undefined") {
+    try {
+      const storedUser = localStorage.getItem("user");
+      if (storedUser) {
+        const user = JSON.parse(storedUser);
+        // Process user data like in setUser
+        const roleKeys = ["worker", "employer", "agency", "admin"];
+        for (const key of roleKeys) {
+          if (user[key]) {
+            Object.assign(user, user[key]);
+            delete user[key];
+          }
+        }
+        return user;
+      }
+    } catch (error) {
+      console.warn("Error parsing user from localStorage:", error);
+    }
+  }
+  return null;
 };
 
 const initialState: AuthState = {
-  token: null,
-  user: null,
-  files: getInitialFiles(),
+  token: getInitialToken(),
+  user: getInitialUser(),
+  isProfileLoaded: false,
+  profileStatus: null,
 };
 
 const authSlice = createSlice({
@@ -57,83 +82,14 @@ const authSlice = createSlice({
     clearAuth(state: AuthState) {
       state.token = null;
       state.user = null;
-      state.files = {};
       localStorage.removeItem("token");
       localStorage.removeItem("user");
-      localStorage.removeItem("files");
     },
-    addFile(state: AuthState, action: PayloadAction<Record<string, any>>) {
-      state.files = { ...state.files, ...action.payload };
-      if (
-        typeof window !== "undefined" &&
-        typeof localStorage !== "undefined"
-      ) {
-        try {
-          localStorage.setItem("files", JSON.stringify(state.files));
-        } catch (error) {
-          console.warn("Error saving files to localStorage:", error);
-        }
-      }
+    setProfileLoaded(state: AuthState, action: PayloadAction<boolean>) {
+      state.isProfileLoaded = action.payload;
     },
-    setFiles(
-      state: AuthState,
-      action: PayloadAction<Record<string, any> | null>
-    ) {
-      state.files = action.payload || {};
-      if (
-        typeof window !== "undefined" &&
-        typeof localStorage !== "undefined"
-      ) {
-        try {
-          if (action.payload) {
-            localStorage.setItem("files", JSON.stringify(action.payload));
-          } else {
-            localStorage.removeItem("files");
-          }
-        } catch (error) {
-          console.warn("Error managing files in localStorage:", error);
-        }
-      }
-    },
-    clearFiles(state: AuthState) {
-      state.files = {};
-      if (
-        typeof window !== "undefined" &&
-        typeof localStorage !== "undefined"
-      ) {
-        try {
-          localStorage.removeItem("files");
-        } catch (error) {
-          console.warn("Error clearing files from localStorage:", error);
-        }
-      }
-    },
-    updateFileStatus(
-      state: AuthState,
-      action: PayloadAction<{
-        fileId: string;
-        status: string;
-        rejectionReason?: string;
-      }>
-    ) {
-      const { fileId, status, rejectionReason } = action.payload;
-      if (state.files && state.files[fileId]) {
-        state.files[fileId] = {
-          ...state.files[fileId],
-          status,
-          rejectionReason,
-        };
-        if (
-          typeof window !== "undefined" &&
-          typeof localStorage !== "undefined"
-        ) {
-          try {
-            localStorage.setItem("files", JSON.stringify(state.files));
-          } catch (error) {
-            console.warn("Error updating file status in localStorage:", error);
-          }
-        }
-      }
+    setProfileStatus(state: AuthState, action: PayloadAction<string | null>) {
+      state.profileStatus = action.payload;
     },
   },
 });
@@ -142,9 +98,7 @@ export const {
   setToken,
   setUser,
   clearAuth,
-  addFile,
-  setFiles,
-  clearFiles,
-  updateFileStatus,
+  setProfileLoaded,
+  setProfileStatus,
 } = authSlice.actions;
 export default authSlice.reducer;

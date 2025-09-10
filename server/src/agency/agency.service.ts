@@ -3,12 +3,14 @@ import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
 import { Agency } from './agency.model';
 import { Auth } from 'src/auth/auth.model';
+import { AgencyProfileStatusService } from './agency-profile-status.service';
 
 @Injectable()
 export class AgencyService {
   constructor(
     @InjectModel('Agency') private readonly agencyModel: Model<Agency>,
     @InjectModel('Auth') private readonly authModel: Model<Auth>,
+    private readonly agencyProfileStatusService: AgencyProfileStatusService,
   ) {}
   async createAgency(
     agencyData: any,
@@ -27,10 +29,24 @@ export class AgencyService {
     return createdAgency.save();
   }
 
-  async updateAgency(userId: string, updateData: any): Promise<Agency | null> {
-    return this.agencyModel.findOneAndUpdate({ userId }, updateData, {
-      new: true,
-    });
+  async updateAgency(
+    agencyId: Types.ObjectId,
+    updateData: any,
+  ): Promise<Agency | null> {
+    const agency = await this.agencyModel.findOneAndUpdate(
+      { _id: agencyId },
+      updateData,
+      {
+        new: true,
+      },
+    );
+
+    // Trigger profile status update after agency data is updated
+    if (agency && agency.userId) {
+      await this.agencyProfileStatusService.handleProfileUpdate(agency.userId);
+    }
+
+    return agency;
   }
 
   async deleteAgency(userId: string): Promise<boolean> {
