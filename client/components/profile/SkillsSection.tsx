@@ -14,6 +14,7 @@ interface SkillsSectionProps {
   onToggleEdit: () => void;
   onAddSkill: (skill: string) => void;
   onRemoveSkill: (skill: string) => void;
+  isViewingOther: boolean;
 }
 
 export function SkillsSection({
@@ -23,6 +24,7 @@ export function SkillsSection({
   onToggleEdit,
   onAddSkill,
   onRemoveSkill,
+  isViewingOther,
 }: SkillsSectionProps) {
   // Only show skills for workers
   if (profileData?.role !== "worker" || !("skillSet" in profileData)) {
@@ -36,10 +38,12 @@ export function SkillsSection({
       <CardHeader>
         <div className="flex items-center justify-between">
           <CardTitle className="text-foreground">Skills & Services</CardTitle>
-          <Button onClick={onToggleEdit} variant="outline" size="sm">
-            <Edit className="w-4 h-4 mr-2" />
-            {isEditingSkills ? "Done" : "Edit"}
-          </Button>
+          {!isViewingOther && (
+            <Button onClick={onToggleEdit} variant="outline" size="sm">
+              <Edit className="w-4 h-4 mr-2" />
+              {isEditingSkills ? "Done" : "Edit"}
+            </Button>
+          )}
         </div>
       </CardHeader>
       <CardContent>

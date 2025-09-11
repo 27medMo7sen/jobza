@@ -5,6 +5,8 @@ export interface DocumentType {
   label: string;
   acceptedTypes: string;
   hasBackSide?: boolean;
+  isViewOnly?: boolean;
+  isImage?: boolean;
 }
 
 export interface DocumentFormData {

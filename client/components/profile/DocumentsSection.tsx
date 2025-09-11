@@ -15,11 +15,21 @@ import { DocumentsSectionSkeleton } from "@/components/ui/skeleton-loaders";
 interface DocumentsSectionProps {
   profileData: ProfileData;
   isLoadingFiles?: boolean;
+  isViewingOther: boolean;
+  adminButtons: boolean;
+  isJudging: boolean;
+  setIsJudging: (isJudging: boolean) => void;
+  onOpenJudgment?: (file: any) => void;
 }
 
 export function DocumentsSection({
   profileData,
   isLoadingFiles = false,
+  isViewingOther,
+  adminButtons,
+  isJudging,
+  setIsJudging,
+  onOpenJudgment,
 }: DocumentsSectionProps) {
   const { files } = useSelector((state: RootState) => state.files);
   const dispatch = useDispatch();
@@ -43,6 +53,9 @@ export function DocumentsSection({
 
   const requiredDocuments = roleDocuments.filter((doc) => doc.required);
   const optionalDocuments = roleDocuments.filter((doc) => !doc.required);
+
+  // Check if signature file exists
+  const hasSignatureFile = files.signature && files.signature.url;
 
   return (
     <Card>
@@ -71,7 +84,11 @@ export function DocumentsSection({
                 <FilePreview
                   key={docType.id}
                   documentType={docType}
-                  isEditing={true}
+                  isViewingOther={isViewingOther}
+                  adminButtons={adminButtons}
+                  isJudging={isJudging}
+                  setIsJudging={setIsJudging}
+                  onOpenJudgment={onOpenJudgment}
                 />
               ))}
             </div>
@@ -89,24 +106,28 @@ export function DocumentsSection({
                 <FilePreview
                   key={docType.id}
                   documentType={docType}
-                  isEditing={true}
+                  isViewingOther={isViewingOther}
+                  adminButtons={adminButtons}
+                  isJudging={isJudging}
+                  setIsJudging={setIsJudging}
+                  onOpenJudgment={onOpenJudgment}
                 />
               ))}
             </div>
           </div>
         )}
 
-        {/* Signature Section */}
+        {/* Signature Section - Only show when no signature file exists */}
         {!isLoadingFiles &&
           (profileData?.role === "worker" ||
             profileData?.role === "employer") &&
-          !profileData?.signature && (
-            <div>
-              <h3 className="text-lg font-semibold text-foreground ">
-                Signature
+          !hasSignatureFile && (
+            <div className="mb-8">
+              <h3 className="text-lg font-semibold text-foreground mb-4">
+                Digital Signature
               </h3>
               <p className="text-sm text-gray-600 mb-4">
-                Once you have saved the signature, you will not be able to
+                Draw your signature below. Once saved, you will not be able to
                 change it.
               </p>
               <SignaturePad />

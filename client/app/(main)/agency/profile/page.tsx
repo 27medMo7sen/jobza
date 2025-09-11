@@ -6,5 +6,7 @@ import { UnifiedSidebar } from "@/components/layout/unified-sidebar";
 const AgencySidebarAdapter = () => <UnifiedSidebar userRole="agency" />;
 
 export default function AgencyProfile() {
-  return <GenericProfile role="agency" sidebarComponent={AgencySidebarAdapter} />;
+  return (
+    <GenericProfile role="agency" sidebarComponent={AgencySidebarAdapter} />
+  );
 }

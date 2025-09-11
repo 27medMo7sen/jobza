@@ -47,6 +47,7 @@ const LoginForm: React.FC = () => {
     else if (role === "employer") router.replace("/employer/dashboard");
     else if (role === "agency") router.replace("/agency/dashboard");
     else if (role === "admin") router.replace("/admin/dashboard");
+    else if (role === "superadmin") router.replace("/superadmin/dashboard");
     else router.replace("/");
   };
 
@@ -68,10 +69,11 @@ const LoginForm: React.FC = () => {
       if (!token || !user) {
         throw new Error("Invalid response from server");
       }
-      console.log("user", user);
-      localStorage.setItem("token", token);
-      dispatch(setToken(token));
 
+      // localStorage.setItem("token", token);
+      console.log("user", user);
+      dispatch(setToken(token));
+      // dispatch(setUser(user));
       redirectByRole(user?.role);
     } catch (err: any) {
       setFormError(

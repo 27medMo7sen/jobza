@@ -49,6 +49,7 @@ export const DrawerOpt = ({
     else if (role === "employer") router.replace("/employer/dashboard");
     else if (role === "agency") router.replace("/agency/dashboard");
     else if (role === "admin") router.replace("/admin/dashboard");
+    else if (role === "superadmin") router.replace("/superadmin/dashboard");
     else router.replace("/");
   };
 

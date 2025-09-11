@@ -40,6 +40,15 @@ export default function RootLayout({
         if (userStr) {
           dispatch(setUser(JSON.parse(userStr)));
         }
+        if (!userStr) {
+          const hydrateUser = async () => {
+            const resp: any = await get("/auth/authenticate");
+            if (resp) {
+              dispatch(setUser(resp));
+            }
+          };
+          hydrateUser();
+        }
         const token = localStorage.getItem("token");
         if (token) {
           dispatch(setToken(token));

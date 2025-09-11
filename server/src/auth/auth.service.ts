@@ -12,6 +12,7 @@ import { EmployerService } from 'src/employer/employer.service';
 import { AgencySignupDto } from './dto/agencySignup.dto';
 import { EmployerSignupDto } from './dto/EmployerSignup.dto';
 import { AgencyService } from 'src/agency/agency.service';
+import { AdminService } from 'src/admin/admin.service';
 import { Worker } from 'src/worker/worker.model';
 import { Employer } from 'src/employer/employer.model';
 import { Agency } from 'src/agency/agency.model';
@@ -25,6 +26,7 @@ export class AuthService {
     private readonly workerService: WorkerService,
     private readonly employerService: EmployerService,
     private readonly agencyService: AgencyService,
+    private readonly adminService: AdminService,
   ) {}
   //MARK: signup
   async signup(body: WorkerSignupDto | EmployerSignupDto | AgencySignupDto) {
@@ -139,15 +141,18 @@ export class AuthService {
   }
   //MARK: getUserByEmail
   async getUserByEmail(email: string): Promise<Auth | null> {
+    console.log('email', email);
     return this.authModel.findOne({ email });
   }
   //MARK: validateUser
   async validateUser(email: string, password: string): Promise<Auth | null> {
     const user = await this.getUserByEmail(email);
+    console.log('user', user);
     if (!user || !user.isVerified) {
       return null;
     }
     const isPasswordValid = await bcrypt.compare(password, user.password);
+    console.log('isPasswordValid', isPasswordValid);
     if (!isPasswordValid) {
       return null;
     }
@@ -249,6 +254,7 @@ export class AuthService {
       .populate('worker')
       .populate('employer')
       .populate('agency')
+      .populate('admin')
       .select(
         '-password -_id -code -token -createdAt -updatedAt -isVerified -method',
       );
@@ -318,27 +324,38 @@ export class AuthService {
         new: true,
       },
     );
-    if (!updatedUser?.worker) {
-      throw new HttpException('Worker not found', 404);
-    }
     console.log('updatedUser', updatedUser);
     console.log('user', user);
     if (user.role === Role.WORKER) {
+      if (!updatedUser?.worker) {
+        throw new HttpException('Worker not found', 404);
+      }
       console.log('going to worker service');
       await this.workerService.updateWorker(
         updatedUser?.worker._id,
         updateData,
       );
     } else if (user.role === Role.EMPLOYER) {
+      if (!updatedUser?.employer) {
+        throw new HttpException('Employer not found', 404);
+      }
       await this.employerService.updateEmployer(
         updatedUser?.employer._id,
         updateData,
       );
     } else if (user.role === Role.AGENCY) {
+      if (!updatedUser?.agency) {
+        throw new HttpException('Agency not found', 404);
+      }
       await this.agencyService.updateAgency(
         updatedUser?.agency._id,
         updateData,
       );
+    } else if (user.role === Role.ADMIN) {
+      if (!updatedUser?.admin) {
+        throw new HttpException('Admin not found', 404);
+      }
+      await this.adminService.updateAdmin(updatedUser?.admin._id, updateData);
     }
 
     return {
@@ -348,6 +365,49 @@ export class AuthService {
 
   async signatureUploaded(userId: Types.ObjectId) {
     await this.authModel.findByIdAndUpdate(userId, { signature: true });
+  }
+
+  async getUserProfileByUsername(username: string, requestingUser?: any) {
+    // Find user by username
+    console.log('username', username);
+    const user = await this.authModel
+      .findOne({ userName: username })
+      .populate('worker')
+      .populate('employer')
+      .populate('agency')
+      .populate('admin')
+      .exec();
+    console.log('user', user);
+    if (!user) {
+      throw new HttpException('User not found', 404);
+    }
+    console.log('requestingUser', requestingUser);
+    // Determine if the requesting user can see private data
+    const isOwner =
+      requestingUser &&
+      requestingUser.userId.toString() === user._id.toString();
+    const isAdmin =
+      requestingUser && ['admin', 'superadmin'].includes(requestingUser.role);
+    console.log('isOwner', isOwner);
+    console.log('isAdmin', isAdmin);
+    // Get role-specific data
+    let profileData: any = null;
+    if (user.role === Role.WORKER) {
+      profileData = user.worker;
+    } else if (user.role === Role.EMPLOYER) {
+      profileData = user.employer;
+    } else if (user.role === Role.AGENCY) {
+      profileData = user.agency;
+    } else if (user.role === Role.ADMIN) {
+      profileData = user.admin;
+    }
+    console.log('profileData', profileData);
+    // Filter sensitive data based on permissions
+    const filteredUser: any = {
+      ...user.toObject(),
+      ...profileData.toObject(),
+    };
+    return filteredUser;
   }
   async updateProfilePhoto(
     userId: Types.ObjectId,

@@ -3,6 +3,7 @@ import React from "react";
 import { useCallback, useRef } from "react";
 import { useDispatch } from "react-redux";
 import { toast } from "sonner";
+import { clearAuth } from "@/lib/slices/authSlice";
 
 // Fallback action creator to avoid path alias issues
 const setTokenAction = (token: string) => ({
@@ -82,11 +83,8 @@ export const useHttp = () => {
     } catch (err) {
       console.error("Token refresh failed:", err);
 
-      // Clear invalid token
-      if (typeof window !== "undefined") {
-        localStorage.removeItem("token");
-        localStorage.removeItem("user");
-      }
+      // Clear invalid token using Redux action
+      dispatch(clearAuth());
       delete axios.defaults.headers.common["Authorization"];
 
       processQueue(err);
@@ -118,9 +116,9 @@ export const useHttp = () => {
             return await makeRequest<T>(requestFn, retryCount + 1);
           } catch (refreshError) {
             console.error("Token refresh failed, redirecting to login");
-            if (typeof window !== "undefined") {
-              window.location.href = "/auth?mode=signin";
-            }
+            // if (typeof window !== "undefined") {
+            //   window.location.href = "/auth?mode=login";
+            // }
             throw refreshError;
           }
         }

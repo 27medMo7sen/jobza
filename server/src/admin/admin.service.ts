@@ -326,4 +326,228 @@ export class AdminService {
       updated: true,
     };
   }
+
+  async getAdminByUserId(
+    userId: Types.ObjectId,
+  ): Promise<(Admin & { _id: Types.ObjectId }) | null> {
+    const admin = await this.adminModel
+      .findOne({ userId: new Types.ObjectId(userId) })
+      .lean<Admin>()
+      .exec();
+    return admin as (Admin & { _id: Types.ObjectId }) | null;
+  }
+
+  async updateAdmin(
+    adminId: Types.ObjectId,
+    updateData: any,
+  ): Promise<Admin | null> {
+    const admin = (await this.adminModel
+      .findOneAndUpdate({ _id: adminId }, { $set: updateData }, { new: true })
+      .exec()) as Admin;
+
+    return admin;
+  }
+
+  async getAdminProfile(adminId: string) {
+    const admin = await this.adminModel
+      .findById(adminId)
+      .populate('userId', 'email role isVerified createdAt')
+      .exec();
+
+    if (!admin) {
+      throw new NotFoundException('Admin profile not found');
+    }
+
+    return {
+      message: 'Admin profile retrieved successfully',
+      admin,
+    };
+  }
+
+  async getPendingWorkers(paginationDto: any) {
+    const { page = 1, limit = 10 } = paginationDto;
+    const skip = (page - 1) * limit;
+
+    const workers = await this.authModel
+      .find({
+        role: 'worker',
+        status: 'pending',
+      })
+      .populate(
+        'worker',
+        'name email phoneNumber country nationality gender dateOfBirth address city skillSet experience',
+      )
+      .select('name email userName role status createdAt')
+      .skip(skip)
+      .limit(limit)
+      .exec();
+
+    // Flatten the data structure
+    const flattenedWorkers = workers.map((worker) => {
+      const workerData = worker.worker as any;
+      return {
+        _id: worker._id,
+        name: worker.name,
+        email: worker.email,
+        userName: worker.userName,
+        role: worker.role,
+        status: worker.status,
+        createdAt: (worker as any).createdAt,
+        // Flatten worker-specific data
+        phoneNumber: workerData?.phoneNumber,
+        country: workerData?.country,
+        nationality: workerData?.nationality,
+        gender: workerData?.gender,
+        dateOfBirth: workerData?.dateOfBirth,
+        address: workerData?.address,
+        city: workerData?.city,
+        skillSet: workerData?.skillSet,
+        experience: workerData?.experience,
+      };
+    });
+
+    const total = await this.authModel.countDocuments({
+      role: 'worker',
+      status: 'pending',
+    });
+
+    return {
+      data: flattenedWorkers,
+      pagination: {
+        page,
+        limit,
+        total,
+        pages: Math.ceil(total / limit),
+      },
+    };
+  }
+
+  async getPendingEmployers(paginationDto: any) {
+    const { page = 1, limit = 10 } = paginationDto;
+    const skip = (page - 1) * limit;
+
+    const employers = await this.authModel
+      .find({
+        role: 'employer',
+        status: 'pending',
+      })
+      .populate(
+        'employer',
+        'name email phoneNumber companyName industry businessType address city country',
+      )
+      .select('name email userName role status createdAt')
+      .skip(skip)
+      .limit(limit)
+      .exec();
+
+    // Flatten the data structure
+    const flattenedEmployers = employers.map((employer) => {
+      const employerData = employer.employer as any;
+      return {
+        _id: employer._id,
+        name: employer.name,
+        email: employer.email,
+        userName: employer.userName,
+        role: employer.role,
+        status: employer.status,
+        createdAt: (employer as any).createdAt,
+        // Flatten employer-specific data
+        phoneNumber: employerData?.phoneNumber,
+        companyName: employerData?.companyName,
+        industry: employerData?.industry,
+        businessType: employerData?.businessType,
+        address: employerData?.address,
+        city: employerData?.city,
+        country: employerData?.country,
+      };
+    });
+
+    const total = await this.authModel.countDocuments({
+      role: 'employer',
+      status: 'pending',
+    });
+
+    return {
+      data: flattenedEmployers,
+      pagination: {
+        page,
+        limit,
+        total,
+        pages: Math.ceil(total / limit),
+      },
+    };
+  }
+
+  async getPendingAgencies(paginationDto: any) {
+    const { page = 1, limit = 10 } = paginationDto;
+    const skip = (page - 1) * limit;
+
+    const agencies = await this.authModel
+      .find({
+        role: 'agency',
+        status: 'pending',
+      })
+      .populate(
+        'agency',
+        'name email phoneNumber agencyName licenseNumber address city country businessType',
+      )
+      .select('name email userName role status createdAt')
+      .skip(skip)
+      .limit(limit)
+      .exec();
+
+    // Flatten the data structure
+    const flattenedAgencies = agencies.map((agency) => {
+      const agencyData = agency.agency as any;
+      return {
+        _id: agency._id,
+        name: agency.name,
+        email: agency.email,
+        userName: agency.userName,
+        role: agency.role,
+        status: agency.status,
+        createdAt: (agency as any).createdAt,
+        // Flatten agency-specific data
+        phoneNumber: agencyData?.phoneNumber,
+        agencyName: agencyData?.agencyName,
+        licenseNumber: agencyData?.licenseNumber,
+        address: agencyData?.address,
+        city: agencyData?.city,
+        country: agencyData?.country,
+        businessType: agencyData?.businessType,
+      };
+    });
+
+    const total = await this.authModel.countDocuments({
+      role: 'agency',
+      status: 'pending',
+    });
+
+    return {
+      data: flattenedAgencies,
+      pagination: {
+        page,
+        limit,
+        total,
+        pages: Math.ceil(total / limit),
+      },
+    };
+  }
+
+  async getPendingContracts(paginationDto: any) {
+    const { page = 1, limit = 10 } = paginationDto;
+    const skip = (page - 1) * limit;
+
+    // For now, return empty array as we don't have contracts implemented yet
+    // This can be implemented when the contract system is ready
+    return {
+      data: [],
+      pagination: {
+        page,
+        limit,
+        total: 0,
+        pages: 0,
+      },
+    };
+  }
 }

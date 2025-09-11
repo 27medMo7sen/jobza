@@ -61,7 +61,7 @@ export const PROFILE_CONFIGS: Record<string, ProfileConfig> = {
       adminInfo: false,
     },
     documents: {
-      required: ["facePhoto", "nationalId", "proofOfAddress"],
+      required: ["facePhoto", "nationalId", "proofOfAddress", "signature"],
       optional: ["employmentLetter", "incomeProof"],
     },
     skills: {

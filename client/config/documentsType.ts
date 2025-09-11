@@ -49,4 +49,14 @@ export const DOCUMENT_TYPES: Record<string, DocumentType> = {
     acceptedTypes: "image/*,.pdf",
     hasBackSide: false,
   },
+  signature: {
+    title: "Signature",
+    frontLabel: "Signature",
+    backLabel: "",
+    label: "signature",
+    acceptedTypes: "image/*",
+    hasBackSide: false,
+    isViewOnly: true,
+    isImage: true,
+  },
 };

@@ -98,4 +98,31 @@ export class AdminController {
       body.rejectionReason || '',
     );
   }
+
+  @Get('profile/:adminId')
+  @UseGuards(LocalAuthGuard)
+  @Roles(Role.SUPERADMIN)
+  async getAdminProfile(@Param('adminId') adminId: string) {
+    return this.adminService.getAdminProfile(adminId);
+  }
+
+  @Get('pending/workers')
+  async getPendingWorkers(@Query() paginationDto: PaginationDto) {
+    return this.adminService.getPendingWorkers(paginationDto);
+  }
+
+  @Get('pending/employers')
+  async getPendingEmployers(@Query() paginationDto: PaginationDto) {
+    return this.adminService.getPendingEmployers(paginationDto);
+  }
+
+  @Get('pending/agencies')
+  async getPendingAgencies(@Query() paginationDto: PaginationDto) {
+    return this.adminService.getPendingAgencies(paginationDto);
+  }
+
+  @Get('pending/contracts')
+  async getPendingContracts(@Query() paginationDto: PaginationDto) {
+    return this.adminService.getPendingContracts(paginationDto);
+  }
 }

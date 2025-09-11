@@ -46,9 +46,6 @@ export class Auth {
   @Prop({ default: false })
   isVerified: boolean;
 
-  @Prop({ default: false })
-  signature: boolean;
-
   @Prop({
     required: function () {
       return this.role === Role.WORKER;
@@ -75,5 +72,14 @@ export class Auth {
     ref: 'Agency',
   })
   agency: Types.ObjectId;
+
+  @Prop({
+    required: function () {
+      return this.role === Role.ADMIN;
+    },
+    type: Types.ObjectId,
+    ref: 'Admin',
+  })
+  admin: Types.ObjectId;
 }
 export const AuthSchema = SchemaFactory.createForClass(Auth);

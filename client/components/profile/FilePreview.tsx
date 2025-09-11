@@ -9,6 +9,7 @@ import {
   Upload,
   FileText,
   Image as ImageIcon,
+  Gavel,
 } from "lucide-react";
 import { DocumentType } from "@/lib/document-config";
 import { useDispatch, useSelector } from "react-redux";
@@ -23,10 +24,21 @@ import {
 
 interface FilePreviewProps {
   documentType: DocumentType;
-  isEditing: boolean;
+  isViewingOther: boolean;
+  adminButtons: boolean;
+  isJudging: boolean;
+  setIsJudging: (isJudging: boolean) => void;
+  onOpenJudgment?: (file: any) => void;
 }
 
-export function FilePreview({ documentType, isEditing }: FilePreviewProps) {
+export function FilePreview({
+  documentType,
+  isViewingOther,
+  adminButtons,
+  isJudging,
+  setIsJudging,
+  onOpenJudgment,
+}: FilePreviewProps) {
   const [isDragOver, setIsDragOver] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
   const dispatch = useDispatch();
@@ -107,6 +119,12 @@ export function FilePreview({ documentType, isEditing }: FilePreviewProps) {
     e.preventDefault();
     setIsDragOver(false);
 
+    // Don't allow drop for view-only documents
+    if (documentType.isViewOnly) {
+      toast.error("This document is view-only and cannot be modified");
+      return;
+    }
+
     const droppedFile = e.dataTransfer.files[0];
     if (droppedFile && isFileTypeValid(droppedFile)) {
       uploadFile(droppedFile);
@@ -114,6 +132,13 @@ export function FilePreview({ documentType, isEditing }: FilePreviewProps) {
   };
 
   const handleFileInput = (e: React.ChangeEvent<HTMLInputElement>) => {
+    // Don't allow upload for view-only documents
+    if (documentType.isViewOnly) {
+      toast.error("This document is view-only and cannot be modified");
+      e.target.value = "";
+      return;
+    }
+
     const selectedFile = e.target.files?.[0];
     if (selectedFile && isFileTypeValid(selectedFile)) {
       uploadFile(selectedFile);
@@ -140,6 +165,15 @@ export function FilePreview({ documentType, isEditing }: FilePreviewProps) {
     }
     // Reset the input value after handling
     e.target.value = "";
+  };
+
+  const handleFileJudge = (file: any) => {
+    console.log("File to judge:", file);
+    if (onOpenJudgment) {
+      onOpenJudgment(file);
+    } else {
+      setIsJudging(true);
+    }
   };
 
   const getStatusColor = () => {
@@ -192,6 +226,31 @@ export function FilePreview({ documentType, isEditing }: FilePreviewProps) {
     // Show skeleton while uploading
     if (isUploading) {
       return <FileUploadSkeleton isImage={documentType.isImage} />;
+    }
+
+    // For view-only documents, show a different message
+    if (documentType.isViewOnly) {
+      return (
+        <div className="relative border-2 border-dashed border-gray-300 rounded-lg p-6 bg-gray-50">
+          <div className="text-center">
+            <div className="text-4xl mb-2">{documentType.icon}</div>
+            <h3 className="text-lg font-semibold text-gray-900 mb-1">
+              {documentType.name}
+            </h3>
+            <p className="text-sm text-gray-600 mb-4">
+              {documentType.description}
+            </p>
+            <div className="flex items-center justify-center gap-2 text-sm text-gray-500">
+              <span>Upload via signature pad</span>
+            </div>
+            {documentType.required && (
+              <span className="inline-block mt-2 px-2 py-1 text-xs bg-red-100 text-red-800 rounded">
+                Required
+              </span>
+            )}
+          </div>
+        </div>
+      );
     }
 
     return (
@@ -310,7 +369,7 @@ export function FilePreview({ documentType, isEditing }: FilePreviewProps) {
               <Eye className="w-4 h-4 mr-1" />
               Open
             </Button>
-            {isEditing && (
+            {!isViewingOther && !documentType.isViewOnly && (
               <Button
                 size="sm"
                 variant="secondary"
@@ -328,6 +387,18 @@ export function FilePreview({ documentType, isEditing }: FilePreviewProps) {
               >
                 <RefreshCw className="w-4 h-4 mr-1" />
                 Replace
+              </Button>
+            )}
+            {adminButtons && (
+              <Button
+                size="sm"
+                variant="secondary"
+                className="cursor-pointer"
+                onClick={() => handleFileJudge(file)}
+                disabled={isJudging}
+              >
+                <Gavel className="w-4 h-4 mr-1" />
+                Judge
               </Button>
             )}
           </div>
