@@ -16,6 +16,7 @@ import { FilesService } from './files.service';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { LocalAuthGuard } from 'src/auth/auth.guard';
 import { Types } from 'mongoose';
+import { Roles } from 'src/auth/roles.decorator';
 
 @Controller('files')
 export class FilesController {
@@ -47,6 +48,17 @@ export class FilesController {
     return ret;
   }
 
+  @Get('list/:username')
+  @UseGuards(LocalAuthGuard)
+  async listUserFilesByUsername(
+    @Req() req: any,
+    @Param('username') username: string,
+  ) {
+    console.log('listUserFilesByUsername', username);
+    const ret = await this.filesService.listUserFilesByUsername(username);
+    return ret;
+  }
+
   @Delete('/:fileId')
   @UseGuards(LocalAuthGuard)
   async deleteFile(@Req() req: any, @Param('fileId') fileId: string) {
@@ -58,17 +70,13 @@ export class FilesController {
   }
 
   @Put('/:fileId/status')
+  @Roles('admin')
   @UseGuards(LocalAuthGuard)
   async updateFileStatus(
     @Req() req: any,
     @Param('fileId') fileId: string,
     @Body() body: { status: string; rejectionReason?: string },
   ) {
-    // Only admins should be able to update file status
-    if (req.user.role !== 'admin' && req.user.role !== 'superadmin') {
-      throw new Error('Unauthorized: Admin access required');
-    }
-
     return await this.filesService.updateFileStatus(
       new Types.ObjectId(fileId),
       body.status,

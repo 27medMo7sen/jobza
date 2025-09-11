@@ -36,18 +36,98 @@ import {
   StatusSidebarSkeleton,
   DocumentsSectionSkeleton,
 } from "@/components/ui/skeleton-loaders";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogOverlay,
+} from "@/components/ui/dialog";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 interface GenericProfileProps {
-  role: "worker" | "employer" | "agency" | "admin";
+  role?: "worker" | "employer" | "agency" | "admin";
   sidebarComponent?: React.ComponentType;
+  username?: string; // For viewing other users' profiles
+  isViewingOther?: boolean; // Whether viewing someone else's profile
 }
 
 export function GenericProfile({
   role,
   sidebarComponent: SidebarComponent,
+  username,
+  isViewingOther = false,
 }: GenericProfileProps) {
   const { put, get, post } = useHttp();
+
+  // Handle judgment submission
+  const handleSubmitJudgment = async () => {
+    console.log(fileToJudge, judgmentDecision);
+    if (!fileToJudge || !judgmentDecision) {
+      toast.error("Please select a decision");
+      return;
+    }
+
+    if (judgmentDecision === "reject" && !rejectionReason.trim()) {
+      toast.error("Please provide a rejection reason");
+      return;
+    }
+
+    setIsSubmittingJudgment(true);
+
+    try {
+      const response = await put(`/files/${fileToJudge._id}/status`, {
+        status: judgmentDecision === "approve" ? "approved" : "rejected",
+        rejectionReason:
+          judgmentDecision === "reject" ? rejectionReason : undefined,
+      });
+      console.log("that's response ", response);
+
+      if (response) {
+        // Update the file status in Redux store
+        const updatedFiles = { ...files };
+        updatedFiles[fileToJudge.label] = response as any;
+        console.log("that's updatedFiles ", updatedFiles);
+        dispatch(setFiles(updatedFiles));
+
+        toast.success(
+          `File ${
+            judgmentDecision === "approve" ? "approved" : "rejected"
+          } successfully`
+        );
+
+        // Reset form and close dialog
+        setJudgmentDecision("");
+        setRejectionReason("");
+        setFileToJudge(null);
+        setIsJudging(false);
+      }
+    } catch (error) {
+      console.error("Error updating file status:", error);
+      toast.error("Failed to update file status");
+    } finally {
+      setIsSubmittingJudgment(false);
+    }
+  };
+
+  // Handle opening judgment dialog
+  const handleOpenJudgment = (file: any) => {
+    setFileToJudge(file);
+    setJudgmentDecision("");
+    setRejectionReason("");
+    setIsJudging(true);
+  };
+
+  // Handle closing judgment dialog
+  const handleCloseJudgment = () => {
+    setFileToJudge(null);
+    setJudgmentDecision("");
+    setRejectionReason("");
+    setIsJudging(false);
+  };
   const dispatch = useDispatch();
-  const { user, isProfileLoaded } = useSelector(
+  const { user, isProfileLoaded, token } = useSelector(
     (state: RootState) => state.auth
   );
   const { files, isLoading: isFilesLoading } = useSelector(
@@ -57,9 +137,16 @@ export function GenericProfile({
   const [isEditingSkills, setIsEditingSkills] = useState(false);
   const [profilePhoto, setProfilePhoto] = useState<File | null>(null);
   const [isUploadingProfilePhoto, setIsUploadingProfilePhoto] = useState(false);
-  const config = getProfileConfig(role);
+  const [isJudging, setIsJudging] = useState(false);
+  const [fileToJudge, setFileToJudge] = useState<any>(null);
+  const [judgmentDecision, setJudgmentDecision] = useState<
+    "approve" | "reject" | ""
+  >("");
+  const [rejectionReason, setRejectionReason] = useState("");
+  const [isSubmittingJudgment, setIsSubmittingJudgment] = useState(false);
+  const config = getProfileConfig(role || "worker");
   const [profileData, setProfileData] = useState<ProfileData>(
-    (user as ProfileData) || ({ role: role } as ProfileData)
+    (user as ProfileData) || ({ role: role || "worker" } as ProfileData)
   );
   const { isFilesLoaded } = useSelector((state: RootState) => state.files);
   const [originalProfileData, setOriginalProfileData] =
@@ -68,7 +155,19 @@ export function GenericProfile({
   // Fetch fresh profile data on component mount
   useEffect(() => {
     const fetchProfileData = async () => {
-      if (user?.userId && !isProfileLoaded) {
+      if (isViewingOther && username) {
+        // Fetch other user's profile
+        try {
+          const response = await get<any>(`/auth/profile/${username}`);
+          console.log("Fetched other user's profile data:", response);
+          setProfileData(response);
+          dispatch(setProfileLoaded(true));
+        } catch (error) {
+          console.error("Error fetching other user's profile data:", error);
+          dispatch(setProfileLoaded(true));
+        }
+      } else if (!isProfileLoaded) {
+        // Fetch own profile
         try {
           const response = await get("/auth/authenticate");
           console.log("Fetched fresh profile data:", response);
@@ -86,15 +185,19 @@ export function GenericProfile({
     };
 
     fetchProfileData();
-  }, [user?.userId, isProfileLoaded, dispatch, get]);
+  }, [user?.userId, isProfileLoaded, dispatch, get, isViewingOther, username]);
 
   // Fetch fresh files data on component mount
   useEffect(() => {
     const fetchUserFiles = async () => {
-      if (user?.userId) {
+      if (token) {
         try {
           dispatch(setFilesLoading(true));
-          const response = await get("/files/list");
+          const endpoint =
+            isViewingOther && username
+              ? `/files/list/${username}`
+              : "/files/list";
+          const response = await get(endpoint);
           console.log("Fetched fresh user files:", response);
           dispatch(setFiles(response as Record<string, any>));
         } catch (error) {
@@ -107,17 +210,22 @@ export function GenericProfile({
     };
 
     fetchUserFiles();
-  }, [user?.userId, dispatch, get]);
+  }, [token, dispatch, get, isViewingOther, username]);
 
   // Update local profile data when Redux user changes
   useEffect(() => {
+    if (isViewingOther) {
+      // For viewing other users, profileData is set in the fetchProfileData function
+      return;
+    }
+
     if (user) {
       setProfileData(user as ProfileData);
     } else {
       // If no user data, use the role as fallback
-      setProfileData({ role: role } as ProfileData);
+      setProfileData({ role: role || "worker" } as ProfileData);
     }
-  }, [user, role]);
+  }, [user, role, isViewingOther]);
 
   const updateProfileData = (updatedData: Partial<ProfileData>) => {
     const newProfileData = { ...profileData, ...updatedData };
@@ -126,7 +234,7 @@ export function GenericProfile({
   };
 
   const handleProfilePhotoUpload = async (file: File | null) => {
-    if (!file) return;
+    if (!file || isViewingOther) return;
 
     const previousProfilePicture = profileData?.profilePicture;
     setIsUploadingProfilePhoto(true);
@@ -182,6 +290,7 @@ export function GenericProfile({
   };
 
   const handleSave = async () => {
+    if (isViewingOther) return;
     setIsEditing(false);
     try {
       const response = await put<any>(`auth/profile`, profileData);
@@ -200,6 +309,7 @@ export function GenericProfile({
   };
 
   const handleCancel = () => {
+    if (isViewingOther) return;
     setIsEditing(false);
     if (originalProfileData) {
       setProfileData(originalProfileData);
@@ -231,6 +341,7 @@ export function GenericProfile({
   };
 
   const handleSkillsEditComplete = async () => {
+    if (isViewingOther) return;
     if (profileData?.role === "worker" && "skillSet" in profileData) {
       try {
         // Send skills update through the unified profile update endpoint
@@ -263,6 +374,104 @@ export function GenericProfile({
 
   return (
     <div className="flex min-h-screen bg-background">
+      <Dialog open={isJudging} onOpenChange={handleCloseJudgment}>
+        <DialogOverlay className="bg-black/50 z-[50] fixed inset-0" />
+        <DialogContent className="bg-card p-8 z-[50] fixed top-[50%] left-[50%] translate-x-[-50%] translate-y-[-50%] max-w-lg w-full mx-4 sm:max-w-xl">
+          <DialogHeader>
+            <DialogTitle className="text-2xl font-bold text-foreground max-w-sm w-full mx-4 overflow-clip whitespace-nowrap">
+              Judge File: {fileToJudge?.fileName}
+            </DialogTitle>
+          </DialogHeader>
+
+          <div className="space-y-8 mt-8">
+            {/* Decision Radio Group */}
+            <div className="space-y-4">
+              <Label className="text-lg font-semibold text-foreground">
+                Decision
+              </Label>
+              <RadioGroup
+                value={judgmentDecision}
+                onValueChange={(value) =>
+                  setJudgmentDecision(value as "approve" | "reject")
+                }
+                className="space-y-4"
+              >
+                <div className="flex items-center space-x-3 p-4 border border-border rounded-lg hover:bg-muted/50 transition-colors">
+                  <RadioGroupItem
+                    value="approve"
+                    id="approve"
+                    className="h-5 w-5"
+                  />
+                  <Label
+                    htmlFor="approve"
+                    className="text-green-600 font-semibold text-lg cursor-pointer flex-1"
+                  >
+                    Approve
+                  </Label>
+                </div>
+                <div className="flex items-center space-x-3 p-4 border border-border rounded-lg hover:bg-muted/50 transition-colors">
+                  <RadioGroupItem
+                    value="reject"
+                    id="reject"
+                    className="h-5 w-5"
+                  />
+                  <Label
+                    htmlFor="reject"
+                    className="text-red-600 font-semibold text-lg cursor-pointer flex-1"
+                  >
+                    Reject
+                  </Label>
+                </div>
+              </RadioGroup>
+            </div>
+
+            {/* Rejection Reason - Only show when reject is selected */}
+            {judgmentDecision === "reject" && (
+              <div className="space-y-4">
+                <Label
+                  htmlFor="rejection-reason"
+                  className="text-lg font-semibold text-foreground"
+                >
+                  Rejection Reason *
+                </Label>
+                <Textarea
+                  id="rejection-reason"
+                  placeholder="Please provide a detailed reason for rejection..."
+                  value={rejectionReason}
+                  onChange={(e) => setRejectionReason(e.target.value)}
+                  className="min-h-[120px] resize-none text-base p-4"
+                />
+              </div>
+            )}
+
+            {/* Action Buttons */}
+            <div className="flex justify-end space-x-4 pt-6 border-t border-border">
+              <Button
+                variant="outline"
+                onClick={handleCloseJudgment}
+                disabled={isSubmittingJudgment}
+                className="px-6 py-2 text-base"
+              >
+                Cancel
+              </Button>
+              <Button
+                onClick={handleSubmitJudgment}
+                disabled={isSubmittingJudgment || !judgmentDecision}
+                className={`px-6 py-2 text-base font-semibold ${
+                  judgmentDecision === "approve"
+                    ? "bg-green-600 hover:bg-green-700 text-white"
+                    : judgmentDecision === "reject"
+                    ? "bg-red-600 hover:bg-red-700 text-white"
+                    : "bg-muted text-muted-foreground"
+                }`}
+              >
+                {isSubmittingJudgment ? "Submitting..." : "Submit Decision"}
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
       {SidebarComponent && <SidebarComponent />}
 
       <div className="flex-1 p-6">
@@ -293,6 +502,7 @@ export function GenericProfile({
                     setOriginalProfileData({ ...profileData });
                     setIsEditing(true);
                   }}
+                  isViewingOther={isViewingOther}
                   onSave={handleSave}
                   onCancel={handleCancel}
                 />
@@ -307,6 +517,7 @@ export function GenericProfile({
                     profileData={profileData}
                     isEditingSkills={isEditingSkills}
                     availableSkills={config.skills.available}
+                    isViewingOther={isViewingOther}
                     onToggleEdit={async () => {
                       if (isEditingSkills) {
                         // User is finishing editing, save to backend
@@ -360,10 +571,16 @@ export function GenericProfile({
 
               {/* Documents Section */}
               {config.sections.documents &&
+                (user?.role !== "admin" || isViewingOther) &&
                 (isFilesLoaded ? (
                   <DocumentsSection
                     profileData={profileData || ({ role: role } as ProfileData)}
                     isLoadingFiles={isFilesLoading}
+                    isViewingOther={isViewingOther}
+                    adminButtons={user?.role === "admin" && isViewingOther}
+                    isJudging={isJudging}
+                    setIsJudging={setIsJudging}
+                    onOpenJudgment={handleOpenJudgment}
                   />
                 ) : (
                   <DocumentsSectionSkeleton />
@@ -371,10 +588,12 @@ export function GenericProfile({
             </div>
 
             {/* Sidebar */}
-            {!isProfileLoaded ? (
+            {user?.role !== "admin" && !isProfileLoaded ? (
               <StatusSidebarSkeleton />
             ) : (
-              <StatusSidebar profileData={profileData} />
+              user?.role !== "admin" && (
+                <StatusSidebar profileData={profileData} />
+              )
             )}
           </div>
         </div>

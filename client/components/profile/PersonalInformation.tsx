@@ -37,6 +37,7 @@ interface PersonalInformationProps {
   onEdit: () => void;
   onSave: () => void;
   onCancel: () => void;
+  isViewingOther: boolean;
 }
 
 export function PersonalInformation({
@@ -46,6 +47,7 @@ export function PersonalInformation({
   onEdit,
   onSave,
   onCancel,
+  isViewingOther,
 }: PersonalInformationProps) {
   // console.log(profileData);
   if (isEditing) {
@@ -190,10 +192,12 @@ export function PersonalInformation({
           <CardTitle className="text-foreground">
             Personal Information
           </CardTitle>
-          <Button onClick={onEdit} variant="outline" size="sm">
-            <Edit className="w-4 h-4 mr-2" />
-            Edit Profile
-          </Button>
+          {!isViewingOther && (
+            <Button onClick={onEdit} variant="outline" size="sm">
+              <Edit className="w-4 h-4 mr-2" />
+              Edit Profile
+            </Button>
+          )}
         </div>
       </CardHeader>
       <CardContent>

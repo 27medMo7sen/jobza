@@ -64,9 +64,6 @@ export class FilesService {
         size: file.size,
       });
       savedFile.save();
-      if (label === 'signature') {
-        await this.authService.signatureUploaded(userId);
-      }
 
       // Trigger profile status update based on role
       if (role === 'worker') {
@@ -83,11 +80,9 @@ export class FilesService {
 
   async listUserFiles(userId: Types.ObjectId) {
     const ret = await this.fileModel
-      .find({ userId })
-      .select(
-        'fileName label url s3Key size fileType status rejectionReason -_id',
-      );
-
+      .find({ userId: userId.toString() })
+      .select('fileName label url s3Key size fileType status rejectionReason');
+    console.log('ret', ret);
     const filesByLabel = ret.reduce(
       (acc, file) => {
         acc[file.label] = file;
@@ -97,6 +92,18 @@ export class FilesService {
     );
 
     return filesByLabel;
+  }
+
+  async listUserFilesByUsername(username: string) {
+    // First find the user by username
+    const user = await this.authModel.findOne({ userName: username });
+    if (!user) {
+      throw new Error('User not found');
+    }
+    console.log('user in listUserFilesByUsername', user);
+
+    // Then get their files
+    return await this.listUserFiles(user._id);
   }
 
   async deleteFile(userId: Types.ObjectId, fileId: Types.ObjectId) {

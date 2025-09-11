@@ -89,9 +89,11 @@ export class EmployerProfileStatusService {
    * Determine the current profile status based on all criteria
    */
   async determineProfileStatus(userId: Types.ObjectId): Promise<status> {
-    const employer = await this.employerModel.findOne({ userId });
+    let employer = await this.employerModel.findOne({ userId });
     if (!employer) {
-      throw new Error('Employer not found');
+      // If employer profile doesn't exist, create a basic one
+      employer = new this.employerModel({ userId });
+      await employer.save();
     }
 
     // Check if any file is rejected - if so, entire profile is rejected

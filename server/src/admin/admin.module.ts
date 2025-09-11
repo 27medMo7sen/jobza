@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { Module, forwardRef } from '@nestjs/common';
 import { AdminController } from './admin.controller';
 import { AdminService } from './admin.service';
 import { MongooseModule } from '@nestjs/mongoose';
@@ -17,7 +17,7 @@ import { AgencyModule } from 'src/agency/agency.module';
       { name: 'Auth', schema: AuthSchema },
       { name: File.name, schema: FileSchema },
     ]),
-    AuthModule,
+    forwardRef(() => AuthModule),
     WorkerModule,
     EmployerModule,
     AgencyModule,

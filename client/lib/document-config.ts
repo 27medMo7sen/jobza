@@ -8,6 +8,7 @@ export interface DocumentType {
   maxSize: number; // in MB
   isImage: boolean;
   icon: string;
+  isViewOnly?: boolean;
 }
 
 export const DOCUMENT_TYPES: Record<string, DocumentType> = {
@@ -218,6 +219,17 @@ export const DOCUMENT_TYPES: Record<string, DocumentType> = {
     isImage: false,
     icon: "🔐",
   },
+  signature: {
+    id: "signature",
+    name: "Signature",
+    description: "Digital signature for document verification",
+    required: true,
+    acceptedTypes: ["image/jpeg", "image/png", "image/webp"],
+    maxSize: 2,
+    isImage: true,
+    icon: "✍️",
+    isViewOnly: true,
+  },
 };
 
 export const getDocumentType = (id: string): DocumentType | undefined => {
@@ -236,6 +248,7 @@ export const getDocumentsForRole = (
       "medicalCertificate",
       "experienceLetter",
       "policeClearance",
+      "signature",
     ],
     employer: [
       "facePhoto",
@@ -243,6 +256,7 @@ export const getDocumentsForRole = (
       "proofOfAddress",
       "employmentLetter",
       "incomeProof",
+      "signature",
     ],
     agency: [
       "facePhoto",
@@ -252,7 +266,8 @@ export const getDocumentsForRole = (
       "taxCertificate",
       "complianceDocuments",
     ],
-    admin: ["facePhoto", "idDocument", "backgroundCheck", "securityClearance"],
+    // admin: ["facePhoto", "idDocument", "backgroundCheck", "securityClearance"],
+    admin: [],
   };
 
   // For workers, conditionally add passport/visa or national ID based on country vs nationality

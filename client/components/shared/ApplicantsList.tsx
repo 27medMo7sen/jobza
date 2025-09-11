@@ -1,29 +1,34 @@
-"use client"
+"use client";
 
-import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { Eye, Star, CheckCircle, XCircle } from "lucide-react"
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Eye, Star, CheckCircle, XCircle } from "lucide-react";
+import { ProfileLink } from "./ProfileLink";
 
 type Application = {
-  id: number
-  workerName: string
-  workerAvatar?: string
-  appliedDate: string
-  status: string
-  rating?: number
-  experience?: string
-  location?: string
-  hourlyRate?: string
-  skills: string[]
-  languages: string[]
-}
+  id: number;
+  workerName: string;
+  workerUsername?: string;
+  workerAvatar?: string;
+  appliedDate: string;
+  status: string;
+  rating?: number;
+  experience?: string;
+  location?: string;
+  hourlyRate?: string;
+  skills: string[];
+  languages: string[];
+};
 
 interface ApplicantsListProps {
-  applications: Application[]
-  onAction?: (applicationId: number, action: "accept" | "reject" | "short_list") => void
-  getStatusBadgeClass?: (status: string) => string
-  showViewProfileButton?: boolean
+  applications: Application[];
+  onAction?: (
+    applicationId: number,
+    action: "accept" | "reject" | "short_list"
+  ) => void;
+  getStatusBadgeClass?: (status: string) => string;
+  showViewProfileButton?: boolean;
 }
 
 export function ApplicantsList({
@@ -40,9 +45,11 @@ export function ApplicantsList({
       reviewed: 3,
       completed: 4,
       rejected: 5,
-    }
-    return [...apps].sort((a, b) => (rank[a.status] ?? 99) - (rank[b.status] ?? 99))
-  }
+    };
+    return [...apps].sort(
+      (a, b) => (rank[a.status] ?? 99) - (rank[b.status] ?? 99)
+    );
+  };
 
   return (
     <div className="space-y-4">
@@ -53,29 +60,50 @@ export function ApplicantsList({
               <Avatar className="w-12 h-12 sm:w-16 sm:h-16 flex-shrink-0">
                 <AvatarImage src={app.workerAvatar} alt={app.workerName} />
                 <AvatarFallback className="text-lg sm:text-xl font-semibold">
-                  {app.workerName.split(" ").map((n) => n[0]).join("")}
+                  {app.workerName
+                    .split(" ")
+                    .map((n) => n[0])
+                    .join("")}
                 </AvatarFallback>
               </Avatar>
               <div className="min-w-0 flex-1">
                 <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-2">
                   <div>
-                    <h3 className="text-base sm:text-lg font-semibold break-words">{app.workerName}</h3>
+                    {app.workerUsername ? (
+                      <ProfileLink username={app.workerUsername}>
+                        <h3 className="text-base sm:text-lg font-semibold break-words hover:text-blue-600 transition-colors">
+                          {app.workerName}
+                        </h3>
+                      </ProfileLink>
+                    ) : (
+                      <h3 className="text-base sm:text-lg font-semibold break-words">
+                        {app.workerName}
+                      </h3>
+                    )}
                     <div className="flex items-center space-x-2 mt-1">
                       {typeof app.rating !== "undefined" && (
                         <>
                           <Star className="w-3 h-3 sm:w-4 sm:h-4 text-yellow-500 fill-current flex-shrink-0" />
-                          <span className="text-sm sm:text-base font-medium">{app.rating}</span>
+                          <span className="text-sm sm:text-base font-medium">
+                            {app.rating}
+                          </span>
                         </>
                       )}
                       {app.experience && (
-                        <span className="text-xs sm:text-sm text-gray-500">({app.experience} experience)</span>
+                        <span className="text-xs sm:text-sm text-gray-500">
+                          ({app.experience} experience)
+                        </span>
                       )}
                     </div>
                     {app.location && (
-                      <p className="text-xs sm:text-sm text-gray-600 mt-1 break-words">{app.location}</p>
+                      <p className="text-xs sm:text-sm text-gray-600 mt-1 break-words">
+                        {app.location}
+                      </p>
                     )}
                   </div>
-                  <Badge className={getStatusBadgeClass(app.status)}>{app.status}</Badge>
+                  <Badge className={getStatusBadgeClass(app.status)}>
+                    {app.status}
+                  </Badge>
                 </div>
               </div>
             </div>
@@ -93,7 +121,9 @@ export function ApplicantsList({
               </div>
             </div>
             <div>
-              <h4 className="font-medium mb-2 text-sm sm:text-base">Languages</h4>
+              <h4 className="font-medium mb-2 text-sm sm:text-base">
+                Languages
+              </h4>
               <div className="flex flex-wrap gap-1">
                 {app.languages.map((lang, index) => (
                   <Badge key={index} variant="outline" className="text-xs">
@@ -105,10 +135,16 @@ export function ApplicantsList({
           </div>
 
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between pt-4 border-t gap-4">
-            <div className="text-xs sm:text-sm text-gray-600">Applied: {app.appliedDate}</div>
+            <div className="text-xs sm:text-sm text-gray-600">
+              Applied: {app.appliedDate}
+            </div>
             <div className="flex flex-wrap gap-2">
               {showViewProfileButton && (
-                <Button size="sm" variant="outline" className="text-xs sm:text-sm">
+                <Button
+                  size="sm"
+                  variant="outline"
+                  className="text-xs sm:text-sm"
+                >
                   <Eye className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" />
                   View Profile
                 </Button>
@@ -126,7 +162,11 @@ export function ApplicantsList({
               )}
               {onAction && app.status === "pending" && (
                 <>
-                  <Button size="sm" onClick={() => onAction(app.id, "accept")} className="bg-green-600 hover:bg-green-700 text-xs sm:text-sm">
+                  <Button
+                    size="sm"
+                    onClick={() => onAction(app.id, "accept")}
+                    className="bg-green-600 hover:bg-green-700 text-xs sm:text-sm"
+                  >
                     <CheckCircle className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" />
                     Accept
                   </Button>
@@ -146,7 +186,5 @@ export function ApplicantsList({
         </div>
       ))}
     </div>
-  )
+  );
 }
-
-

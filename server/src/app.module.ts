@@ -19,6 +19,7 @@ import { ConnectionModule } from './connection/connection.module';
 import { JobOfferModule } from './job-offer/job-offer.module';
 import { ApplicationModule } from './application/application.module';
 import { AdminModule } from './admin/admin.module';
+import { SuperadminModule } from './superadmin/superadmin.module';
 
 @Module({
   imports: [
@@ -70,6 +71,7 @@ import { AdminModule } from './admin/admin.module';
     JobOfferModule,
     ApplicationModule,
     AdminModule,
+    SuperadminModule,
     // ConnectionModule,
   ],
   controllers: [AppController],

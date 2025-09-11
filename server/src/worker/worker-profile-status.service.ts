@@ -109,9 +109,11 @@ export class WorkerProfileStatusService {
    * Determine the current profile status based on all criteria
    */
   async determineProfileStatus(userId: Types.ObjectId): Promise<status> {
-    const worker = await this.workerModel.findOne({ userId });
+    let worker = await this.workerModel.findOne({ userId });
     if (!worker) {
-      throw new Error('Worker not found');
+      // If worker profile doesn't exist, create a basic one
+      worker = new this.workerModel({ userId });
+      await worker.save();
     }
 
     // Check if any file is rejected - if so, entire profile is rejected

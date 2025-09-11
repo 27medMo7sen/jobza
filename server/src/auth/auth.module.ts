@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { Module, forwardRef } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { AuthController } from './auth.controller';
 import { MongooseModule } from '@nestjs/mongoose';
@@ -13,6 +13,7 @@ import { MailService } from 'src/mail/mail.service';
 import { WorkerModule } from 'src/worker/worker.module';
 import { EmployerModule } from 'src/employer/employer.module';
 import { AgencyModule } from 'src/agency/agency.module';
+import { AdminModule } from 'src/admin/admin.module';
 import { FilesModule } from 'src/files/files.module';
 import { LocalAuthGuard } from './auth.guard';
 
@@ -31,6 +32,7 @@ import { LocalAuthGuard } from './auth.guard';
     WorkerModule,
     EmployerModule,
     AgencyModule,
+    forwardRef(() => AdminModule),
   ],
   controllers: [AuthController],
   providers: [

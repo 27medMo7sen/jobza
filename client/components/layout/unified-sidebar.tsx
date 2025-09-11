@@ -2,7 +2,9 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
+import { useDispatch } from "react-redux";
+import { clearAuth } from "@/lib/slices/authSlice";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -144,21 +146,21 @@ export function UnifiedSidebar({
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [collapsed, setCollapsed] = useState(false);
   const pathname = usePathname();
+  const router = useRouter();
+  const dispatch = useDispatch();
   const navigationItems = getNavigationItems(userRole);
 
   const handleSignOut = async () => {
     try {
-      // Clear any stored user data
-      localStorage.removeItem("user");
-      localStorage.removeItem("userRole");
-      localStorage.removeItem("token");
+      // Clear auth state and localStorage using Redux action
+      dispatch(clearAuth());
 
-      // Redirect to home page
-      window.location.href = "/";
+      // Redirect to auth page
+      router.push("/auth");
     } catch (error) {
       console.error("Sign out error:", error);
       // Fallback redirect
-      window.location.href = "/";
+      router.push("/auth");
     }
   };
 

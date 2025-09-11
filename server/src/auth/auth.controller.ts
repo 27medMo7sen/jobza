@@ -128,4 +128,13 @@ export class AuthController {
   async deleteUser(@Param('userId') userId: string, @Req() req: any) {
     return await this.authService.deleteUser(userId, req.user);
   }
+
+  @Get('/profile/:username')
+  @UseGuards(LocalAuthGuard)
+  async getUserProfileByUsername(
+    @Param('username') username: string,
+    @Req() req: any,
+  ) {
+    return await this.authService.getUserProfileByUsername(username, req.user);
+  }
 }

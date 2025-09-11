@@ -5,6 +5,7 @@ import SignatureCanvas from "react-signature-canvas";
 import { useHttp } from "@/hooks/use-http";
 import { toast } from "sonner";
 import { setUser } from "@/lib/slices/authSlice";
+import { addFile } from "@/lib/slices/filesSlice";
 import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "@/lib/store";
 
@@ -45,11 +46,28 @@ export default function SignaturePad() {
       formData.append("label", "signature");
 
       // Send to backend with proper headers for FormData
-      const result = await post("/files/upload", formData, {
+      const result = await post<any>("/files/upload", formData, {
         headers: {
           "Content-Type": "multipart/form-data",
         },
       });
+
+      // Add the signature file to Redux store for real-time update
+      const fileData = {
+        id: "signature",
+        name: result.fileName,
+        type: result.fileType,
+        url: result.url,
+        status: result.status,
+        rejectionReason: result.rejectionReason,
+        uploadedAt: new Date().toISOString(),
+        fileName: result.fileName,
+        s3Key: result.s3Key,
+        size: result.size,
+        dataUrl: signatureData,
+      };
+
+      dispatch(addFile(fileData));
 
       // Update user state with signature flag
       console.log("Current user before update:", user);

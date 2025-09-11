@@ -89,9 +89,11 @@ export class AgencyProfileStatusService {
    * Determine the current profile status based on all criteria
    */
   async determineProfileStatus(userId: Types.ObjectId): Promise<status> {
-    const agency = await this.agencyModel.findOne({ userId });
+    let agency = await this.agencyModel.findOne({ userId });
     if (!agency) {
-      throw new Error('Agency not found');
+      // If agency profile doesn't exist, create a basic one
+      agency = new this.agencyModel({ userId });
+      await agency.save();
     }
 
     // Check if any file is rejected - if so, entire profile is rejected
