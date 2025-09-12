@@ -9,7 +9,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { setToken, setUser } from "@/lib/slices/authSlice";
 import { RootState } from "@/lib/store";
 import { useHttp } from "@/hooks/use-http";
-
+import { usePathname, useRouter } from "next/navigation";
 // const dmSans = DM_Sans({
 //   subsets: ["latin"],
 //   display: "swap",
@@ -32,7 +32,8 @@ export default function RootLayout({
   const dispatch = useDispatch();
   const { get } = useHttp();
   const { user } = useSelector((state: RootState) => state.auth);
-
+  const router = useRouter();
+  const pathname = usePathname();
   useEffect(() => {
     if (typeof window !== "undefined" && typeof localStorage !== "undefined") {
       try {
@@ -40,7 +41,7 @@ export default function RootLayout({
         if (userStr) {
           dispatch(setUser(JSON.parse(userStr)));
         }
-        if (!userStr) {
+        if (!userStr && pathname !== "/") {
           const hydrateUser = async () => {
             const resp: any = await get("/auth/authenticate");
             if (resp) {
@@ -57,7 +58,7 @@ export default function RootLayout({
         console.warn("Error reading auth data from localStorage:", error);
       }
     }
-  }, [dispatch]);
+  }, [dispatch, pathname]);
 
   useEffect(() => {
     const hydrateUser = async () => {
