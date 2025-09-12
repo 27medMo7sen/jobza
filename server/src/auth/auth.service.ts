@@ -328,6 +328,7 @@ export class AuthService {
     console.log('user', user);
     if (user.role === Role.WORKER) {
       if (!updatedUser?.worker) {
+        console.log('Worker not found');
         throw new HttpException('Worker not found', 404);
       }
       console.log('going to worker service');
