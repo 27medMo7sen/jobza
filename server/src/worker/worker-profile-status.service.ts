@@ -111,9 +111,20 @@ export class WorkerProfileStatusService {
   async determineProfileStatus(userId: Types.ObjectId): Promise<status> {
     let worker = await this.workerModel.findOne({ userId });
     if (!worker) {
-      // If worker profile doesn't exist, create a basic one
-      worker = new this.workerModel({ userId });
-      await worker.save();
+      // If worker profile doesn't exist, create a basic one with required fields
+      // Fetch email from Auth to satisfy Worker schema requirement
+      const auth = await this.authModel
+        .findById(userId)
+        .select('email')
+        .lean();
+
+      if (auth?.email) {
+        worker = new this.workerModel({ userId, email: auth.email });
+        await worker.save();
+      } else {
+        // Cannot create Worker without required email; treat as incomplete profile
+        return status.NOT_COMPLETED;
+      }
     }
 
     // Check if any file is rejected - if so, entire profile is rejected
