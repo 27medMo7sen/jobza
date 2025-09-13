@@ -78,7 +78,7 @@ export const ProfileInformation: React.FC<ProfileInformationProps> = ({
         </h2>
         <button
           onClick={onEditToggle}
-          className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors"
+          className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-gray-100 rounded-lg transition-colors"
         >
           <Edit2 size={16} />
           {isEditing ? "Cancel" : "Edit"}

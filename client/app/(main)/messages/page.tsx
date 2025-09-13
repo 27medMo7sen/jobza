@@ -100,7 +100,7 @@ export default function MessagesPage() {
         <div className="flex items-center space-x-4">
           <div className="flex items-center space-x-2">
             <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
-              <span className="text-white font-bold text-sm">J</span>
+              <span className="text-gray-100 font-bold text-sm">J</span>
             </div>
             <span className="font-semibold text-gray-900">Jobza</span>
           </div>

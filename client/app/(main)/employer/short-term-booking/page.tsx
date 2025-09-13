@@ -33,7 +33,6 @@ import {
   Eye,
 } from "lucide-react";
 import Link from "next/link";
-import { UnifiedSidebar } from "@/components/layout/unified-sidebar";
 
 export default function ShortTermBookingPage() {
   const [currentStep, setCurrentStep] = useState(1);
@@ -817,12 +816,6 @@ export default function ShortTermBookingPage() {
 
   return (
     <div className="min-h-screen bg-background">
-      <UnifiedSidebar
-        userRole="employer"
-        userName="John Smith"
-        userEmail="john@example.com"
-      />
-
       <div className="lg:ml-64">
         {/* Header */}
         <header className="bg-white shadow-sm border-b">

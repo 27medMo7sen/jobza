@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -41,6 +41,7 @@ export function FilePreview({
 }: FilePreviewProps) {
   const [isDragOver, setIsDragOver] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
+  const [showActions, setShowActions] = useState(false);
   const dispatch = useDispatch();
   const { files, isLoading } = useSelector((state: RootState) => state.files);
   const { post } = useHttp();
@@ -51,8 +52,19 @@ export function FilePreview({
   const status = file?.status || "pending";
   const rejectionReason = file?.rejectionReason;
 
+  // Debug state values
+  console.log(`FilePreview ${documentType.id} state:`, {
+    isUploading,
+    hasFile: !!file,
+    file: file,
+    documentType: documentType.id,
+    adminButtons: adminButtons,
+    isViewingOther: isViewingOther,
+  });
+
   const uploadFile = async (file: File) => {
     try {
+      console.log("Uploading file:", file);
       setIsUploading(true);
 
       // Create FormData
@@ -107,6 +119,10 @@ export function FilePreview({
 
   const handleDragOver = (e: React.DragEvent) => {
     e.preventDefault();
+    // Don't allow drag over for approved files
+    if (status === "approved") {
+      return;
+    }
     setIsDragOver(true);
   };
 
@@ -116,32 +132,71 @@ export function FilePreview({
   };
 
   const handleDrop = (e: React.DragEvent) => {
+    console.log("handleDrop called for document:", documentType.id);
     e.preventDefault();
     setIsDragOver(false);
 
     // Don't allow drop for view-only documents
     if (documentType.isViewOnly) {
+      console.log("Document is view-only, blocking drop");
       toast.error("This document is view-only and cannot be modified");
       return;
     }
 
+    // Don't allow drop for approved files
+    if (status === "approved") {
+      console.log("File is approved, blocking drop");
+      toast.error("This file has been approved and cannot be modified");
+      return;
+    }
+
     const droppedFile = e.dataTransfer.files[0];
+    console.log("Dropped file:", droppedFile);
+    console.log("File is valid:", droppedFile && isFileTypeValid(droppedFile));
+
     if (droppedFile && isFileTypeValid(droppedFile)) {
+      console.log("Uploading file immediately");
       uploadFile(droppedFile);
     }
   };
 
   const handleFileInput = (e: React.ChangeEvent<HTMLInputElement>) => {
+    console.log("handleFileInput called for document:", documentType.id);
+    console.log("Document is view only:", documentType.isViewOnly);
+
     // Don't allow upload for view-only documents
     if (documentType.isViewOnly) {
+      console.log("Document is view-only, blocking upload");
       toast.error("This document is view-only and cannot be modified");
       e.target.value = "";
       return;
     }
 
+    // Don't allow upload for approved files
+    if (status === "approved") {
+      console.log("File is approved, blocking upload");
+      toast.error("This file has been approved and cannot be modified");
+      e.target.value = "";
+      return;
+    }
+
     const selectedFile = e.target.files?.[0];
+    console.log("Selected file:", selectedFile);
+    console.log(
+      "File is valid:",
+      selectedFile && isFileTypeValid(selectedFile)
+    );
+
     if (selectedFile && isFileTypeValid(selectedFile)) {
+      console.log("Uploading file immediately");
       uploadFile(selectedFile);
+    } else {
+      console.log("File validation failed:", {
+        selectedFile: !!selectedFile,
+        isValid: selectedFile ? isFileTypeValid(selectedFile) : false,
+        acceptedTypes: documentType.acceptedTypes,
+        fileType: selectedFile?.type,
+      });
     }
     // Reset the input value after handling
     e.target.value = "";
@@ -159,6 +214,14 @@ export function FilePreview({
   };
 
   const handleFileReplace = (e: React.ChangeEvent<HTMLInputElement>) => {
+    // Don't allow replace for approved files
+    if (status === "approved") {
+      console.log("File is approved, blocking replace");
+      toast.error("This file has been approved and cannot be modified");
+      e.target.value = "";
+      return;
+    }
+
     const selectedFile = e.target.files?.[0];
     if (selectedFile && isFileTypeValid(selectedFile)) {
       uploadFile(selectedFile);
@@ -175,6 +238,26 @@ export function FilePreview({
       setIsJudging(true);
     }
   };
+
+  const handleFileClick = () => {
+    setShowActions(!showActions);
+  };
+
+  const handleActionClick = (e: React.MouseEvent) => {
+    e.stopPropagation(); // Prevent the file click from toggling actions
+  };
+
+  // Hide actions when clicking outside
+  useEffect(() => {
+    const handleClickOutside = () => {
+      setShowActions(false);
+    };
+
+    if (showActions) {
+      document.addEventListener("click", handleClickOutside);
+      return () => document.removeEventListener("click", handleClickOutside);
+    }
+  }, [showActions]);
 
   const getStatusColor = () => {
     switch (status) {
@@ -256,7 +339,9 @@ export function FilePreview({
     return (
       <div
         className={`relative border-2 border-dashed rounded-lg p-6 transition-colors ${
-          isDragOver
+          status === "approved"
+            ? "border-green-300 bg-green-50 cursor-default"
+            : isDragOver
             ? "border-blue-500 bg-blue-50"
             : "border-gray-300 hover:border-gray-400"
         }`}
@@ -270,10 +355,13 @@ export function FilePreview({
           onChange={handleFileInput}
           className="hidden"
           id={`upload-${documentType.id}`}
+          disabled={status === "approved"}
         />
         <label
           htmlFor={`upload-${documentType.id}`}
-          className="cursor-pointer block"
+          className={`block ${
+            status === "approved" ? "cursor-default" : "cursor-pointer"
+          }`}
         >
           <div className="text-center">
             <div className="text-4xl mb-2">{documentType.icon}</div>
@@ -284,8 +372,18 @@ export function FilePreview({
               {documentType.description}
             </p>
             <div className="flex items-center justify-center gap-2 text-sm text-gray-500">
-              <Upload className="w-4 h-4" />
-              <span>Click to upload or drag and drop</span>
+              {status === "approved" ? (
+                <>
+                  <span className="text-green-600">
+                    ✓ Approved - Cannot be modified
+                  </span>
+                </>
+              ) : (
+                <>
+                  <Upload className="w-4 h-4" />
+                  <span>Click to upload or drag and drop</span>
+                </>
+              )}
             </div>
             <p className="text-xs text-gray-400 mt-2">
               Max size: {documentType.maxSize}MB
@@ -306,7 +404,7 @@ export function FilePreview({
       className={`relative border-2 rounded-lg p-4 transition-all ${getStatusColor()}`}
     >
       {/* File Preview */}
-      <div className="relative group">
+      <div className="relative group cursor-pointer" onClick={handleFileClick}>
         {isUploading ? (
           <FilePreviewAreaSkeleton isImage={documentType.isImage} />
         ) : (
@@ -357,44 +455,59 @@ export function FilePreview({
           </div>
         )}
 
-        {/* Hover Actions */}
+        {/* Action Buttons - Show on click (mobile) or hover (desktop) */}
         {!isUploading && (
-          <div className="absolute inset-0 group-hover:bg-gradient-to-t cursor-pointer group-hover:from-black group-hover:to-transparent rounded-lg opacity-0 group-hover:opacity-80 transition-opacity flex flex-col items-center justify-center gap-2">
+          <div
+            className={`absolute inset-0 bg-gradient-to-t from-black to-transparent rounded-lg transition-opacity flex flex-col items-center justify-center gap-2 p-2 ${
+              showActions
+                ? "opacity-100"
+                : "md:opacity-0 md:group-hover:opacity-100 hidden md:flex"
+            }`}
+          >
             <Button
               size="sm"
               variant="secondary"
-              className="cursor-pointer"
-              onClick={() => handleFileOpen(file)}
+              className="cursor-pointer bg-white/90 text-black hover:bg-white shadow-lg"
+              onClick={(e) => {
+                handleActionClick(e);
+                handleFileOpen(file);
+              }}
             >
               <Eye className="w-4 h-4 mr-1" />
               Open
             </Button>
-            {!isViewingOther && !documentType.isViewOnly && (
-              <Button
-                size="sm"
-                variant="secondary"
-                className="cursor-pointer"
-                onClick={() => {
-                  const input = document.getElementById(
-                    `replace-${documentType.id}`
-                  ) as HTMLInputElement;
-                  if (input) {
-                    input.value = ""; // Reset the input value to allow selecting the same file
-                    input.click();
-                  }
-                }}
-                disabled={isUploading}
-              >
-                <RefreshCw className="w-4 h-4 mr-1" />
-                Replace
-              </Button>
-            )}
+            {!isViewingOther &&
+              !documentType.isViewOnly &&
+              status !== "approved" && (
+                <Button
+                  size="sm"
+                  variant="secondary"
+                  className="cursor-pointer bg-white/90 text-black hover:bg-white shadow-lg"
+                  onClick={(e) => {
+                    handleActionClick(e);
+                    const input = document.getElementById(
+                      `replace-${documentType.id}`
+                    ) as HTMLInputElement;
+                    if (input) {
+                      input.value = ""; // Reset the input value to allow selecting the same file
+                      input.click();
+                    }
+                  }}
+                  disabled={isUploading}
+                >
+                  <RefreshCw className="w-4 h-4 mr-1" />
+                  Replace
+                </Button>
+              )}
             {adminButtons && (
               <Button
                 size="sm"
                 variant="secondary"
-                className="cursor-pointer"
-                onClick={() => handleFileJudge(file)}
+                className="cursor-pointer bg-white/90 text-black hover:bg-white shadow-lg"
+                onClick={(e) => {
+                  handleActionClick(e);
+                  handleFileJudge(file);
+                }}
                 disabled={isJudging}
               >
                 <Gavel className="w-4 h-4 mr-1" />
@@ -411,6 +524,7 @@ export function FilePreview({
           onChange={handleFileReplace}
           className="hidden"
           id={`replace-${documentType.id}`}
+          disabled={status === "approved"}
         />
       </div>
 
@@ -448,6 +562,9 @@ export function FilePreview({
           {rejectionReason}
         </div>
       )}
+
+      {/* Date Inputs for Documents that Require Dates */}
+      {/* Debug: showDateInputs={showDateInputs}, requiresDates={documentType.requiresDates}, isUploading={isUploading} */}
     </div>
   );
 }

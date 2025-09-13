@@ -306,7 +306,7 @@ const WorkerSignupForm: React.FC = () => {
               type="button"
               disabled={!isFormValid || isLoading}
               onClick={handleSubmit}
-              className={`w-full bg-blue-600 disabled:bg-gray-300 disabled:cursor-not-allowed text-white py-3 px-4 rounded-lg font-medium hover:bg-blue-700 transition-colors duration-200`}
+              className={`w-full bg-blue-600 disabled:bg-gray-300 disabled:cursor-not-allowed text-gray-100 py-3 px-4 rounded-lg font-medium hover:bg-blue-700 transition-colors duration-200`}
             >
               {isLoading ? "Creating Account..." : "Create Worker Account"}
             </button>

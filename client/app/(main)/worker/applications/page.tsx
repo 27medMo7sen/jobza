@@ -26,7 +26,6 @@ import {
   Search,
   Filter,
 } from "lucide-react";
-import { UnifiedSidebar } from "@/components/layout/unified-sidebar";
 import Link from "next/link";
 
 export default function WorkerApplications() {
@@ -136,12 +135,6 @@ export default function WorkerApplications() {
 
   return (
     <div className="min-h-screen bg-background">
-      <UnifiedSidebar
-        userRole="worker"
-        userName="Sarah Johnson"
-        userEmail="sarah@example.com"
-      />
-
       <div className="lg:ml-64 p-4 sm:p-6">
         <div className="max-w-7xl mx-auto w-full">
           {/* Header */}

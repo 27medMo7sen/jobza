@@ -21,8 +21,6 @@ import {
   Building2,
   User,
 } from "lucide-react";
-import { WorkerSidebar } from "@/components/layout/worker-sidebar";
-import { UnifiedSidebar } from "@/components/layout/unified-sidebar";
 import { DashboardLayout } from "@/components/dashboard/dashboard-layout";
 
 // Mock contract data - replace with actual API call
@@ -571,7 +569,7 @@ export default function ContractPage() {
               </div>
               <div className="flex justify-between">
                 <div className="text-center">
-                  <div className="w-8 h-8 bg-green-500 rounded-full flex items-center justify-center text-white text-sm font-bold mb-2 mx-auto">
+                  <div className="w-8 h-8 bg-green-500 rounded-full flex items-center justify-center text-gray-100 text-sm font-bold mb-2 mx-auto">
                     ✓
                   </div>
                   <div className="text-xs text-green-600 font-medium">
@@ -580,7 +578,7 @@ export default function ContractPage() {
                 </div>
                 <div className="text-center">
                   <div
-                    className={`w-8 h-8 rounded-full flex items-center justify-center text-white text-sm font-bold mb-2 mx-auto ${
+                    className={`w-8 h-8 rounded-full flex items-center justify-center text-gray-100 text-sm font-bold mb-2 mx-auto ${
                       contractData.employerSigned
                         ? "bg-green-500"
                         : "bg-blue-600"
@@ -600,7 +598,7 @@ export default function ContractPage() {
                 </div>
                 <div className="text-center">
                   <div
-                    className={`w-8 h-8 rounded-full flex items-center justify-center text-white text-sm font-bold mb-2 mx-auto ${
+                    className={`w-8 h-8 rounded-full flex items-center justify-center text-gray-100 text-sm font-bold mb-2 mx-auto ${
                       contractData.workerSigned ? "bg-green-500" : "bg-gray-300"
                     }`}
                   >
@@ -816,316 +814,307 @@ export default function ContractPage() {
 
   // Regular layout for worker and employer
   return (
-    <div className="flex min-h-screen bg-gray-50">
-      {userRole === "employer" ? (
-        <UnifiedSidebar userRole="employer" />
-      ) : (
-        <WorkerSidebar />
-      )}
-
-      <div className="flex-1 p-6">
-        {/* Header */}
-        <div className="flex items-center mb-6">
-          <Button variant="ghost" onClick={handleBack} className="mr-4">
-            <ArrowLeft className="w-4 h-4" />
-          </Button>
-          <div>
-            <h1 className="text-2xl font-bold text-card-foreground">
-              Contract Review & Signing
-            </h1>
-            <p className="text-muted-foreground">
-              Review and sign your employment agreement
-            </p>
-          </div>
+    <div className="flex-1 p-6">
+      {/* Header */}
+      <div className="flex items-center mb-6">
+        <Button variant="ghost" onClick={handleBack} className="mr-4">
+          <ArrowLeft className="w-4 h-4" />
+        </Button>
+        <div>
+          <h1 className="text-2xl font-bold text-card-foreground">
+            Contract Review & Signing
+          </h1>
+          <p className="text-muted-foreground">
+            Review and sign your employment agreement
+          </p>
         </div>
+      </div>
 
-        {/* Contract Header */}
-        <Card className="mb-6">
-          <CardContent className="p-6">
-            <div className="flex flex-col md:flex-row md:justify-between md:items-start gap-6">
-              <div className="flex items-center">
-                <div className="w-16 h-16 rounded-full bg-blue-100 flex items-center justify-center mr-4">
-                  <FileText className="text-blue-600 text-2xl" />
-                </div>
-                <div>
-                  <h2 className="font-bold text-xl">Employment Agreement</h2>
-                  <p className="text-muted-foreground">
-                    Contract ID: {contractData.id}
-                  </p>
-                </div>
+      {/* Contract Header */}
+      <Card className="mb-6">
+        <CardContent className="p-6">
+          <div className="flex flex-col md:flex-row md:justify-between md:items-start gap-6">
+            <div className="flex items-center">
+              <div className="w-16 h-16 rounded-full bg-blue-100 flex items-center justify-center mr-4">
+                <FileText className="text-blue-600 text-2xl" />
               </div>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div>
-                  <p className="text-muted-foreground text-xs">Agency</p>
-                  <p className="font-medium">{contractData.agency.name}</p>
-                </div>
-                <div>
-                  <p className="text-muted-foreground text-xs">Position</p>
-                  <p className="font-medium">{contractData.position}</p>
-                </div>
-                <div>
-                  <p className="text-muted-foreground text-xs">Status</p>
-                  <Badge
-                    variant="secondary"
-                    className={getStatusColor(contractData.status)}
-                  >
-                    {getStatusText(contractData.status)}
-                  </Badge>
-                </div>
+              <div>
+                <h2 className="font-bold text-xl">Employment Agreement</h2>
+                <p className="text-muted-foreground">
+                  Contract ID: {contractData.id}
+                </p>
               </div>
             </div>
-          </CardContent>
-        </Card>
-
-        {/* Progress */}
-        <Card className="mb-6">
-          <CardContent className="p-6">
-            <div className="flex justify-between items-center mb-4">
-              <h2 className="text-xl font-bold">Signing Progress</h2>
-              <span className="text-sm text-muted-foreground">
-                {getStepText()}
-              </span>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div>
+                <p className="text-muted-foreground text-xs">Agency</p>
+                <p className="font-medium">{contractData.agency.name}</p>
+              </div>
+              <div>
+                <p className="text-muted-foreground text-xs">Position</p>
+                <p className="font-medium">{contractData.position}</p>
+              </div>
+              <div>
+                <p className="text-muted-foreground text-xs">Status</p>
+                <Badge
+                  variant="secondary"
+                  className={getStatusColor(contractData.status)}
+                >
+                  {getStatusText(contractData.status)}
+                </Badge>
+              </div>
             </div>
-            <div className="w-full bg-gray-200 rounded-full h-2 mb-4">
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Progress */}
+      <Card className="mb-6">
+        <CardContent className="p-6">
+          <div className="flex justify-between items-center mb-4">
+            <h2 className="text-xl font-bold">Signing Progress</h2>
+            <span className="text-sm text-muted-foreground">
+              {getStepText()}
+            </span>
+          </div>
+          <div className="w-full bg-gray-200 rounded-full h-2 mb-4">
+            <div
+              className="bg-blue-600 h-2 rounded-full transition-all duration-300"
+              style={{ width: `${getProgressPercentage()}%` }}
+            ></div>
+          </div>
+          <div className="flex justify-between">
+            <div className="text-center">
+              <div className="w-8 h-8 bg-green-500 rounded-full flex items-center justify-center text-gray-100 text-sm font-bold mb-2 mx-auto">
+                ✓
+              </div>
+              <div className="text-xs text-green-600 font-medium">
+                Agency Created
+              </div>
+            </div>
+            <div className="text-center">
               <div
-                className="bg-blue-600 h-2 rounded-full transition-all duration-300"
-                style={{ width: `${getProgressPercentage()}%` }}
-              ></div>
-            </div>
-            <div className="flex justify-between">
-              <div className="text-center">
-                <div className="w-8 h-8 bg-green-500 rounded-full flex items-center justify-center text-white text-sm font-bold mb-2 mx-auto">
-                  ✓
-                </div>
-                <div className="text-xs text-green-600 font-medium">
-                  Agency Created
-                </div>
+                className={`w-8 h-8 rounded-full flex items-center justify-center text-gray-100 text-sm font-bold mb-2 mx-auto ${
+                  contractData.employerSigned ? "bg-green-500" : "bg-blue-600"
+                }`}
+              >
+                {contractData.employerSigned ? "✓" : "2"}
               </div>
-              <div className="text-center">
-                <div
-                  className={`w-8 h-8 rounded-full flex items-center justify-center text-white text-sm font-bold mb-2 mx-auto ${
-                    contractData.employerSigned ? "bg-green-500" : "bg-blue-600"
-                  }`}
-                >
-                  {contractData.employerSigned ? "✓" : "2"}
-                </div>
-                <div
-                  className={`text-xs ${
-                    contractData.employerSigned
-                      ? "text-green-600 font-medium"
-                      : "text-blue-600"
-                  }`}
-                >
-                  Employer Sign
-                </div>
-              </div>
-              <div className="text-center">
-                <div
-                  className={`w-8 h-8 rounded-full flex items-center justify-center text-white text-sm font-bold mb-2 mx-auto ${
-                    contractData.workerSigned ? "bg-green-500" : "bg-gray-300"
-                  }`}
-                >
-                  {contractData.workerSigned ? "✓" : "3"}
-                </div>
-                <div
-                  className={`text-xs ${
-                    contractData.workerSigned
-                      ? "text-green-600 font-medium"
-                      : "text-muted-foreground"
-                  }`}
-                >
-                  Worker Sign
-                </div>
+              <div
+                className={`text-xs ${
+                  contractData.employerSigned
+                    ? "text-green-600 font-medium"
+                    : "text-blue-600"
+                }`}
+              >
+                Employer Sign
               </div>
             </div>
-          </CardContent>
-        </Card>
-
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Contract Content */}
-          <div className="lg:col-span-2">
-            <Card className="mb-6">
-              <CardContent className="p-6">
-                <h2 className="text-xl font-bold mb-6">Employment Agreement</h2>
-
-                {/* Parties */}
-                <div className="mb-8">
-                  <h3 className="font-bold mb-4 flex items-center">
-                    <div className="w-3 h-3 bg-blue-600 rounded-full mr-3"></div>
-                    Parties to the Agreement
-                  </h3>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div>
-                      <h4 className="font-bold mb-3 flex items-center">
-                        <Building2 className="h-4 w-4 mr-2 text-blue-600" />
-                        Agency
-                      </h4>
-                      <p>
-                        <strong>Name:</strong> {contractData.agency.name}
-                      </p>
-                      <p>
-                        <strong>Address:</strong> {contractData.agency.address}
-                      </p>
-                      <p>
-                        <strong>Contact:</strong> {contractData.agency.contact}
-                      </p>
-                      <p>
-                        <strong>ID:</strong> {contractData.agency.id}
-                      </p>
-                    </div>
-                    <div>
-                      <h4 className="font-bold mb-3 flex items-center">
-                        <User className="h-4 w-4 mr-2 text-green-600" />
-                        Worker
-                      </h4>
-                      <p>
-                        <strong>Name:</strong> {contractData.worker.name}
-                      </p>
-                      <p>
-                        <strong>Nationality:</strong>{" "}
-                        {contractData.worker.nationality}
-                      </p>
-                      <p>
-                        <strong>Passport:</strong>{" "}
-                        {contractData.worker.passport}
-                      </p>
-                      <p>
-                        <strong>Worker ID:</strong> {contractData.worker.id}
-                      </p>
-                    </div>
-                  </div>
-                </div>
-
-                <Separator className="my-6" />
-
-                {/* Position and Duties */}
-                <div className="mb-8">
-                  <h3 className="font-bold mb-4 flex items-center">
-                    <div className="w-3 h-3 bg-blue-600 rounded-full mr-3"></div>
-                    Position and Duties
-                  </h3>
-                  <div className="space-y-3">
-                    <p>
-                      <strong>Position:</strong> {contractData.position}
-                    </p>
-                    <p>
-                      <strong>Type:</strong> {contractData.details.type}
-                    </p>
-                    <p>
-                      <strong>Work Location:</strong>{" "}
-                      {contractData.details.location}
-                    </p>
-                    <p>
-                      <strong>Living Arrangement:</strong>{" "}
-                      {contractData.details.livingArrangement}
-                    </p>
-                    <p>
-                      <strong>Primary Duties:</strong>
-                    </p>
-                    <ul className="list-disc list-inside ml-4 space-y-1">
-                      {contractData.details.duties.map((duty, index) => (
-                        <li key={index}>{duty}</li>
-                      ))}
-                    </ul>
-                  </div>
-                </div>
-
-                <Separator className="my-6" />
-
-                {/* Work Schedule */}
-                <div className="mb-8">
-                  <h3 className="font-bold mb-4 flex items-center">
-                    <div className="w-3 h-3 bg-blue-600 rounded-full mr-3"></div>
-                    Work Schedule
-                  </h3>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div>
-                      <p>
-                        <strong>Daily Hours:</strong>{" "}
-                        {contractData.schedule.dailyHours}
-                      </p>
-                      <p>
-                        <strong>Standby Hours:</strong>{" "}
-                        {contractData.schedule.standbyHours}
-                      </p>
-                      <p>
-                        <strong>Rest Period:</strong>{" "}
-                        {contractData.schedule.restPeriod}
-                      </p>
-                    </div>
-                    <div>
-                      <p>
-                        <strong>Work Cycle:</strong>{" "}
-                        {contractData.schedule.workCycle}
-                      </p>
-                      <p>
-                        <strong>Weekly Off:</strong>{" "}
-                        {contractData.schedule.weeklyOff}
-                      </p>
-                    </div>
-                  </div>
-                </div>
-
-                <Separator className="my-6" />
-
-                {/* Compensation */}
-                <div className="mb-8">
-                  <h3 className="font-bold mb-4 flex items-center">
-                    <div className="w-3 h-3 bg-blue-600 rounded-full mr-3"></div>
-                    Compensation and Benefits
-                  </h3>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div>
-                      <p>
-                        <strong>Monthly Salary:</strong>{" "}
-                        {contractData.compensation.monthlySalary}
-                      </p>
-                      <p>
-                        <strong>Payment Method:</strong>{" "}
-                        {contractData.compensation.paymentMethod}
-                      </p>
-                    </div>
-                    <div>
-                      <p>
-                        <strong>Insurance:</strong>{" "}
-                        {contractData.compensation.insurance}
-                      </p>
-                      <p>
-                        <strong>Vacation:</strong>{" "}
-                        {contractData.compensation.vacation}
-                      </p>
-                    </div>
-                  </div>
-                </div>
-
-                <Separator className="my-6" />
-
-                {/* Duration */}
-                <div className="mb-8">
-                  <h3 className="font-bold mb-4 flex items-center">
-                    <div className="w-3 h-3 bg-blue-600 rounded-full mr-3"></div>
-                    Contract Duration
-                  </h3>
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                    <div>
-                      <p>
-                        <strong>Duration:</strong> {contractData.duration}
-                      </p>
-                    </div>
-                    <div>
-                      <p>
-                        <strong>Start Date:</strong> {contractData.startDate}
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
+            <div className="text-center">
+              <div
+                className={`w-8 h-8 rounded-full flex items-center justify-center text-gray-100 text-sm font-bold mb-2 mx-auto ${
+                  contractData.workerSigned ? "bg-green-500" : "bg-gray-300"
+                }`}
+              >
+                {contractData.workerSigned ? "✓" : "3"}
+              </div>
+              <div
+                className={`text-xs ${
+                  contractData.workerSigned
+                    ? "text-green-600 font-medium"
+                    : "text-muted-foreground"
+                }`}
+              >
+                Worker Sign
+              </div>
+            </div>
           </div>
+        </CardContent>
+      </Card>
 
-          {/* Signature/Status Panel */}
-          <div className="lg:col-span-1">{renderSignaturePanel()}</div>
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Contract Content */}
+        <div className="lg:col-span-2">
+          <Card className="mb-6">
+            <CardContent className="p-6">
+              <h2 className="text-xl font-bold mb-6">Employment Agreement</h2>
+
+              {/* Parties */}
+              <div className="mb-8">
+                <h3 className="font-bold mb-4 flex items-center">
+                  <div className="w-3 h-3 bg-blue-600 rounded-full mr-3"></div>
+                  Parties to the Agreement
+                </h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div>
+                    <h4 className="font-bold mb-3 flex items-center">
+                      <Building2 className="h-4 w-4 mr-2 text-blue-600" />
+                      Agency
+                    </h4>
+                    <p>
+                      <strong>Name:</strong> {contractData.agency.name}
+                    </p>
+                    <p>
+                      <strong>Address:</strong> {contractData.agency.address}
+                    </p>
+                    <p>
+                      <strong>Contact:</strong> {contractData.agency.contact}
+                    </p>
+                    <p>
+                      <strong>ID:</strong> {contractData.agency.id}
+                    </p>
+                  </div>
+                  <div>
+                    <h4 className="font-bold mb-3 flex items-center">
+                      <User className="h-4 w-4 mr-2 text-green-600" />
+                      Worker
+                    </h4>
+                    <p>
+                      <strong>Name:</strong> {contractData.worker.name}
+                    </p>
+                    <p>
+                      <strong>Nationality:</strong>{" "}
+                      {contractData.worker.nationality}
+                    </p>
+                    <p>
+                      <strong>Passport:</strong> {contractData.worker.passport}
+                    </p>
+                    <p>
+                      <strong>Worker ID:</strong> {contractData.worker.id}
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              <Separator className="my-6" />
+
+              {/* Position and Duties */}
+              <div className="mb-8">
+                <h3 className="font-bold mb-4 flex items-center">
+                  <div className="w-3 h-3 bg-blue-600 rounded-full mr-3"></div>
+                  Position and Duties
+                </h3>
+                <div className="space-y-3">
+                  <p>
+                    <strong>Position:</strong> {contractData.position}
+                  </p>
+                  <p>
+                    <strong>Type:</strong> {contractData.details.type}
+                  </p>
+                  <p>
+                    <strong>Work Location:</strong>{" "}
+                    {contractData.details.location}
+                  </p>
+                  <p>
+                    <strong>Living Arrangement:</strong>{" "}
+                    {contractData.details.livingArrangement}
+                  </p>
+                  <p>
+                    <strong>Primary Duties:</strong>
+                  </p>
+                  <ul className="list-disc list-inside ml-4 space-y-1">
+                    {contractData.details.duties.map((duty, index) => (
+                      <li key={index}>{duty}</li>
+                    ))}
+                  </ul>
+                </div>
+              </div>
+
+              <Separator className="my-6" />
+
+              {/* Work Schedule */}
+              <div className="mb-8">
+                <h3 className="font-bold mb-4 flex items-center">
+                  <div className="w-3 h-3 bg-blue-600 rounded-full mr-3"></div>
+                  Work Schedule
+                </h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div>
+                    <p>
+                      <strong>Daily Hours:</strong>{" "}
+                      {contractData.schedule.dailyHours}
+                    </p>
+                    <p>
+                      <strong>Standby Hours:</strong>{" "}
+                      {contractData.schedule.standbyHours}
+                    </p>
+                    <p>
+                      <strong>Rest Period:</strong>{" "}
+                      {contractData.schedule.restPeriod}
+                    </p>
+                  </div>
+                  <div>
+                    <p>
+                      <strong>Work Cycle:</strong>{" "}
+                      {contractData.schedule.workCycle}
+                    </p>
+                    <p>
+                      <strong>Weekly Off:</strong>{" "}
+                      {contractData.schedule.weeklyOff}
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              <Separator className="my-6" />
+
+              {/* Compensation */}
+              <div className="mb-8">
+                <h3 className="font-bold mb-4 flex items-center">
+                  <div className="w-3 h-3 bg-blue-600 rounded-full mr-3"></div>
+                  Compensation and Benefits
+                </h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div>
+                    <p>
+                      <strong>Monthly Salary:</strong>{" "}
+                      {contractData.compensation.monthlySalary}
+                    </p>
+                    <p>
+                      <strong>Payment Method:</strong>{" "}
+                      {contractData.compensation.paymentMethod}
+                    </p>
+                  </div>
+                  <div>
+                    <p>
+                      <strong>Insurance:</strong>{" "}
+                      {contractData.compensation.insurance}
+                    </p>
+                    <p>
+                      <strong>Vacation:</strong>{" "}
+                      {contractData.compensation.vacation}
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              <Separator className="my-6" />
+
+              {/* Duration */}
+              <div className="mb-8">
+                <h3 className="font-bold mb-4 flex items-center">
+                  <div className="w-3 h-3 bg-blue-600 rounded-full mr-3"></div>
+                  Contract Duration
+                </h3>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                  <div>
+                    <p>
+                      <strong>Duration:</strong> {contractData.duration}
+                    </p>
+                  </div>
+                  <div>
+                    <p>
+                      <strong>Start Date:</strong> {contractData.startDate}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
         </div>
+
+        {/* Signature/Status Panel */}
+        <div className="lg:col-span-1">{renderSignaturePanel()}</div>
       </div>
     </div>
   );

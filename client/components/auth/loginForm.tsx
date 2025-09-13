@@ -179,7 +179,7 @@ const LoginForm: React.FC = () => {
           <button
             type="submit"
             disabled={isLoading || !emailIsValid || !passwordIsValid}
-            className="w-full bg-blue-900 text-white py-3 px-4 rounded-lg font-medium hover:bg-blue-800 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            className="w-full bg-blue-900 text-gray-100 py-3 px-4 rounded-lg font-medium hover:bg-blue-800 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
           >
             {isLoading ? "Signing In..." : "Sign In"}
           </button>

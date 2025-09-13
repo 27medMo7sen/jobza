@@ -22,7 +22,6 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
-import { UnifiedSidebar } from "@/components/layout/unified-sidebar";
 import {
   Lock,
   Building2,
@@ -51,387 +50,307 @@ const mockAgencies = [
   },
   {
     id: 2,
-    name: "Premium Care Agency",
+    name: "Premier Care Solutions",
     rating: 4.6,
     workersCount: 32,
-    location: "Giza, Egypt",
+    location: "Alexandria, Egypt",
     isPrimary: false,
-    contactPerson: "Fatima Ali",
+    contactPerson: "Fatima Al-Zahra",
     phone: "+20 987 654 3210",
-    email: "fatima@premiumcare.com",
+    email: "fatima@premiercare.com",
   },
   {
     id: 3,
-    name: "Quality Staff Solutions",
+    name: "Golden Hands Agency",
     rating: 4.9,
     workersCount: 28,
-    location: "Alexandria, Egypt",
+    location: "Giza, Egypt",
     isPrimary: false,
-    contactPerson: "Mohamed Ibrahim",
+    contactPerson: "Mohamed Ali",
     phone: "+20 555 123 4567",
-    email: "mohamed@qualitystaff.com",
+    email: "mohamed@goldenhands.com",
   },
 ];
 
 export default function EmployerSettingsPage() {
   const router = useRouter();
-  const [openSections, setOpenSections] = useState<string[]>([]);
-  const [passwordData, setPasswordData] = useState({
-    oldPassword: "",
-    newPassword: "",
-    confirmPassword: "",
-  });
   const [agencies, setAgencies] = useState(mockAgencies);
-  const [isChangingAgency, setIsChangingAgency] = useState(false);
-  const [selectedAgencyId, setSelectedAgencyId] = useState<number | null>(null);
-  const [changeReason, setChangeReason] = useState("");
   const [isDialogOpen, setIsDialogOpen] = useState(false);
-
-  const toggleSection = (section: string) => {
-    setOpenSections((prev) =>
-      prev.includes(section)
-        ? prev.filter((s) => s !== section)
-        : [...prev, section]
-    );
-  };
-
-  const handlePasswordChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    setPasswordData((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
-  };
-
-  const handlePasswordSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-
-    if (passwordData.newPassword !== passwordData.confirmPassword) {
-      toast.error("New passwords do not match");
-      return;
-    }
-
-    if (passwordData.newPassword.length < 8) {
-      toast.error("New password must be at least 8 characters long");
-      return;
-    }
-
-    // Here you would typically make an API call to change the password
-    console.log("Changing password:", passwordData);
-    toast.success("Password changed successfully");
-
-    // Reset form
-    setPasswordData({
-      oldPassword: "",
-      newPassword: "",
-      confirmPassword: "",
-    });
-  };
+  const [changeReason, setChangeReason] = useState("");
+  const [selectedAgency, setSelectedAgency] = useState<any>(null);
 
   const handleAgencyChange = (agencyId: number) => {
-    setSelectedAgencyId(agencyId);
+    const agency = agencies.find((a) => a.id === agencyId);
+    setSelectedAgency(agency);
     setIsDialogOpen(true);
   };
 
   const confirmAgencyChange = () => {
     if (!changeReason.trim()) {
-      toast.error("Please provide a reason for changing the agency");
+      toast.error("Please provide a reason for changing your agency");
       return;
     }
 
-    // Update agencies state
-    setAgencies((prev) =>
-      prev.map((agency) => ({
-        ...agency,
-        isPrimary: agency.id === selectedAgencyId,
-      }))
-    );
+    // Update the agencies
+    const updatedAgencies = agencies.map((agency) => ({
+      ...agency,
+      isPrimary: agency.id === selectedAgency.id,
+    }));
 
-    // Here you would typically make an API call to notify the agency
-    console.log(
-      "Changing primary agency to:",
-      selectedAgencyId,
-      "Reason:",
-      changeReason
-    );
-    toast.success("Primary agency changed successfully");
-
-    // Reset state
+    setAgencies(updatedAgencies);
     setChangeReason("");
     setIsDialogOpen(false);
-    setSelectedAgencyId(null);
+    setSelectedAgency(null);
+
+    toast.success(
+      `Successfully changed primary agency to ${selectedAgency.name}`
+    );
   };
 
   const getPrimaryAgency = () => {
-    return agencies.find((agency) => agency.isPrimary);
+    return agencies.find((agency) => agency.isPrimary) || null;
   };
 
   return (
     <div className="min-h-screen bg-background">
-      <UnifiedSidebar
-        userRole="employer"
-        userName="John Smith"
-        userEmail="john@example.com"
-      />
+      {/* Back Button Header */}
+      <div className="container mx-auto px-4 py-8">
+        <div className="max-w-4xl mx-auto">
+          <div className="mb-8 pt-4 lg:pt-0">
+            <Button
+              variant="ghost"
+              onClick={() => router.back()}
+              className="flex items-center gap-2 text-gray-600 hover:text-gray-900 p-0 h-auto mb-4"
+            >
+              <ArrowLeft className="w-4 h-4" />
+              <span>Back</span>
+            </Button>
+            <h1 className="text-3xl font-bold text-gray-900">
+              Agency Settings
+            </h1>
+            <p className="text-gray-600 mt-2">
+              Manage your primary agency and view all affiliated agencies
+            </p>
+          </div>
 
-      <div className="lg:ml-64">
-        {/* Back Button Header */}
-
-        <div className="container mx-auto px-4 py-8">
-          <div className="max-w-4xl mx-auto">
-            <div className="mb-8 pt-4 lg:pt-0">
-              <h1 className="text-3xl font-bold text-gray-900">Settings</h1>
-              <p className="text-gray-600 mt-2">
-                Manage your account settings and preferences
-              </p>
-            </div>
-
-            <div className="space-y-4">
-              {/* Change Password Section */}
-              <Collapsible
-                open={openSections.includes("password")}
-                onOpenChange={() => toggleSection("password")}
-              >
-                <CollapsibleTrigger asChild>
-                  <Button
-                    variant="ghost"
-                    className="w-full justify-between p-6 h-auto text-left"
-                  >
-                    <div className="flex items-center gap-3">
-                      <Lock className="w-5 h-5 text-gray-600" />
+          {/* Primary Agency Card */}
+          <Card className="mb-6">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Building2 className="h-5 w-5 text-blue-600" />
+                Primary Agency
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              {getPrimaryAgency() ? (
+                <div className="space-y-4">
+                  <div className="flex items-start justify-between">
+                    <div className="flex items-center gap-4">
+                      <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center">
+                        <Building2 className="h-6 w-6 text-blue-600" />
+                      </div>
                       <div>
-                        <h3 className="text-lg font-semibold">
-                          Change Password
+                        <h3 className="text-lg font-semibold text-gray-900">
+                          {getPrimaryAgency()?.name}
                         </h3>
                         <p className="text-sm text-gray-600">
-                          Update your account password
+                          {getPrimaryAgency()?.location}
                         </p>
+                        <div className="flex items-center gap-2 mt-1">
+                          <div className="flex items-center gap-1">
+                            <Star className="h-4 w-4 text-yellow-500 fill-current" />
+                            <span className="text-sm font-medium">
+                              {getPrimaryAgency()?.rating}
+                            </span>
+                          </div>
+                          <Badge variant="secondary" className="text-xs">
+                            {getPrimaryAgency()?.workersCount} workers
+                          </Badge>
+                        </div>
                       </div>
                     </div>
-                    {openSections.includes("password") ? (
-                      <ChevronDown className="w-5 h-5 text-gray-400" />
-                    ) : (
-                      <ChevronRight className="w-5 h-5 text-gray-400" />
-                    )}
-                  </Button>
-                </CollapsibleTrigger>
-                <CollapsibleContent className="px-6 pb-6">
-                  <Card>
-                    <CardContent className="pt-6">
-                      <form
-                        onSubmit={handlePasswordSubmit}
-                        className="space-y-4"
-                      >
-                        <div className="space-y-2">
-                          <Label htmlFor="oldPassword">Current Password</Label>
-                          <Input
-                            id="oldPassword"
-                            name="oldPassword"
-                            type="password"
-                            value={passwordData.oldPassword}
-                            onChange={handlePasswordChange}
-                            placeholder="Enter your current password"
-                            required
-                          />
-                        </div>
+                    <Badge className="bg-green-100 text-green-800">
+                      <CheckCircle className="h-3 w-3 mr-1" />
+                      Primary
+                    </Badge>
+                  </div>
 
-                        <div className="space-y-2">
-                          <Label htmlFor="newPassword">New Password</Label>
-                          <Input
-                            id="newPassword"
-                            name="newPassword"
-                            type="password"
-                            value={passwordData.newPassword}
-                            onChange={handlePasswordChange}
-                            placeholder="Enter your new password"
-                            required
-                          />
-                        </div>
-
-                        <div className="space-y-2">
-                          <Label htmlFor="confirmPassword">
-                            Confirm New Password
-                          </Label>
-                          <Input
-                            id="confirmPassword"
-                            name="confirmPassword"
-                            type="password"
-                            value={passwordData.confirmPassword}
-                            onChange={handlePasswordChange}
-                            placeholder="Confirm your new password"
-                            required
-                          />
-                        </div>
-
-                        <Button type="submit" className="w-full sm:w-auto">
-                          Change Password
-                        </Button>
-                      </form>
-                    </CardContent>
-                  </Card>
-                </CollapsibleContent>
-              </Collapsible>
-
-              {/* Primary Agencies Section */}
-              <Collapsible
-                open={openSections.includes("agencies")}
-                onOpenChange={() => toggleSection("agencies")}
-              >
-                <CollapsibleTrigger asChild>
-                  <Button
-                    variant="ghost"
-                    className="w-full justify-between p-6 h-auto text-left"
-                  >
-                    <div className="flex items-center gap-3">
-                      <Building2 className="w-5 h-5 text-gray-600" />
-                      <div>
-                        <h3 className="text-lg font-semibold">
-                          Primary Agencies
-                        </h3>
-                        <p className="text-sm text-gray-600">
-                          Manage your default agencies
-                        </p>
-                      </div>
-                    </div>
-                    {openSections.includes("agencies") ? (
-                      <ChevronDown className="w-5 h-5 text-gray-400" />
-                    ) : (
-                      <ChevronRight className="w-5 h-5 text-gray-400" />
-                    )}
-                  </Button>
-                </CollapsibleTrigger>
-                <CollapsibleContent className="px-6 pb-6">
-                  <Card>
-                    <CardHeader>
-                      <CardTitle className="flex items-center gap-2">
-                        <Building2 className="w-5 h-5" />
-                        Primary Agencies
-                      </CardTitle>
-                      <p className="text-sm text-gray-600">
-                        Set your default agency for job postings and worker
-                        recommendations
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-4 border-t">
+                    <div>
+                      <Label className="text-sm font-medium text-gray-700">
+                        Contact Person
+                      </Label>
+                      <p className="text-sm text-gray-900">
+                        {getPrimaryAgency()?.contactPerson}
                       </p>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="space-y-4">
-                        {/* Current Primary Agency */}
-                        <div className="p-4 border-2 border-blue-200 bg-blue-50 rounded-lg">
-                          <div className="flex items-center justify-between">
-                            <div>
-                              <h3 className="font-semibold text-blue-900">
-                                Current Primary Agency
-                              </h3>
-                              <p className="text-sm text-blue-700">
-                                {getPrimaryAgency()?.name ||
-                                  "No primary agency set"}
-                              </p>
+                    </div>
+                    <div>
+                      <Label className="text-sm font-medium text-gray-700">
+                        Phone
+                      </Label>
+                      <p className="text-sm text-gray-900">
+                        {getPrimaryAgency()?.phone}
+                      </p>
+                    </div>
+                    <div>
+                      <Label className="text-sm font-medium text-gray-700">
+                        Email
+                      </Label>
+                      <p className="text-sm text-gray-900">
+                        {getPrimaryAgency()?.email}
+                      </p>
+                    </div>
+                    <div>
+                      <Label className="text-sm font-medium text-gray-700">
+                        Status
+                      </Label>
+                      <Badge className="bg-green-100 text-green-800">
+                        <Lock className="h-3 w-3 mr-1" />
+                        Active
+                      </Badge>
+                    </div>
+                  </div>
+                </div>
+              ) : (
+                <div className="text-center py-8">
+                  <Building2 className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                  <h3 className="text-lg font-medium text-gray-900 mb-2">
+                    No Primary Agency
+                  </h3>
+                  <p className="text-gray-600 mb-4">
+                    You haven't selected a primary agency yet.
+                  </p>
+                  <Button>Select Primary Agency</Button>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+
+          {/* All Agencies */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Building2 className="h-5 w-5 text-gray-600" />
+                All Affiliated Agencies
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                {agencies.map((agency) => (
+                  <div
+                    key={agency.id}
+                    className={`p-4 border rounded-lg ${
+                      agency.isPrimary
+                        ? "border-blue-200 bg-blue-50/30"
+                        : "border-gray-200 hover:border-gray-300"
+                    }`}
+                  >
+                    <div className="flex items-start justify-between">
+                      <div className="flex items-center gap-4">
+                        <div
+                          className={`w-12 h-12 rounded-full flex items-center justify-center ${
+                            agency.isPrimary ? "bg-blue-100" : "bg-gray-100"
+                          }`}
+                        >
+                          <Building2
+                            className={`h-6 w-6 ${
+                              agency.isPrimary
+                                ? "text-blue-600"
+                                : "text-gray-600"
+                            }`}
+                          />
+                        </div>
+                        <div>
+                          <div className="flex items-center gap-2">
+                            <h3 className="text-lg font-semibold text-gray-900">
+                              {agency.name}
+                            </h3>
+                            {agency.isPrimary && (
+                              <Badge className="bg-green-100 text-green-800">
+                                <CheckCircle className="h-3 w-3 mr-1" />
+                                Primary
+                              </Badge>
+                            )}
+                          </div>
+                          <p className="text-sm text-gray-600">
+                            {agency.location}
+                          </p>
+                          <div className="flex items-center gap-2 mt-1">
+                            <div className="flex items-center gap-1">
+                              <Star className="h-4 w-4 text-yellow-500 fill-current" />
+                              <span className="text-sm font-medium">
+                                {agency.rating}
+                              </span>
                             </div>
-                            <Badge className="bg-blue-100 text-blue-800">
-                              Primary
+                            <Badge variant="secondary" className="text-xs">
+                              {agency.workersCount} workers
                             </Badge>
                           </div>
                         </div>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        {!agency.isPrimary && (
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => handleAgencyChange(agency.id)}
+                            className="text-blue-600 hover:text-blue-700"
+                          >
+                            <Edit className="h-4 w-4 mr-2" />
+                            Set as Primary
+                          </Button>
+                        )}
+                      </div>
+                    </div>
 
-                        {/* Available Agencies */}
-                        <div className="space-y-4">
-                          <h4 className="font-medium text-gray-900">
-                            Available Agencies
-                          </h4>
-                          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-                            {agencies.map((agency) => (
-                              <div
-                                key={agency.id}
-                                className={`p-4 border rounded-lg transition-all duration-200 ${
-                                  agency.isPrimary
-                                    ? "border-blue-200 bg-blue-50 shadow-sm"
-                                    : "border-gray-200 hover:border-gray-300 hover:shadow-sm"
-                                }`}
-                              >
-                                <div className="flex flex-col h-full">
-                                  {/* Header with name and rating */}
-                                  <div className="flex items-start justify-between mb-3">
-                                    <div className="flex-1 min-w-0">
-                                      <h3 className="font-semibold text-gray-900 text-lg mb-1 break-words">
-                                        {agency.name}
-                                      </h3>
-                                      <div className="flex items-center gap-1">
-                                        <Star className="w-4 h-4 text-yellow-500 fill-current flex-shrink-0" />
-                                        <span className="text-sm text-gray-600">
-                                          {agency.rating}
-                                        </span>
-                                      </div>
-                                    </div>
-                                    {agency.isPrimary && (
-                                      <Badge className="bg-blue-100 text-blue-800 flex-shrink-0">
-                                        Current Primary
-                                      </Badge>
-                                    )}
-                                  </div>
-
-                                  {/* Agency details */}
-                                  <div className="flex-1 space-y-2 mb-4">
-                                    <div className="flex items-center gap-2 text-sm text-gray-600">
-                                      <span className="text-gray-400">📍</span>
-                                      <span className="break-words">
-                                        {agency.location}
-                                      </span>
-                                    </div>
-                                    <div className="flex items-center gap-2 text-sm text-gray-600">
-                                      <span className="text-gray-400">👥</span>
-                                      <span>{agency.workersCount} workers</span>
-                                    </div>
-                                    <div className="flex items-center gap-2 text-sm text-gray-600">
-                                      <span className="text-gray-400">📞</span>
-                                      <span className="break-words">
-                                        {agency.phone}
-                                      </span>
-                                    </div>
-                                    <div className="flex items-center gap-2 text-sm text-gray-600">
-                                      <span className="text-gray-400">✉️</span>
-                                      <span className="break-words">
-                                        {agency.email}
-                                      </span>
-                                    </div>
-                                    <div className="text-sm text-gray-500">
-                                      Contact: {agency.contactPerson}
-                                    </div>
-                                  </div>
-
-                                  {/* Action button */}
-                                  <div className="mt-auto">
-                                    {agency.isPrimary ? (
-                                      <div className="text-center py-2">
-                                        <Badge className="bg-green-100 text-green-800">
-                                          ✓ Primary Agency
-                                        </Badge>
-                                      </div>
-                                    ) : (
-                                      <Button
-                                        size="sm"
-                                        variant="outline"
-                                        onClick={() =>
-                                          handleAgencyChange(agency.id)
-                                        }
-                                        disabled={isChangingAgency}
-                                        className="w-full"
-                                      >
-                                        <Edit className="w-4 h-4 mr-2" />
-                                        Set as Primary
-                                      </Button>
-                                    )}
-                                  </div>
-                                </div>
-                              </div>
-                            ))}
+                    <Collapsible>
+                      <CollapsibleTrigger className="flex items-center gap-2 text-sm text-gray-600 hover:text-gray-900 mt-3">
+                        <ChevronRight className="h-4 w-4" />
+                        View Details
+                      </CollapsibleTrigger>
+                      <CollapsibleContent className="mt-4 pt-4 border-t">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          <div>
+                            <Label className="text-sm font-medium text-gray-700">
+                              Contact Person
+                            </Label>
+                            <p className="text-sm text-gray-900">
+                              {agency.contactPerson}
+                            </p>
+                          </div>
+                          <div>
+                            <Label className="text-sm font-medium text-gray-700">
+                              Phone
+                            </Label>
+                            <p className="text-sm text-gray-900">
+                              {agency.phone}
+                            </p>
+                          </div>
+                          <div>
+                            <Label className="text-sm font-medium text-gray-700">
+                              Email
+                            </Label>
+                            <p className="text-sm text-gray-900">
+                              {agency.email}
+                            </p>
+                          </div>
+                          <div>
+                            <Label className="text-sm font-medium text-gray-700">
+                              Status
+                            </Label>
+                            <Badge className="bg-green-100 text-green-800">
+                              <Lock className="h-3 w-3 mr-1" />
+                              Active
+                            </Badge>
                           </div>
                         </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                </CollapsibleContent>
-              </Collapsible>
-            </div>
-          </div>
+                      </CollapsibleContent>
+                    </Collapsible>
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
         </div>
       </div>
 
@@ -445,31 +364,28 @@ export default function EmployerSettingsPage() {
             </DialogTitle>
             <DialogDescription>
               Please provide a reason for changing your primary agency. This
-              reason will be sent to the agency you're switching to.
+              will help us understand your needs better.
             </DialogDescription>
           </DialogHeader>
-
           <div className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="changeReason">Reason for Change</Label>
+            <div>
+              <Label htmlFor="reason">Reason for Change</Label>
               <Textarea
-                id="changeReason"
-                placeholder="Please explain why you're changing your primary agency..."
+                id="reason"
+                placeholder="e.g., Better service quality, more workers available, closer location..."
                 value={changeReason}
                 onChange={(e) => setChangeReason(e.target.value)}
-                rows={4}
-                required
+                className="min-h-[100px]"
               />
             </div>
           </div>
-
-          <DialogFooter className="flex-col sm:flex-row gap-2">
+          <DialogFooter>
             <Button
               variant="outline"
               onClick={() => {
                 setIsDialogOpen(false);
                 setChangeReason("");
-                setSelectedAgencyId(null);
+                setSelectedAgency(null);
               }}
             >
               Cancel

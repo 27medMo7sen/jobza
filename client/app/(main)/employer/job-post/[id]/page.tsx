@@ -25,7 +25,6 @@ import {
   Trash2,
 } from "lucide-react";
 import Link from "next/link";
-import { UnifiedSidebar } from "@/components/layout/unified-sidebar";
 import { ApplicantsList } from "@/components/shared/ApplicantsList";
 import { JobDetails } from "@/components/shared/JobDetails";
 
@@ -272,22 +271,14 @@ export default function JobPostDetailPage() {
   if (!jobPost) {
     return (
       <div className="min-h-screen bg-background">
-        <UnifiedSidebar
-          userRole="employer"
-          userName="John Smith"
-          userEmail="john@example.com"
-        />
-
-        <div className="lg:ml-64">
-          <div className="flex items-center justify-center min-h-screen">
-            <div className="text-center">
-              <h2 className="text-2xl font-bold text-gray-900 mb-2">
-                Job Post Not Found
-              </h2>
-              <p className="text-gray-600 mb-4">
-                The job post you're looking for doesn't exist.
-              </p>
-            </div>
+        <div className="flex items-center justify-center min-h-screen">
+          <div className="text-center">
+            <h2 className="text-2xl font-bold text-gray-900 mb-2">
+              Job Post Not Found
+            </h2>
+            <p className="text-gray-600 mb-4">
+              The job post you're looking for doesn't exist.
+            </p>
           </div>
         </div>
       </div>
@@ -369,138 +360,130 @@ export default function JobPostDetailPage() {
 
   return (
     <div className="min-h-screen bg-background">
-      <UnifiedSidebar
-        userRole="employer"
-        userName="John Smith"
-        userEmail="john@example.com"
-      />
+      {/* Header */}
+      <header className="bg-white shadow-sm border-b">
+        <div className="container mx-auto px-4 py-4">
+          <div className="flex items-center justify-between"></div>
+        </div>
+      </header>
 
-      <div className="lg:ml-64">
-        {/* Header */}
-        <header className="bg-white shadow-sm border-b">
-          <div className="container mx-auto px-4 py-4">
-            <div className="flex items-center justify-between"></div>
-          </div>
-        </header>
-
-        {/* Main Content */}
-        <div className="container mx-auto px-4 py-8">
-          <div className="max-w-6xl mx-auto">
-            {/* Job Post Header */}
-            <div className="bg-white rounded-lg shadow-sm border p-6 mb-8">
-              <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4 mb-4">
-                <div className="flex items-center space-x-3">
-                  {jobPost.type === "long-term" ? (
-                    <Calendar className="w-8 h-8 text-blue-600" />
-                  ) : (
-                    <Clock className="w-8 h-8 text-pink-600" />
-                  )}
-                  <div className="flex-1 min-w-0">
-                    <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 break-words">
-                      {jobPost.title}
-                    </h1>
-                    <div className="flex flex-wrap items-center gap-2 mt-2">
-                      <Badge className={getTypeColor(jobPost.type)}>
-                        {jobPost.type === "long-term"
-                          ? "Long-term"
-                          : "Short-term"}
-                      </Badge>
-                      <Badge className={getStatusColor(jobPost.status)}>
-                        {jobPost.status}
-                      </Badge>
-                    </div>
+      {/* Main Content */}
+      <div className="container mx-auto px-4 py-8">
+        <div className="max-w-6xl mx-auto">
+          {/* Job Post Header */}
+          <div className="bg-white rounded-lg shadow-sm border p-6 mb-8">
+            <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4 mb-4">
+              <div className="flex items-center space-x-3">
+                {jobPost.type === "long-term" ? (
+                  <Calendar className="w-8 h-8 text-blue-600" />
+                ) : (
+                  <Clock className="w-8 h-8 text-pink-600" />
+                )}
+                <div className="flex-1 min-w-0">
+                  <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 break-words">
+                    {jobPost.title}
+                  </h1>
+                  <div className="flex flex-wrap items-center gap-2 mt-2">
+                    <Badge className={getTypeColor(jobPost.type)}>
+                      {jobPost.type === "long-term"
+                        ? "Long-term"
+                        : "Short-term"}
+                    </Badge>
+                    <Badge className={getStatusColor(jobPost.status)}>
+                      {jobPost.status}
+                    </Badge>
                   </div>
                 </div>
-                <div className="flex flex-col sm:text-right">
-                  <p className="text-xl sm:text-2xl font-bold text-green-600 break-words">
-                    {jobPost.salary}
-                  </p>
-                  <p className="text-sm text-gray-600">
-                    Posted: {jobPost.postedDate}
-                  </p>
-                </div>
               </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
-                <div className="flex items-center space-x-2">
-                  <Users className="w-5 h-5 text-gray-500 flex-shrink-0" />
-                  <span className="text-gray-600 truncate">
-                    {jobPost.applicants} applicants
-                  </span>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <MapPin className="w-5 h-5 text-gray-500 flex-shrink-0" />
-                  <span className="text-gray-600 truncate">
-                    {jobPost.location}
-                  </span>
-                </div>
-                <div className="flex items-center space-x-2 sm:col-span-2 lg:col-span-1">
-                  <ClockIcon className="w-5 h-5 text-gray-500 flex-shrink-0" />
-                  <span className="text-gray-600 truncate">
-                    {jobPost.schedule}
-                  </span>
-                </div>
+              <div className="flex flex-col sm:text-right">
+                <p className="text-xl sm:text-2xl font-bold text-green-600 break-words">
+                  {jobPost.salary}
+                </p>
+                <p className="text-sm text-gray-600">
+                  Posted: {jobPost.postedDate}
+                </p>
               </div>
             </div>
 
-            {/* Tabs */}
-            <Tabs
-              value={activeTab}
-              onValueChange={setActiveTab}
-              className="space-y-6"
-            >
-              <TabsList className="grid w-full grid-cols-2">
-                <TabsTrigger value="applications">
-                  Applicants ({jobPost.applications.length})
-                </TabsTrigger>
-                <TabsTrigger value="details">Job Details</TabsTrigger>
-              </TabsList>
-
-              {/* Applicants Tab */}
-              <TabsContent value="applications" className="space-y-6">
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Applicants</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <ApplicantsList
-                      applications={jobPost.applications}
-                      onAction={(id, action) =>
-                        handleApplicationAction(id, action)
-                      }
-                      getStatusBadgeClass={(status) =>
-                        getApplicationStatusColor(status)
-                      }
-                    />
-                  </CardContent>
-                </Card>
-              </TabsContent>
-
-              {/* Job Details Tab (shared unified component) */}
-              <TabsContent value="details" className="space-y-6">
-                <JobDetails
-                  audience="employer"
-                  job={{
-                    title: jobPost.title,
-                    type: jobPost.type,
-                    status: jobPost.status,
-                    salary: jobPost.salary,
-                    postedDate: jobPost.postedDate,
-                    description: jobPost.description,
-                    schedule: jobPost.schedule,
-                    location: jobPost.location,
-                    requirements: jobPost.requirements,
-                    responsibilities: jobPost.responsibilities,
-                    benefits: jobPost.benefits,
-                    familyDetails: jobPost.familyDetails,
-                    additionalInfo: jobPost.additionalInfo,
-                  }}
-                  getTypeBadgeClass={(type) => getTypeColor(type)}
-                  getStatusBadgeClass={(status) => getStatusColor(status)}
-                />
-              </TabsContent>
-            </Tabs>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+              <div className="flex items-center space-x-2">
+                <Users className="w-5 h-5 text-gray-500 flex-shrink-0" />
+                <span className="text-gray-600 truncate">
+                  {jobPost.applicants} applicants
+                </span>
+              </div>
+              <div className="flex items-center space-x-2">
+                <MapPin className="w-5 h-5 text-gray-500 flex-shrink-0" />
+                <span className="text-gray-600 truncate">
+                  {jobPost.location}
+                </span>
+              </div>
+              <div className="flex items-center space-x-2 sm:col-span-2 lg:col-span-1">
+                <ClockIcon className="w-5 h-5 text-gray-500 flex-shrink-0" />
+                <span className="text-gray-600 truncate">
+                  {jobPost.schedule}
+                </span>
+              </div>
+            </div>
           </div>
+
+          {/* Tabs */}
+          <Tabs
+            value={activeTab}
+            onValueChange={setActiveTab}
+            className="space-y-6"
+          >
+            <TabsList className="grid w-full grid-cols-2">
+              <TabsTrigger value="applications">
+                Applicants ({jobPost.applications.length})
+              </TabsTrigger>
+              <TabsTrigger value="details">Job Details</TabsTrigger>
+            </TabsList>
+
+            {/* Applicants Tab */}
+            <TabsContent value="applications" className="space-y-6">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Applicants</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <ApplicantsList
+                    applications={jobPost.applications}
+                    onAction={(id, action) =>
+                      handleApplicationAction(id, action)
+                    }
+                    getStatusBadgeClass={(status) =>
+                      getApplicationStatusColor(status)
+                    }
+                  />
+                </CardContent>
+              </Card>
+            </TabsContent>
+
+            {/* Job Details Tab (shared unified component) */}
+            <TabsContent value="details" className="space-y-6">
+              <JobDetails
+                audience="employer"
+                job={{
+                  title: jobPost.title,
+                  type: jobPost.type,
+                  status: jobPost.status,
+                  salary: jobPost.salary,
+                  postedDate: jobPost.postedDate,
+                  description: jobPost.description,
+                  schedule: jobPost.schedule,
+                  location: jobPost.location,
+                  requirements: jobPost.requirements,
+                  responsibilities: jobPost.responsibilities,
+                  benefits: jobPost.benefits,
+                  familyDetails: jobPost.familyDetails,
+                  additionalInfo: jobPost.additionalInfo,
+                }}
+                getTypeBadgeClass={(type) => getTypeColor(type)}
+                getStatusBadgeClass={(status) => getStatusColor(status)}
+              />
+            </TabsContent>
+          </Tabs>
         </div>
       </div>
     </div>

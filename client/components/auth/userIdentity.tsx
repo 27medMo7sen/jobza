@@ -10,7 +10,7 @@ const UserIdentity: React.FC = () => {
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <div className="text-center mb-12">
-          <div className="inline-block bg-pink-500 text-white px-4 py-1 rounded-full text-sm mb-6">
+          <div className="inline-block bg-pink-500 text-gray-100 px-4 py-1 rounded-full text-sm mb-6">
             Join Care Comm-Unity
           </div>
           <h1 className="text-4xl font-bold text-gray-900 mb-4">

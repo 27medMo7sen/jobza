@@ -89,7 +89,7 @@ export function ChatInterface({
             <AvatarImage
               src={otherParticipant?.profileImage || "/placeholder.svg"}
             />
-            <AvatarFallback className="bg-primary text-white">
+            <AvatarFallback className="bg-primary text-gray-100">
               {otherParticipant?.name.charAt(0)}
             </AvatarFallback>
           </Avatar>
@@ -134,7 +134,7 @@ export function ChatInterface({
                 <div
                   className={`px-4 py-2 rounded-lg ${
                     isCurrentUser
-                      ? "bg-primary text-white"
+                      ? "bg-primary text-gray-100"
                       : "bg-white text-gray-900 border"
                   }`}
                 >

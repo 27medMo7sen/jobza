@@ -37,7 +37,7 @@ const IdentityItem: React.FC<IdentityItemProps> = ({
         <div
           className={`w-16 h-16 rounded-full ${iconBgColor} flex items-center justify-center mb-4`}
         >
-          <Icon size={28} className="text-white" />
+          <Icon size={28} className="text-gray-100" />
         </div>
         <h3 className="text-xl font-semibold text-gray-900 mb-2">{title}</h3>
         <p className="text-gray-600 text-sm">{description}</p>
@@ -48,7 +48,7 @@ const IdentityItem: React.FC<IdentityItemProps> = ({
           <div key={index} className="flex items-start text-sm text-gray-700">
             <div className="w-4 h-4 bg-green-500 rounded-full flex items-center justify-center mr-3 flex-shrink-0 mt-0.5">
               <svg
-                className="w-2.5 h-2.5 text-white"
+                className="w-2.5 h-2.5 text-gray-100"
                 fill="currentColor"
                 viewBox="0 0 20 20"
               >
@@ -68,8 +68,8 @@ const IdentityItem: React.FC<IdentityItemProps> = ({
           href={href}
           className={`w-full flex-1 py-3 px-4 rounded-lg font-medium transition-colors duration-200 cursor-pointer text-center ${
             isSelected
-              ? "bg-blue-600 text-white hover:bg-blue-700"
-              : "bg-primary text-white hover:bg-blue-700"
+              ? "bg-blue-600 text-gray-100 hover:bg-blue-700"
+              : "bg-primary text-gray-100 hover:bg-blue-700"
           }`}
         >
           {buttonText}

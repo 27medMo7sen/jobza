@@ -2,7 +2,10 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
+import { useDispatch } from "react-redux";
+import { clearAuth } from "@/lib/slices/authSlice";
+import { clearFiles } from "@/lib/slices/filesSlice";
 import { Button } from "@/components/ui/button";
 import {
   LayoutDashboard,
@@ -18,10 +21,18 @@ export function WorkerSidebar() {
   const [collapsed, setCollapsed] = useState(false);
   const [isClient, setIsClient] = useState(false);
   const pathname = usePathname();
+  const router = useRouter();
+  const dispatch = useDispatch();
 
   useEffect(() => {
     setIsClient(true);
   }, []);
+
+  const handleLogout = () => {
+    dispatch(clearAuth());
+    dispatch(clearFiles());
+    window.location.href = "/auth";
+  };
 
   const navigation = [
     { name: "Dashboard", href: "/worker/dashboard", icon: LayoutDashboard },
@@ -91,10 +102,7 @@ export function WorkerSidebar() {
           <div className="pt-2">
             <Button
               variant="ghost"
-              onClick={() => {
-                // Handle logout logic here
-                window.location.href = "/";
-              }}
+              onClick={handleLogout}
               className={`w-full justify-start text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-950/30 transition-colors duration-200 ${
                 isClient && collapsed ? "px-2" : "px-3"
               }`}

@@ -3,7 +3,7 @@
 import { ReactNode } from "react";
 import { Provider } from "react-redux";
 import { store } from "@/lib/store";
-import { ThemeProvider } from "next-themes";
+import { ThemeProvider } from "@/lib/theme-provider";
 import { Toaster } from "@/components/ui/sonner";
 import NextTopLoader from "nextjs-toploader";
 
@@ -34,11 +34,7 @@ function AppWithProviders({ children }: { children: ReactNode }) {
 export default function Providers({ children }: { children: ReactNode }) {
   return (
     <Provider store={store}>
-      <ThemeProvider
-        attribute="class"
-        storageKey="jobza-theme"
-        defaultTheme="system"
-      >
+      <ThemeProvider>
         <AppWithProviders>{children}</AppWithProviders>
       </ThemeProvider>
     </Provider>

@@ -29,7 +29,6 @@ import {
   AlertTriangle,
 } from "lucide-react";
 import Link from "next/link";
-import { UnifiedSidebar } from "@/components/layout/unified-sidebar";
 
 export default function LongTermBookingPage() {
   const [currentStep, setCurrentStep] = useState(1);
@@ -134,9 +133,9 @@ export default function LongTermBookingPage() {
           <div
             className={`w-10 h-10 rounded-full flex items-center justify-center text-sm font-semibold ${
               step < currentStep
-                ? "bg-green-500 text-white"
+                ? "bg-green-500 text-gray-100"
                 : step === currentStep
-                ? "bg-blue-600 text-white"
+                ? "bg-blue-600 text-gray-100"
                 : "bg-gray-200 text-gray-600"
             }`}
           >
@@ -756,7 +755,7 @@ export default function LongTermBookingPage() {
                 <div className="border rounded-lg p-6">
                   <div className="space-y-4">
                     <div className="flex items-start space-x-3">
-                      <div className="w-5 h-5 bg-green-500 rounded-full flex items-center justify-center text-white text-xs mt-1">
+                      <div className="w-5 h-5 bg-green-500 rounded-full flex items-center justify-center text-gray-100 text-xs mt-1">
                         ✓
                       </div>
                       <div>
@@ -772,7 +771,7 @@ export default function LongTermBookingPage() {
                     </div>
 
                     <div className="flex items-start space-x-3">
-                      <div className="w-5 h-5 bg-blue-500 rounded-full flex items-center justify-center text-white text-xs mt-1">
+                      <div className="w-5 h-5 bg-blue-500 rounded-full flex items-center justify-center text-gray-100 text-xs mt-1">
                         <Clock className="w-3 h-3" />
                       </div>
                       <div>
@@ -881,72 +880,64 @@ export default function LongTermBookingPage() {
 
   return (
     <div className="min-h-screen bg-background">
-      <UnifiedSidebar
-        userRole="employer"
-        userName="John Smith"
-        userEmail="john@example.com"
-      />
-
-      <div className="lg:ml-64">
-        {/* Header */}
-        <header className="bg-white shadow-sm border-b">
-          <div className="container mx-auto px-4 py-4">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center space-x-2">
-                <Crown className="w-5 h-5 text-yellow-500" />
-                <span className="text-sm text-gray-600">Premium Feature</span>
-              </div>
+      {/* Header */}
+      <header className="bg-white shadow-sm border-b">
+        <div className="container mx-auto px-4 py-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-2">
+              <Crown className="w-5 h-5 text-yellow-500" />
+              <span className="text-sm text-gray-600">Premium Feature</span>
             </div>
           </div>
-        </header>
+        </div>
+      </header>
 
-        {/* Main Content */}
-        <div className="container mx-auto px-4 py-8">
-          <div className="max-w-4xl mx-auto">
-            <div className="mb-8">
-              <h1 className="text-3xl font-bold text-gray-900 mb-2">
-                Long-Term Domestic Help Booking
-              </h1>
-              <p className="text-gray-600">
-                Premium feature for subscribed members only
-              </p>
+      {/* Main Content */}
+      <div className="container mx-auto px-4 py-8">
+        <div className="max-w-4xl mx-auto">
+          <div className="mb-8">
+            <h1 className="text-3xl font-bold text-gray-900 mb-2">
+              Long-Term Domestic Help Booking
+            </h1>
+            <p className="text-gray-600">
+              Premium feature for subscribed members only
+            </p>
+          </div>
+
+          {/* Progress Bar */}
+          <div className="mb-8">
+            <div className="flex justify-between items-center mb-4">
+              <span className="text-sm text-gray-600">
+                Step {currentStep} of {totalSteps}
+              </span>
+              <span className="text-sm text-gray-600">
+                {Math.round(progress)}% Complete
+              </span>
             </div>
+            <Progress value={progress} className="h-2" />
+            {renderStepIndicator()}
+          </div>
 
-            {/* Progress Bar */}
-            <div className="mb-8">
-              <div className="flex justify-between items-center mb-4">
-                <span className="text-sm text-gray-600">
-                  Step {currentStep} of {totalSteps}
-                </span>
-                <span className="text-sm text-gray-600">
-                  {Math.round(progress)}% Complete
-                </span>
-              </div>
-              <Progress value={progress} className="h-2" />
-              {renderStepIndicator()}
-            </div>
+          {/* Form Content */}
+          {renderStepContent()}
 
-            {/* Form Content */}
-            {renderStepContent()}
+          {/* Navigation Buttons */}
+          <div className="flex justify-between mt-8">
+            <Button
+              variant="outline"
+              onClick={prevStep}
+              disabled={currentStep === 1}
+            >
+              <ArrowLeft className="w-4 h-4 mr-2" />
+              Back
+            </Button>
 
-            {/* Navigation Buttons */}
-            <div className="flex justify-between mt-8">
-              <Button
-                variant="outline"
-                onClick={prevStep}
-                disabled={currentStep === 1}
-              >
-                <ArrowLeft className="w-4 h-4 mr-2" />
-                Back
+            {currentStep < totalSteps && (
+              <Button onClick={nextStep}>
+                Continue
+                <ArrowRight className="w-4 h-4 ml-2" />
               </Button>
-
-              {currentStep < totalSteps && (
-                <Button onClick={nextStep}>
-                  Continue
-                  <ArrowRight className="w-4 h-4 ml-2" />
-                </Button>
-              )}
-            </div>
+            )}
           </div>
         </div>
       </div>

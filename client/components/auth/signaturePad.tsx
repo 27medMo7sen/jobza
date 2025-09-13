@@ -37,7 +37,7 @@ export default function SignaturePad() {
         </button>
         <button
           onClick={save}
-          className="px-4 py-2 bg-blue-500 text-white rounded"
+          className="px-4 py-2 bg-blue-500 text-gray-100 rounded"
         >
           Save
         </button>

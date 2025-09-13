@@ -5,6 +5,7 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useDispatch } from "react-redux";
 import { clearAuth } from "@/lib/slices/authSlice";
+import { clearFiles } from "@/lib/slices/filesSlice";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -78,59 +79,21 @@ const getNavigationItems = (role: UserRole): NavItem[] => {
         { title: "My Jobs", href: "/employer/jobs", icon: Briefcase },
         { title: "Post Job", href: "/post-job", icon: Plus },
         { title: "Browse Workers", href: "/browse-workers", icon: Search },
-        { title: "Profile", href: "/employer/profile", icon: User },
         { title: "Settings", href: "/employer/settings", icon: Settings },
-        {
-          title: "Logout",
-          href: "/",
-          icon: LogOut,
-          onClick: () => {
-            window.location.href = "/";
-          },
-        },
       ];
     case "worker":
       return [
         ...baseItems.slice(0, 1),
         { title: "Job Offers", href: "/worker/job-offers", icon: Briefcase },
         { title: "Applications", href: "/worker/applications", icon: Clock },
-        ...baseItems.slice(1),
-        {
-          title: "Logout",
-          href: "/",
-          icon: LogOut,
-          onClick: () => {
-            window.location.href = "/";
-          },
-        },
       ];
     case "agency":
       return [
         ...baseItems.slice(0, 1),
         { title: "Workers", href: "/agency/workers", icon: Users },
-        ...baseItems.slice(1),
-        {
-          title: "Logout",
-          href: "/",
-          icon: LogOut,
-          onClick: () => {
-            window.location.href = "/";
-          },
-        },
       ];
     case "admin":
-      return [
-        ...baseItems.slice(0, 1),
-        { title: "Profile", href: "/admin/profile", icon: User },
-        {
-          title: "Logout",
-          href: "/",
-          icon: LogOut,
-          onClick: () => {
-            window.location.href = "/";
-          },
-        },
-      ];
+      return [...baseItems.slice(0, 1)];
     default:
       return baseItems;
   }
@@ -152,15 +115,16 @@ export function UnifiedSidebar({
 
   const handleSignOut = async () => {
     try {
-      // Clear auth state and localStorage using Redux action
+      // Clear auth state and localStorage using Redux actions
       dispatch(clearAuth());
+      dispatch(clearFiles());
 
-      // Redirect to auth page
-      router.push("/auth");
+      // Use window.location.href for immediate navigation to prevent navigation guard interference
+      window.location.href = "/auth";
     } catch (error) {
       console.error("Sign out error:", error);
       // Fallback redirect
-      router.push("/auth");
+      window.location.href = "/auth";
     }
   };
 
@@ -185,18 +149,22 @@ export function UnifiedSidebar({
                 "w-full justify-start gap-3 rounded-lg px-3 py-2 text-sm transition-colors",
                 isCollapsed ? "px-2" : "px-3",
                 isLogout
-                  ? "text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 hover:text-red-700 dark:hover:text-red-300 hover:border-red-200 dark:hover:border-red-500/30 border border-transparent"
-                  : "text-gray-700 dark:text-white/90 hover:bg-gray-100 dark:hover:bg-white/10 hover:text-gray-900 dark:hover:text-white"
+                  ? "text-red-600 hover:bg-red-50 hover:text-red-700 hover:border-red-200 border border-transparent"
+                  : "text-gray-700 hover:bg-gray-100 hover:text-gray-900"
               )}
               onClick={() => {
-                item.onClick?.();
+                if (isLogout) {
+                  handleSignOut();
+                } else {
+                  item.onClick?.();
+                }
                 setIsMobileMenuOpen(false);
               }}
             >
               <item.icon
                 className={cn(
                   "h-4 w-4 flex-shrink-0",
-                  isLogout && "text-red-600 dark:text-red-400"
+                  isLogout && "text-red-600"
                 )}
               />
               {!isCollapsed && (
@@ -221,8 +189,8 @@ export function UnifiedSidebar({
               "flex items-center gap-3 rounded-lg px-3 py-2 text-sm transition-colors",
               isCollapsed ? "px-2" : "px-3",
               isActive
-                ? "bg-blue-600 text-white dark:bg-blue-500 dark:text-white"
-                : "text-gray-700 dark:text-white/90 hover:bg-gray-100 dark:hover:bg-white/10 hover:text-gray-900 dark:hover:text-white"
+                ? "bg-blue-600 text-gray-900"
+                : "text-gray-700 hover:bg-gray-100 hover:text-gray-900"
             )}
             onClick={() => setIsMobileMenuOpen(false)}
           >
@@ -252,7 +220,7 @@ export function UnifiedSidebar({
           variant="outline"
           size="sm"
           onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-          className="h-10 w-10 p-0 bg-background/95 backdrop-blur-sm border-border/50 hover:bg-background shadow-lg text-gray-700 dark:text-white hover:text-gray-900 dark:hover:text-white"
+          className="h-10 w-10 p-0 bg-background/95 backdrop-blur-sm border-border/50 hover:bg-background shadow-lg text-gray-700 hover:text-gray-900"
         >
           {isMobileMenuOpen ? (
             <X className="h-4 w-4" />
@@ -281,9 +249,7 @@ export function UnifiedSidebar({
                     J
                   </span>
                 </div>
-                <span className="text-xl font-bold text-gray-900 dark:text-white">
-                  Jobza
-                </span>
+                <span className="text-xl font-bold text-gray-900 ">Jobza</span>
               </Link>
             </div>
 
@@ -298,9 +264,9 @@ export function UnifiedSidebar({
                 <DropdownMenuTrigger asChild>
                   <Button
                     variant="ghost"
-                    className="w-full justify-start gap-3 px-3 py-2 text-sm h-auto text-gray-700 dark:text-white/90 hover:bg-gray-100 dark:hover:bg-white/10 hover:text-gray-900 dark:hover:text-white"
+                    className="w-full justify-start gap-3 px-3 py-2 text-sm h-auto text-gray-700 hover:bg-gray-100 hover:text-gray-900"
                   >
-                    <Avatar className="h-6 w-6">
+                    <Avatar className="h-8 w-8">
                       <AvatarImage
                         src={userAvatar || "/placeholder.svg"}
                         alt={userName}
@@ -309,25 +275,40 @@ export function UnifiedSidebar({
                         {userName?.charAt(0) || "U"}
                       </AvatarFallback>
                     </Avatar>
-                    <div className="flex flex-col items-start">
-                      <span className="text-sm font-medium text-gray-900 dark:text-white">
-                        {userName || "User"}
+                    <div className="flex flex-col items-start min-w-0 flex-1">
+                      <span className="text-sm font-medium text-gray-900  truncate w-full">
+                        {userName && userName.length > 20
+                          ? `${userName.substring(0, 20)}...`
+                          : userName || "User"}
                       </span>
-                      <span className="text-xs text-gray-600 dark:text-white/70">
-                        {userEmail}
+                      <span className="text-xs text-gray-600 /70 truncate w-full">
+                        {userEmail && userEmail.length > 25
+                          ? `${userEmail.substring(0, 25)}...`
+                          : userEmail}
                       </span>
                     </div>
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent className="w-56" align="end" forceMount>
                   <DropdownMenuLabel className="font-normal">
-                    <div className="flex flex-col space-y-1">
-                      <p className="text-sm font-medium leading-none">
-                        {userName || "User"}
-                      </p>
-                      <p className="text-xs leading-none text-muted-foreground">
-                        {userEmail}
-                      </p>
+                    <div className="flex items-center space-x-3">
+                      <Avatar className="h-8 w-8">
+                        <AvatarImage
+                          src={userAvatar || "/placeholder.svg"}
+                          alt={userName}
+                        />
+                        <AvatarFallback className="text-xs">
+                          {userName?.charAt(0) || "U"}
+                        </AvatarFallback>
+                      </Avatar>
+                      <div className="flex flex-col space-y-1">
+                        <p className="text-sm font-medium leading-none">
+                          {userName || "User"}
+                        </p>
+                        <p className="text-xs leading-none text-muted-foreground">
+                          {userEmail}
+                        </p>
+                      </div>
                     </div>
                   </DropdownMenuLabel>
                   <DropdownMenuSeparator />
@@ -369,9 +350,7 @@ export function UnifiedSidebar({
                     J
                   </span>
                 </div>
-                <span className="text-xl font-bold text-gray-900 dark:text-white">
-                  Jobza
-                </span>
+                <span className="text-xl font-bold text-gray-900 ">Jobza</span>
               </Link>
             )}
 
@@ -384,7 +363,7 @@ export function UnifiedSidebar({
                 onCollapsedChange?.(newCollapsed);
               }}
               className={cn(
-                "p-1 h-8 w-8 transition-all duration-300 text-gray-700 dark:text-white/90 hover:bg-gray-100 dark:hover:bg-white/10 hover:text-gray-900 dark:hover:text-white",
+                "p-1 h-8 w-8 transition-all duration-300 text-gray-700 hover:bg-gray-100 hover:text-gray-900",
                 collapsed ? "mx-auto" : "ml-auto"
               )}
             >
@@ -408,11 +387,11 @@ export function UnifiedSidebar({
                 <Button
                   variant="ghost"
                   className={cn(
-                    "w-full justify-start gap-3 px-3 py-2 text-sm h-auto text-gray-700 dark:text-white/90 hover:bg-gray-100 dark:hover:bg-white/10 hover:text-gray-900 dark:hover:text-white",
+                    "w-full justify-start gap-3 px-3 py-2 text-sm h-auto text-gray-700 hover:bg-gray-100 hover:text-gray-900",
                     collapsed ? "justify-center" : "justify-start"
                   )}
                 >
-                  <Avatar className="h-6 w-6">
+                  <Avatar className={cn(collapsed ? "h-6 w-6" : "h-8 w-8")}>
                     <AvatarImage
                       src={userAvatar || "/placeholder.svg"}
                       alt={userName}
@@ -422,12 +401,16 @@ export function UnifiedSidebar({
                     </AvatarFallback>
                   </Avatar>
                   {!collapsed && (
-                    <div className="flex flex-col items-start">
-                      <span className="text-sm font-medium text-gray-900 dark:text-white">
-                        {userName || "User"}
+                    <div className="flex flex-col items-start min-w-0 flex-1">
+                      <span className="text-sm font-medium text-gray-900  truncate w-full">
+                        {userName && userName.length > 20
+                          ? `${userName.substring(0, 20)}...`
+                          : userName || "User"}
                       </span>
-                      <span className="text-xs text-gray-600 dark:text-white/70">
-                        {userEmail}
+                      <span className="text-xs text-gray-600 /70 truncate w-full">
+                        {userEmail && userEmail.length > 25
+                          ? `${userEmail.substring(0, 25)}...`
+                          : userEmail}
                       </span>
                     </div>
                   )}
@@ -435,13 +418,24 @@ export function UnifiedSidebar({
               </DropdownMenuTrigger>
               <DropdownMenuContent className="w-56" align="end" forceMount>
                 <DropdownMenuLabel className="font-normal">
-                  <div className="flex flex-col space-y-1">
-                    <p className="text-sm font-medium leading-none">
-                      {userName || "User"}
-                    </p>
-                    <p className="text-xs leading-none text-muted-foreground">
-                      {userEmail}
-                    </p>
+                  <div className="flex items-center space-x-3">
+                    <Avatar className="h-8 w-8">
+                      <AvatarImage
+                        src={userAvatar || "/placeholder.svg"}
+                        alt={userName}
+                      />
+                      <AvatarFallback className="text-xs">
+                        {userName?.charAt(0) || "U"}
+                      </AvatarFallback>
+                    </Avatar>
+                    <div className="flex flex-col space-y-1">
+                      <p className="text-sm font-medium leading-none">
+                        {userName || "User"}
+                      </p>
+                      <p className="text-xs leading-none text-muted-foreground">
+                        {userEmail}
+                      </p>
+                    </div>
                   </div>
                 </DropdownMenuLabel>
                 <DropdownMenuSeparator />

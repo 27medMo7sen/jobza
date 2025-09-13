@@ -43,8 +43,13 @@ export function DocumentsSection({
     setIsClient(true);
   }, []);
 
-  // console.log("DocumentsSection - files from Redux:", files);
-  // console.log("DocumentsSection - roleDocuments:", roleDocuments);
+  console.log("DocumentsSection - files from Redux:", files);
+  console.log("DocumentsSection - roleDocuments:", roleDocuments);
+  console.log("DocumentsSection - profileData:", profileData);
+  console.log(
+    "DocumentsSection - requiredDocuments:",
+    roleDocuments.filter((doc) => doc.required)
+  );
 
   const handleClearFiles = () => {
     dispatch(clearFiles());

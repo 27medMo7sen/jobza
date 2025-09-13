@@ -10,6 +10,8 @@ import { setToken, setUser } from "@/lib/slices/authSlice";
 import { RootState } from "@/lib/store";
 import { useHttp } from "@/hooks/use-http";
 import { usePathname, useRouter } from "next/navigation";
+import { clearAuth } from "@/lib/slices/authSlice";
+import { clearFiles } from "@/lib/slices/filesSlice";
 // const dmSans = DM_Sans({
 //   subsets: ["latin"],
 //   display: "swap",
@@ -31,7 +33,7 @@ export default function RootLayout({
 }>) {
   const dispatch = useDispatch();
   const { get } = useHttp();
-  const { user } = useSelector((state: RootState) => state.auth);
+  const { user, token } = useSelector((state: RootState) => state.auth);
   const router = useRouter();
   const pathname = usePathname();
   useEffect(() => {
@@ -79,6 +81,34 @@ export default function RootLayout({
     };
     hydrateUser();
   }, [user, dispatch, get]);
+
+  // Basic navigation guard - handle auth page and root redirects only
+  useEffect(() => {
+    const isAuthRoute = pathname === "/auth";
+    const userRole = user?.role;
+
+    // If user is authenticated and trying to access auth page, redirect to dashboard
+    if (isAuthRoute && user && token) {
+      const userRole = user.role || "worker";
+      if (userRole === "superadmin") {
+        router.push("/superadmin/dashboard");
+      } else {
+        router.push(`/${userRole}/dashboard`);
+      }
+      return;
+    }
+
+    // If user is authenticated and trying to access root, redirect to dashboard
+    if (pathname === "/" && user && token) {
+      const userRole = user.role || "worker";
+      if (userRole === "superadmin") {
+        router.push("/superadmin/dashboard");
+      } else {
+        router.push(`/${userRole}/dashboard`);
+      }
+      return;
+    }
+  }, [pathname, user, token, dispatch, router]);
 
   return (
     <div className={`font-sans  antialiased`}>

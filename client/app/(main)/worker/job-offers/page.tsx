@@ -12,7 +12,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { UnifiedSidebar } from "@/components/layout/unified-sidebar";
 import { SharedHeader } from "@/components/layout/shared-header";
 import {
   ArrowLeft,
@@ -296,13 +295,7 @@ export default function JobOffersPage() {
 
   return (
     <div className="min-h-screen bg-background">
-      <UnifiedSidebar
-        userRole="worker"
-        userName="Sarah Johnson"
-        userEmail="sarah@example.com"
-      />
-
-      <div className="lg:ml-64 flex-1 flex flex-col overflow-hidden">
+      <div className="flex-1 flex flex-col overflow-hidden">
         <SharedHeader
           title="Job Offers"
           subtitle="Browse available job opportunities"
@@ -392,7 +385,7 @@ export default function JobOffersPage() {
               <div className="flex gap-3 justify-center">
                 <Button
                   onClick={confirmCancelAffiliation}
-                  className="bg-amber-600 hover:bg-amber-700 text-white"
+                  className="bg-amber-600 hover:bg-amber-700 text-gray-100"
                 >
                   Yes, Cancel Request
                 </Button>

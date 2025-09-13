@@ -1,26 +1,25 @@
-"use client"
+"use client";
 
-import { Button } from "@/components/ui/button"
-import { ThemeToggle } from "@/components/ui/theme-toggle"
-import { ArrowLeft, Bell } from "lucide-react"
-import { useRouter } from "next/navigation"
+import { Button } from "@/components/ui/button";
+import { ArrowLeft, Bell } from "lucide-react";
+import { useRouter } from "next/navigation";
 
 interface SharedHeaderProps {
-  title: string
-  subtitle?: string
-  showLogo?: boolean
-  showBackButton?: boolean
-  showNotification?: boolean
+  title: string;
+  subtitle?: string;
+  showLogo?: boolean;
+  showBackButton?: boolean;
+  showNotification?: boolean;
 }
 
-export function SharedHeader({ 
-  title, 
-  subtitle, 
-  showLogo = true, 
+export function SharedHeader({
+  title,
+  subtitle,
+  showLogo = true,
   showBackButton = false,
-  showNotification = true
+  showNotification = true,
 }: SharedHeaderProps) {
-  const router = useRouter()
+  const router = useRouter();
 
   return (
     <div className="bg-card border-b border-border px-6 py-4">
@@ -38,7 +37,9 @@ export function SharedHeader({
           )}
           {showLogo && (
             <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
-              <span className="text-primary-foreground font-bold text-sm">J</span>
+              <span className="text-primary-foreground font-bold text-sm">
+                J
+              </span>
             </div>
           )}
           <div>
@@ -55,9 +56,8 @@ export function SharedHeader({
               </span>
             </Button>
           )}
-          <ThemeToggle />
         </div>
       </div>
     </div>
-  )
+  );
 }

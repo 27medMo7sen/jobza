@@ -8,6 +8,7 @@ export enum fileType {
 }
 export enum fileLabel {
   PASSPORT = 'passport',
+  VISA = 'visa',
   RESIDENCE_PERMIT = 'residence_permit',
   FACE_PHOTO = 'face_photo',
   FULL_BODY_PHOTO = 'full_body_photo',
@@ -18,6 +19,17 @@ export enum fileLabel {
   SIGNATURE = 'signature',
   NATIONAL_ID = 'national_id',
   PROFILE_PHOTO = 'profile_photo',
+  PROOF_OF_ADDRESS = 'proof_of_address',
+  EMPLOYMENT_LETTER = 'employmentLetter',
+  INCOME_PROOF = 'incomeProof',
+  BUSINESS_LICENSE = 'businessLicense',
+  REGISTRATION_CERTIFICATE = 'registrationCertificate',
+  INSURANCE_CERTIFICATE = 'insuranceCertificate',
+  TAX_CERTIFICATE = 'taxCertificate',
+  COMPLIANCE_DOCUMENTS = 'complianceDocuments',
+  ID_DOCUMENT = 'idDocument',
+  BACKGROUND_CHECK = 'backgroundCheck',
+  SECURITY_CLEARANCE = 'securityClearance',
 }
 @Schema({ timestamps: true })
 export class File {

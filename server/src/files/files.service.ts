@@ -54,7 +54,7 @@ export class FilesService {
     if (label === 'profile_photo') {
       return await this.authService.updateProfilePhoto(userId, url, key, role);
     } else {
-      const savedFile = new this.fileModel({
+      const fileData: any = {
         userId,
         fileType: type,
         fileName: file.originalname,
@@ -62,7 +62,9 @@ export class FilesService {
         s3Key: key,
         url,
         size: file.size,
-      });
+      };
+
+      const savedFile = new this.fileModel(fileData);
       savedFile.save();
 
       // Trigger profile status update based on role

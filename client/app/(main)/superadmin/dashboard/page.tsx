@@ -26,6 +26,7 @@ import { useHttp } from "@/hooks/use-http";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 import { clearAuth } from "@/lib/slices/authSlice";
+import { clearFiles } from "@/lib/slices/filesSlice";
 
 interface Admin {
   _id: string;
@@ -116,7 +117,8 @@ export default function SuperadminDashboard() {
 
   const handleLogout = () => {
     dispatch(clearAuth());
-    router.push("/auth");
+    dispatch(clearFiles());
+    window.location.href = "/auth";
   };
 
   if (isLoading) {

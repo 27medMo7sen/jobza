@@ -55,20 +55,20 @@ export default function GlobalError({
         <div className="flex flex-col sm:flex-row gap-3 justify-center">
           <button
             onClick={handleGoBack}
-            className="px-6 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors"
+            className="px-6 py-2 bg-gray-600 text-gray-100 rounded-lg hover:bg-gray-700 transition-colors"
           >
             Go Back
           </button>
           <button
             onClick={handleGoHome}
-            className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+            className="px-6 py-2 bg-blue-600 text-gray-100 rounded-lg hover:bg-blue-700 transition-colors"
           >
             Go Home
           </button>
           {!errorMessage && (
             <button
               onClick={() => reset()}
-              className="px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
+              className="px-6 py-2 bg-green-600 text-gray-100 rounded-lg hover:bg-green-700 transition-colors"
             >
               Try Again
             </button>

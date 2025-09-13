@@ -30,7 +30,6 @@ import {
   MessageCircle,
 } from "lucide-react";
 import Link from "next/link";
-import { UnifiedSidebar } from "@/components/layout/unified-sidebar";
 
 // Mock worker data
 const mockWorkers = [
@@ -182,359 +181,347 @@ export default function BrowseWorkersPage() {
 
   return (
     <div className="min-h-screen bg-background">
-      <UnifiedSidebar
-        userRole="employer"
-        userName="John Smith"
-        userEmail="john@example.com"
-      />
-
-      <div className="lg:ml-64">
-        {/* Header */}
-        <header className="bg-white shadow-sm border-b">
-          <div className="container mx-auto px-4 py-4">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center space-x-2">
-                <Users className="w-5 h-5 text-blue-500" />
-                <span className="text-sm text-gray-600">Browse Workers</span>
-              </div>
+      {/* Header */}
+      <header className="bg-white shadow-sm border-b">
+        <div className="container mx-auto px-4 py-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-2">
+              <Users className="w-5 h-5 text-blue-500" />
+              <span className="text-sm text-gray-600">Browse Workers</span>
             </div>
           </div>
-        </header>
+        </div>
+      </header>
 
-        {/* Main Content */}
-        <div className="container mx-auto px-4 py-8">
-          <div className="max-w-7xl mx-auto">
-            {/* Page Header */}
-            <div className="mb-8">
-              <h1 className="text-3xl font-bold text-gray-900 mb-2">
-                Browse Available Workers
-              </h1>
-              <p className="text-gray-600">
-                Find qualified domestic workers for short-term assistance
-              </p>
-            </div>
+      {/* Main Content */}
+      <div className="container mx-auto px-4 py-8">
+        <div className="max-w-7xl mx-auto">
+          {/* Page Header */}
+          <div className="mb-8">
+            <h1 className="text-3xl font-bold text-gray-900 mb-2">
+              Browse Available Workers
+            </h1>
+            <p className="text-gray-600">
+              Find qualified domestic workers for short-term assistance
+            </p>
+          </div>
 
-            {/* Search and Filters */}
-            <div className="bg-white rounded-lg shadow-sm border p-6 mb-8">
-              <div className="flex flex-col lg:flex-row gap-4">
-                {/* Search Bar */}
-                <div className="flex-1">
-                  <div className="relative">
-                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-                    <Input
-                      placeholder="Search by name, skills, or location..."
-                      value={searchTerm}
-                      onChange={(e) => setSearchTerm(e.target.value)}
-                      className="pl-10"
-                    />
-                  </div>
+          {/* Search and Filters */}
+          <div className="bg-white rounded-lg shadow-sm border p-6 mb-8">
+            <div className="flex flex-col lg:flex-row gap-4">
+              {/* Search Bar */}
+              <div className="flex-1">
+                <div className="relative">
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                  <Input
+                    placeholder="Search by name, skills, or location..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="pl-10"
+                  />
                 </div>
+              </div>
 
-                {/* Filter Toggle */}
-                <Button
-                  variant="outline"
-                  onClick={() => setShowFilters(!showFilters)}
-                  className="lg:w-auto"
-                >
-                  <Filter className="w-4 h-4 mr-2" />
-                  Filters
+              {/* Filter Toggle */}
+              <Button
+                variant="outline"
+                onClick={() => setShowFilters(!showFilters)}
+                className="lg:w-auto"
+              >
+                <Filter className="w-4 h-4 mr-2" />
+                Filters
+              </Button>
+
+              {/* Quick Actions */}
+              <div className="flex gap-2 lg:w-auto">
+                <Button variant="outline" size="sm">
+                  <MapPin className="w-4 h-4 mr-2" />
+                  Near Me
                 </Button>
-
-                {/* Quick Actions */}
-                <div className="flex gap-2 lg:w-auto">
-                  <Button variant="outline" size="sm">
-                    <MapPin className="w-4 h-4 mr-2" />
-                    Near Me
-                  </Button>
-                  <Button variant="outline" size="sm">
-                    <Clock className="w-4 h-4 mr-2" />
-                    Available Now
-                  </Button>
-                </div>
+                <Button variant="outline" size="sm">
+                  <Clock className="w-4 h-4 mr-2" />
+                  Available Now
+                </Button>
               </div>
+            </div>
 
-              {/* Advanced Filters */}
-              {showFilters && (
-                <div className="mt-6 pt-6 border-t">
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                    <div className="space-y-2">
-                      <Label>Role</Label>
-                      <Select
-                        value={selectedRole}
-                        onValueChange={setSelectedRole}
-                      >
-                        <SelectTrigger>
-                          <SelectValue placeholder="All Roles" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="">All Roles</SelectItem>
-                          <SelectItem value="Maid / Housekeeper">
-                            Maid / Housekeeper
-                          </SelectItem>
-                          <SelectItem value="Nanny / Child Care">
-                            Nanny / Child Care
-                          </SelectItem>
-                          <SelectItem value="Adult Caregiver">
-                            Adult Caregiver
-                          </SelectItem>
-                          <SelectItem value="Combined Role">
-                            Combined Role
-                          </SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
+            {/* Advanced Filters */}
+            {showFilters && (
+              <div className="mt-6 pt-6 border-t">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                  <div className="space-y-2">
+                    <Label>Role</Label>
+                    <Select
+                      value={selectedRole}
+                      onValueChange={setSelectedRole}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="All Roles" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="">All Roles</SelectItem>
+                        <SelectItem value="Maid / Housekeeper">
+                          Maid / Housekeeper
+                        </SelectItem>
+                        <SelectItem value="Nanny / Child Care">
+                          Nanny / Child Care
+                        </SelectItem>
+                        <SelectItem value="Adult Caregiver">
+                          Adult Caregiver
+                        </SelectItem>
+                        <SelectItem value="Combined Role">
+                          Combined Role
+                        </SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
 
-                    <div className="space-y-2">
-                      <Label>Location</Label>
-                      <Select
-                        value={selectedLocation}
-                        onValueChange={setSelectedLocation}
-                      >
-                        <SelectTrigger>
-                          <SelectValue placeholder="All Locations" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="">All Locations</SelectItem>
-                          <SelectItem value="Downtown">Downtown</SelectItem>
-                          <SelectItem value="Maadi">Maadi</SelectItem>
-                          <SelectItem value="Heliopolis">Heliopolis</SelectItem>
-                          <SelectItem value="Zamalek">Zamalek</SelectItem>
-                          <SelectItem value="Nasr City">Nasr City</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
+                  <div className="space-y-2">
+                    <Label>Location</Label>
+                    <Select
+                      value={selectedLocation}
+                      onValueChange={setSelectedLocation}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="All Locations" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="">All Locations</SelectItem>
+                        <SelectItem value="Downtown">Downtown</SelectItem>
+                        <SelectItem value="Maadi">Maadi</SelectItem>
+                        <SelectItem value="Heliopolis">Heliopolis</SelectItem>
+                        <SelectItem value="Zamalek">Zamalek</SelectItem>
+                        <SelectItem value="Nasr City">Nasr City</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
 
-                    <div className="space-y-2">
-                      <Label>Price Range</Label>
-                      <Select value={priceRange} onValueChange={setPriceRange}>
-                        <SelectTrigger>
-                          <SelectValue placeholder="All Prices" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="">All Prices</SelectItem>
-                          <SelectItem value="40">Under EGP 50</SelectItem>
-                          <SelectItem value="50">EGP 50-60</SelectItem>
-                          <SelectItem value="60">EGP 60-70</SelectItem>
-                          <SelectItem value="70">Over EGP 70</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
+                  <div className="space-y-2">
+                    <Label>Price Range</Label>
+                    <Select value={priceRange} onValueChange={setPriceRange}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="All Prices" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="">All Prices</SelectItem>
+                        <SelectItem value="40">Under EGP 50</SelectItem>
+                        <SelectItem value="50">EGP 50-60</SelectItem>
+                        <SelectItem value="60">EGP 60-70</SelectItem>
+                        <SelectItem value="70">Over EGP 70</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
 
-                    <div className="space-y-2">
-                      <Label>Availability</Label>
-                      <Select
-                        value={availability}
-                        onValueChange={setAvailability}
-                      >
-                        <SelectTrigger>
-                          <SelectValue placeholder="All Availability" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="">All Availability</SelectItem>
-                          <SelectItem value="Now">Available Now</SelectItem>
-                          <SelectItem value="Today">Available Today</SelectItem>
-                          <SelectItem value="Tomorrow">
-                            Available Tomorrow
-                          </SelectItem>
-                          <SelectItem value="Week">
-                            Available This Week
-                          </SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
+                  <div className="space-y-2">
+                    <Label>Availability</Label>
+                    <Select
+                      value={availability}
+                      onValueChange={setAvailability}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="All Availability" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="">All Availability</SelectItem>
+                        <SelectItem value="Now">Available Now</SelectItem>
+                        <SelectItem value="Today">Available Today</SelectItem>
+                        <SelectItem value="Tomorrow">
+                          Available Tomorrow
+                        </SelectItem>
+                        <SelectItem value="Week">
+                          Available This Week
+                        </SelectItem>
+                      </SelectContent>
+                    </Select>
                   </div>
                 </div>
-              )}
-            </div>
-
-            {/* Results Summary */}
-            <div className="flex items-center justify-between mb-6">
-              <p className="text-gray-600">
-                Showing{" "}
-                <span className="font-semibold">{filteredWorkers.length}</span>{" "}
-                of <span className="font-semibold">{mockWorkers.length}</span>{" "}
-                workers
-              </p>
-              <div className="flex items-center space-x-2">
-                <Label className="text-sm">Sort by:</Label>
-                <Select>
-                  <SelectTrigger className="w-32">
-                    <SelectValue placeholder="Rating" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="rating">Rating</SelectItem>
-                    <SelectItem value="experience">Experience</SelectItem>
-                    <SelectItem value="price">Price</SelectItem>
-                    <SelectItem value="distance">Distance</SelectItem>
-                  </SelectContent>
-                </Select>
               </div>
-            </div>
+            )}
+          </div>
 
-            {/* Workers Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {filteredWorkers.map((worker) => (
-                <Card
-                  key={worker.id}
-                  className="hover:shadow-lg transition-shadow cursor-pointer"
-                >
-                  <CardHeader className="pb-3">
-                    <div className="flex items-start justify-between">
-                      <div className="flex items-center space-x-3">
-                        <Avatar className="w-16 h-16">
-                          <AvatarImage src={worker.avatar} alt={worker.name} />
-                          <AvatarFallback className="text-lg font-semibold">
-                            {worker.name
-                              .split(" ")
-                              .map((n) => n[0])
-                              .join("")}
-                          </AvatarFallback>
-                        </Avatar>
-                        <div>
-                          <h3 className="font-semibold text-lg">
-                            {worker.name}
-                          </h3>
-                          <p className="text-sm text-gray-600">{worker.role}</p>
-                          <div className="flex items-center space-x-1 mt-1">
-                            <Star className="w-4 h-4 text-yellow-500 fill-current" />
-                            <span className="text-sm font-medium">
-                              {worker.rating}
-                            </span>
-                            <span className="text-sm text-gray-500">
-                              ({worker.reviews})
-                            </span>
-                          </div>
+          {/* Results Summary */}
+          <div className="flex items-center justify-between mb-6">
+            <p className="text-gray-600">
+              Showing{" "}
+              <span className="font-semibold">{filteredWorkers.length}</span> of{" "}
+              <span className="font-semibold">{mockWorkers.length}</span>{" "}
+              workers
+            </p>
+            <div className="flex items-center space-x-2">
+              <Label className="text-sm">Sort by:</Label>
+              <Select>
+                <SelectTrigger className="w-32">
+                  <SelectValue placeholder="Rating" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="rating">Rating</SelectItem>
+                  <SelectItem value="experience">Experience</SelectItem>
+                  <SelectItem value="price">Price</SelectItem>
+                  <SelectItem value="distance">Distance</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+
+          {/* Workers Grid */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {filteredWorkers.map((worker) => (
+              <Card
+                key={worker.id}
+                className="hover:shadow-lg transition-shadow cursor-pointer"
+              >
+                <CardHeader className="pb-3">
+                  <div className="flex items-start justify-between">
+                    <div className="flex items-center space-x-3">
+                      <Avatar className="w-16 h-16">
+                        <AvatarImage src={worker.avatar} alt={worker.name} />
+                        <AvatarFallback className="text-lg font-semibold">
+                          {worker.name
+                            .split(" ")
+                            .map((n) => n[0])
+                            .join("")}
+                        </AvatarFallback>
+                      </Avatar>
+                      <div>
+                        <h3 className="font-semibold text-lg">{worker.name}</h3>
+                        <p className="text-sm text-gray-600">{worker.role}</p>
+                        <div className="flex items-center space-x-1 mt-1">
+                          <Star className="w-4 h-4 text-yellow-500 fill-current" />
+                          <span className="text-sm font-medium">
+                            {worker.rating}
+                          </span>
+                          <span className="text-sm text-gray-500">
+                            ({worker.reviews})
+                          </span>
                         </div>
                       </div>
-                      <Badge className={getBackgroundColor(worker.background)}>
-                        {worker.background === "verified"
-                          ? "✓ Verified"
-                          : "Pending"}
-                      </Badge>
                     </div>
-                  </CardHeader>
-
-                  <CardContent className="space-y-4">
-                    {/* Key Info */}
-                    <div className="space-y-2">
-                      <div className="flex items-center space-x-2 text-sm text-gray-600">
-                        <MapPin className="w-4 h-4" />
-                        <span>{worker.location}</span>
-                        <span className="text-gray-400">•</span>
-                        <span>{worker.distance}</span>
-                      </div>
-                      <div className="flex items-center space-x-2 text-sm text-gray-600">
-                        <Clock className="w-4 h-4" />
-                        <span>{worker.experience} experience</span>
-                      </div>
-                      <div className="flex items-center space-x-2 text-sm text-gray-600">
-                        <DollarSign className="w-4 h-4" />
-                        <span className="font-medium">
-                          {worker.hourlyRate}/hour
-                        </span>
-                      </div>
-                    </div>
-
-                    {/* Availability */}
-                    <Badge
-                      className={getAvailabilityColor(worker.availability)}
-                    >
-                      {worker.availability}
+                    <Badge className={getBackgroundColor(worker.background)}>
+                      {worker.background === "verified"
+                        ? "✓ Verified"
+                        : "Pending"}
                     </Badge>
+                  </div>
+                </CardHeader>
 
-                    {/* Skills */}
-                    <div className="space-y-2">
-                      <Label className="text-sm font-medium">Skills</Label>
-                      <div className="flex flex-wrap gap-1">
-                        {worker.skills.slice(0, 3).map((skill, index) => (
-                          <Badge
-                            key={index}
-                            variant="secondary"
-                            className="text-xs"
-                          >
-                            {skill}
-                          </Badge>
-                        ))}
-                        {worker.skills.length > 3 && (
-                          <Badge variant="secondary" className="text-xs">
-                            +{worker.skills.length - 3} more
-                          </Badge>
-                        )}
-                      </div>
+                <CardContent className="space-y-4">
+                  {/* Key Info */}
+                  <div className="space-y-2">
+                    <div className="flex items-center space-x-2 text-sm text-gray-600">
+                      <MapPin className="w-4 h-4" />
+                      <span>{worker.location}</span>
+                      <span className="text-gray-400">•</span>
+                      <span>{worker.distance}</span>
                     </div>
-
-                    {/* Languages */}
-                    <div className="space-y-2">
-                      <Label className="text-sm font-medium">Languages</Label>
-                      <div className="flex flex-wrap gap-1">
-                        {worker.languages.map((language, index) => (
-                          <Badge
-                            key={index}
-                            variant="outline"
-                            className="text-xs"
-                          >
-                            {language}
-                          </Badge>
-                        ))}
-                      </div>
+                    <div className="flex items-center space-x-2 text-sm text-gray-600">
+                      <Clock className="w-4 h-4" />
+                      <span>{worker.experience} experience</span>
                     </div>
-
-                    {/* Actions */}
-                    <div className="flex gap-2 pt-2">
-                      <Button variant="outline" size="sm" className="flex-1">
-                        <Eye className="w-4 h-4 mr-2" />
-                        View Profile
-                      </Button>
-                      <Button variant="outline" size="sm" className="flex-1">
-                        <MessageCircle className="w-4 h-4 mr-2" />
-                        Contact
-                      </Button>
+                    <div className="flex items-center space-x-2 text-sm text-gray-600">
+                      <DollarSign className="w-4 h-4" />
+                      <span className="font-medium">
+                        {worker.hourlyRate}/hour
+                      </span>
                     </div>
+                  </div>
 
-                    {/* Quick Book */}
-                    <Button className="w-full" size="sm">
-                      <Clock className="w-4 h-4 mr-2" />
-                      Book Now
+                  {/* Availability */}
+                  <Badge className={getAvailabilityColor(worker.availability)}>
+                    {worker.availability}
+                  </Badge>
+
+                  {/* Skills */}
+                  <div className="space-y-2">
+                    <Label className="text-sm font-medium">Skills</Label>
+                    <div className="flex flex-wrap gap-1">
+                      {worker.skills.slice(0, 3).map((skill, index) => (
+                        <Badge
+                          key={index}
+                          variant="secondary"
+                          className="text-xs"
+                        >
+                          {skill}
+                        </Badge>
+                      ))}
+                      {worker.skills.length > 3 && (
+                        <Badge variant="secondary" className="text-xs">
+                          +{worker.skills.length - 3} more
+                        </Badge>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Languages */}
+                  <div className="space-y-2">
+                    <Label className="text-sm font-medium">Languages</Label>
+                    <div className="flex flex-wrap gap-1">
+                      {worker.languages.map((language, index) => (
+                        <Badge
+                          key={index}
+                          variant="outline"
+                          className="text-xs"
+                        >
+                          {language}
+                        </Badge>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Actions */}
+                  <div className="flex gap-2 pt-2">
+                    <Button variant="outline" size="sm" className="flex-1">
+                      <Eye className="w-4 h-4 mr-2" />
+                      View Profile
                     </Button>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
+                    <Button variant="outline" size="sm" className="flex-1">
+                      <MessageCircle className="w-4 h-4 mr-2" />
+                      Contact
+                    </Button>
+                  </div>
 
-            {/* No Results */}
-            {filteredWorkers.length === 0 && (
-              <div className="text-center py-12">
-                <Users className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-                <h3 className="text-lg font-medium text-gray-900 mb-2">
-                  No workers found
-                </h3>
-                <p className="text-gray-600 mb-4">
-                  Try adjusting your search criteria or filters
-                </p>
-                <Button
-                  variant="outline"
-                  onClick={() => {
-                    setSearchTerm("");
-                    setSelectedRole("");
-                    setSelectedLocation("");
-                    setPriceRange("");
-                    setAvailability("");
-                  }}
-                >
-                  Clear All Filters
-                </Button>
-              </div>
-            )}
-
-            {/* Load More */}
-            {filteredWorkers.length > 0 && (
-              <div className="text-center mt-8">
-                <Button variant="outline" size="lg">
-                  Load More Workers
-                </Button>
-              </div>
-            )}
+                  {/* Quick Book */}
+                  <Button className="w-full" size="sm">
+                    <Clock className="w-4 h-4 mr-2" />
+                    Book Now
+                  </Button>
+                </CardContent>
+              </Card>
+            ))}
           </div>
+
+          {/* No Results */}
+          {filteredWorkers.length === 0 && (
+            <div className="text-center py-12">
+              <Users className="w-16 h-16 text-gray-400 mx-auto mb-4" />
+              <h3 className="text-lg font-medium text-gray-900 mb-2">
+                No workers found
+              </h3>
+              <p className="text-gray-600 mb-4">
+                Try adjusting your search criteria or filters
+              </p>
+              <Button
+                variant="outline"
+                onClick={() => {
+                  setSearchTerm("");
+                  setSelectedRole("");
+                  setSelectedLocation("");
+                  setPriceRange("");
+                  setAvailability("");
+                }}
+              >
+                Clear All Filters
+              </Button>
+            </div>
+          )}
+
+          {/* Load More */}
+          {filteredWorkers.length > 0 && (
+            <div className="text-center mt-8">
+              <Button variant="outline" size="lg">
+                Load More Workers
+              </Button>
+            </div>
+          )}
         </div>
       </div>
     </div>

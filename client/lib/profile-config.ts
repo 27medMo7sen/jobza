@@ -18,11 +18,11 @@ export const PROFILE_CONFIGS: Record<string, ProfileConfig> = {
       required: [
         "facePhoto",
         "fullBodyPhoto",
-        "passportId",
+        "passport",
         "educationalCertificate",
         "medicalCertificate",
         "visa",
-        "nationalId",
+        "national_id",
         "experienceLetter",
         "policeClearance",
         "signature",
@@ -61,7 +61,7 @@ export const PROFILE_CONFIGS: Record<string, ProfileConfig> = {
       adminInfo: false,
     },
     documents: {
-      required: ["facePhoto", "nationalId", "proofOfAddress", "signature"],
+      required: ["facePhoto", "national_id", "proofOfAddress", "signature"],
       optional: ["employmentLetter", "incomeProof"],
     },
     skills: {

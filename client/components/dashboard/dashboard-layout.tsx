@@ -4,7 +4,10 @@ import type React from "react";
 
 import { useState } from "react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
+import { useDispatch } from "react-redux";
+import { clearAuth } from "@/lib/slices/authSlice";
+import { clearFiles } from "@/lib/slices/filesSlice";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -103,14 +106,22 @@ export function DashboardLayout({
 }: DashboardLayoutProps) {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const pathname = usePathname();
+  const router = useRouter();
+  const dispatch = useDispatch();
   const navigationItems = getNavigationItems(userRole);
 
   const handleSignOut = async () => {
     try {
-      await fetch("/api/auth/signout", { method: "POST" });
-      window.location.href = "/";
+      // Clear auth state and localStorage using Redux actions
+      dispatch(clearAuth());
+      dispatch(clearFiles());
+
+      // Use window.location.href for immediate navigation to prevent navigation guard interference
+      window.location.href = "/auth";
     } catch (error) {
       console.error("Sign out error:", error);
+      // Fallback redirect
+      window.location.href = "/auth";
     }
   };
 

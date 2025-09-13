@@ -39,7 +39,7 @@ export const ImageUploadDialog: React.FC<ImageUploadDialogProps> = ({
             />
             <label
               htmlFor="image-upload"
-              className="inline-flex items-center px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg cursor-pointer transition-colors"
+              className="inline-flex items-center px-4 py-2 bg-blue-600 hover:bg-blue-700 text-gray-100 text-sm font-medium rounded-lg cursor-pointer transition-colors"
             >
               Choose File
             </label>
